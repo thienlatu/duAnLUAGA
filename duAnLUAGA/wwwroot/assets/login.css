@@ -1,0 +1,250 @@
+﻿/* Nền mờ bên trái */
+.login-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.4);
+    z-index: 9998;
+}
+
+/* Panel bên phải */
+.login-panel {
+    position: fixed;
+    top: 0;
+    right: -50%;
+    width: 50%;
+    max-width: 600px;
+    height: 100%;
+    background: white;
+    z-index: 9999;
+    overflow-y: auto;
+    padding: 50px 60px;
+    transition: right 0.4s ease;
+    box-shadow: -2px 0 15px rgba(0, 0, 0, 0.1);
+    display: flex;
+    align-items: center;
+}
+
+    .login-panel.active {
+        right: 0;
+    }
+
+/* Nút đóng */
+.close-login {
+    position: absolute;
+    top: 20px;
+    right: 25px;
+    font-size: 28px;
+    cursor: pointer;
+    color: #999;
+    transition: color 0.3s;
+    line-height: 1;
+}
+
+    .close-login:hover {
+        color: #1a1a1a;
+    }
+
+.login-container {
+    width: 100%;
+    max-width: 450px;
+    margin: 0 auto;
+}
+
+.logo {
+    text-align: center;
+}
+
+    .logo h1 {
+        font-size: 32px;
+        font-weight: 400;
+        letter-spacing: 10px;
+        color: #c41e3a;
+        text-transform: uppercase;
+    }
+
+.login-box {
+    background: white;
+    padding-top: 20px;
+    border-top: 1px solid #e5e5e5;
+}
+
+.login-title {
+    font-size: 24px;
+    font-weight: 400;
+    color: #1a1a1a;
+    margin-bottom: 30px;
+    text-align: center;
+    letter-spacing: 1px;
+}
+
+.form-group {
+    margin-bottom: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 11px;
+    color: #666;
+    margin-bottom: 8px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    font-weight: 500;
+}
+
+.form-input {
+    width: 100%;
+    padding: 12px 14px;
+    border: 1px solid #ddd;
+    background: #f8f8f8;
+    font-size: 14px;
+    color: #1a1a1a;
+    transition: all 0.3s;
+}
+
+    .form-input:focus {
+        outline: none;
+        border-color: #c41e3a;
+        background: white;
+    }
+
+    .form-input::placeholder {
+        color: #bbb;
+    }
+
+.form-options {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+    font-size: 12px;
+}
+
+.checkbox-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+    .checkbox-group input {
+        width: 16px;
+        height: 16px;
+        cursor: pointer;
+    }
+
+    .checkbox-group label {
+        color: #666;
+        cursor: pointer;
+    }
+
+.forgot-link {
+    color: #666;
+    text-decoration: none;
+    transition: color 0.3s;
+}
+
+    .forgot-link:hover {
+        color: #c41e3a;
+    }
+
+.login-button {
+    width: 100%;
+    padding: 14px;
+    background: #c41e3a;
+    color: white;
+    border: none;
+    font-size: 13px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-weight: 600;
+}
+
+    .login-button:hover {
+        background: #a01829;
+    }
+
+.divider {
+    text-align: center;
+    margin: 24px 0;
+    position: relative;
+}
+
+    .divider::before {
+        content: '';
+        position: absolute;
+        left: 0;
+        top: 50%;
+        width: 100%;
+        height: 1px;
+        background: #e5e5e5;
+    }
+
+    .divider span {
+        background: white;
+        padding: 0 20px;
+        position: relative;
+        color: black;
+        font-size: 12px;
+    }
+
+.social-login {
+    margin-bottom: 24px;
+}
+
+.social-button {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #ddd;
+    background: white;
+    color: #666;
+    font-size: 12px;
+    cursor: pointer;
+    transition: all 0.3s;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    font-weight: 500;
+}
+
+    .social-button:hover {
+        border-color: #c41e3a;
+        color: #c41e3a;
+    }
+
+.register-link {
+    text-align: center;
+    font-size: 13px;
+    color: #666;
+}
+
+    .register-link a {
+        color: #c41e3a;
+        text-decoration: none;
+        font-weight: 500;
+    }
+
+        .register-link a:hover {
+            text-decoration: underline;
+        }
+
+/* Mobile */
+@media (max-width: 768px) {
+    .login-panel {
+        width: 100%;
+        right: -100%;
+        padding: 40px 30px;
+    }
+
+    .logo h1 {
+        font-size: 28px;
+        letter-spacing: 8px;
+    }
+
+    .login-title {
+        font-size: 22px;
+    }
+}

@@ -1,0 +1,351 @@
+﻿@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+
+        const sendOtpUrl = '@Url.Action("SendOtp", "Home")';
+        const verifyOtpUrl = '@Url.Action("VerifyOtp", "Home")';
+        const confirmPassUrl = '@Url.Action("ConfirmPass", "Home")';
+
+        const emailInput = document.getElementById('lvFPEmail');
+        const emailErr = document.getElementById('lvFPEmailErr');
+        const sendOtpBtn = document.getElementById('lvSendOtpBtn');
+        const otpCells = document.querySelectorAll('.lv-otp__cell');
+        const otpHidden = document.getElementById('lvOtpHidden');
+        const otpErr = document.getElementById('lvOtpErr');
+        const verifyBtn = document.getElementById('lvVerifyBtn');
+        const resendBtn = document.getElementById('lvResendBtn');
+        const successMsg = document.getElementById('lvSuccessMsg');
+        const form = document.getElementById('lvForgotForm');
+
+        let resendTimer = null;
+        let otpSent = false;
+
+        // Hàm validate email (bị thiếu trong code của bạn)
+        function validateEmail(email) {
+            return /^[^\s]+[^\s]+\.[^\s]+$/.test(email);
+        }
+
+        // =========================
+        //  TIMER CHỐNG SPAM 60 GIÂY
+        // =========================
+        function startResendTimer() {
+            let seconds = 60;
+
+            // Khóa cả 2 nút gửi OTP & gửi lại
+            sendOtpBtn.disabled = true;
+            resendBtn.disabled = true;
+
+            resendBtn.textContent = `Gửi lại mã (${seconds}s)`;
+
+            if (resendTimer) {
+                clearInterval(resendTimer);
+            }
+
+            resendTimer = setInterval(() => {
+                seconds--;
+                resendBtn.textContent = `Gửi lại mã (${seconds}s)`;
+
+                if (seconds <= 0) {
+                    clearInterval(resendTimer);
+                    // Hết 60s: cho bấm lại
+                    sendOtpBtn.disabled = false;
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Gửi lại mã';
+                }
+            }, 1000);
+        }
+
+        function showSuccess(message) {
+            successMsg.textContent = message || '';
+            successMsg.classList.add('show');
+            setTimeout(() => {
+                successMsg.classList.remove('show');
+            }, 5000);
+        }
+
+        // Gửi OTP lần đầu
+        sendOtpBtn.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            emailErr.textContent = '';
+            otpErr.textContent = '';
+
+            if (!email) {
+                emailErr.textContent = 'Vui lòng nhập email';
+                emailInput.focus();
+                return;
+            }
+
+            if (!validateEmail(email)) {
+                emailErr.textContent = 'Email không hợp lệ';
+                emailInput.focus();
+                return;
+            }
+
+            sendOtpBtn.disabled = true;
+            sendOtpBtn.textContent = 'Đang gửi...';
+
+            fetch(sendOtpUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: new URLSearchParams({ email })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        otpSent = true;
+                        sendOtpBtn.textContent = 'Đã gửi mã OTP';
+
+                        showSuccess(data.message);
+
+                        // Bắt đầu đếm 60s chống spam
+                        startResendTimer();
+
+                        if (otpCells.length > 0) {
+                            otpCells[0].focus();
+                        }
+                    } else {
+                        sendOtpBtn.disabled = false;
+                        sendOtpBtn.textContent = 'Gửi mã OTP';
+                        emailErr.textContent = data.message || 'Có lỗi xảy ra';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    sendOtpBtn.disabled = false;
+                    sendOtpBtn.textContent = 'Gửi mã OTP';
+                    emailErr.textContent = 'Có lỗi xảy ra, vui lòng thử lại';
+                });
+        });
+
+        // Gửi lại OTP
+        resendBtn.addEventListener('click', () => {
+            const email = emailInput.value.trim();
+            emailErr.textContent = '';
+            otpErr.textContent = '';
+
+            if (!email || !validateEmail(email)) return;
+
+            resendBtn.disabled = true;
+            resendBtn.textContent = 'Đang gửi...';
+            sendOtpBtn.disabled = true; // chặn luôn nút gửi lần đầu
+
+            fetch(sendOtpUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: new URLSearchParams({ email })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        otpSent = true;
+                        showSuccess(`Mã OTP mới đã được gửi đến ${email}`);
+
+                        // reset text rồi đếm tiếp 60s
+                        resendBtn.textContent = 'Gửi lại mã (60s)';
+                        startResendTimer();
+                    } else {
+                        resendBtn.disabled = false;
+                        resendBtn.textContent = 'Gửi lại mã';
+                        sendOtpBtn.disabled = false;
+                        emailErr.textContent = data.message || 'Có lỗi xảy ra';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    resendBtn.disabled = false;
+                    resendBtn.textContent = 'Gửi lại mã';
+                    sendOtpBtn.disabled = false;
+                    emailErr.textContent = 'Có lỗi xảy ra, vui lòng thử lại';
+                });
+        });
+
+        // OTP Input Logic
+        otpCells.forEach((cell, index) => {
+            cell.addEventListener('input', (e) => {
+                const value = e.target.value;
+
+                if (!/^\d*$/.test(value)) {
+                    e.target.value = '';
+                    return;
+                }
+
+                if (value) {
+                    cell.classList.add('filled');
+                    if (index < otpCells.length - 1) {
+                        otpCells[index + 1].focus();
+                    }
+                } else {
+                    cell.classList.remove('filled');
+                }
+
+                updateOtpValue();
+            });
+
+            cell.addEventListener('keydown', (e) => {
+                if (e.key === 'Backspace' && !cell.value && index > 0) {
+                    otpCells[index - 1].focus();
+                    otpCells[index - 1].value = '';
+                    otpCells[index - 1].classList.remove('filled');
+                    updateOtpValue();
+                }
+            });
+
+            cell.addEventListener('paste', (e) => {
+                e.preventDefault();
+                const pastedData = e.clipboardData.getData('text').replace(/\D/g, '');
+
+                for (let i = 0; i < pastedData.length && index + i < otpCells.length; i++) {
+                    otpCells[index + i].value = pastedData[i];
+                    otpCells[index + i].classList.add('filled');
+                }
+
+                const lastFilledIndex = Math.min(index + pastedData.length - 1, otpCells.length - 1);
+                otpCells[lastFilledIndex].focus();
+                updateOtpValue();
+            });
+        });
+
+        function updateOtpValue() {
+            const otp = Array.from(otpCells).map(cell => cell.value).join('');
+            otpHidden.value = otp;
+            verifyBtn.disabled = otp.length !== 6 || !otpSent;
+            otpErr.textContent = '';
+        }
+
+        form.addEventListener('submit', (e) => {
+            e.preventDefault();
+
+            const email = emailInput.value.trim();
+            const otp = otpHidden.value;
+
+            emailErr.textContent = '';
+            otpErr.textContent = '';
+
+            if (!otpSent) {
+                emailErr.textContent = 'Vui lòng gửi mã OTP trước';
+                return;
+            }
+
+            if (otp.length !== 6) {
+                otpErr.textContent = 'Vui lòng nhập đủ 6 số';
+                return;
+            }
+
+            verifyBtn.disabled = true;
+            verifyBtn.textContent = 'Đang xác minh...';
+
+            fetch(verifyOtpUrl, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: new URLSearchParams({ email, otp })
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.success) {
+                        showSuccess(data.message);
+                        window.location.href = confirmPassUrl + '?email=' + encodeURIComponent(email);
+                    } else {
+                        verifyBtn.disabled = false;
+                        verifyBtn.textContent = 'Xác minh OTP';
+                        otpErr.textContent = data.message || 'Mã OTP không hợp lệ';
+                    }
+                })
+                .catch(err => {
+                    console.error(err);
+                    verifyBtn.disabled = false;
+                    verifyBtn.textContent = 'Xác minh OTP';
+                    otpErr.textContent = 'Có lỗi xảy ra, vui lòng thử lại';
+                });
+        });
+
+        emailInput.addEventListener('input', () => {
+            emailErr.textContent = '';
+        });
+
+    }); // end DOMContentLoaded
+</script>
+
+<link href="~/css/forgot.css" rel="stylesheet" />
+
+<main class="lv-auth" role="main">
+    <div class="container-xl">
+        <div class="lv-auth__shell">
+            <!-- Brand -->
+            <aside class="lv-auth__brand" aria-label="LUAGA brand">
+                <h1 class="lv-brand__logo text-center">LUAGA</h1>
+                <p class="lv-brand__tag text-center">LUXURY BOOK</p>
+            </aside>
+
+            <!-- Card -->
+            <section class="lv-auth__card" aria-labelledby="lvForgotTitle">
+                <div class="lv-card__head">
+                    <span class="lv-head__dash" aria-hidden="true"></span>
+                    <h2 id="lvForgotTitle" class="lv-head__title">Quên mật khẩu</h2>
+                </div>
+
+                <!-- Success Message -->
+                <div class="lv-success" id="lvSuccessMsg" aria-live="polite"></div>
+
+                <form class="lv-form" id="lvForgotForm" novalidate>
+                    <!-- Email Field -->
+                    <div class="lv-field">
+                        <label for="lvFPEmail" class="lv-label">Email</label>
+                        <input id="lvFPEmail"
+                               name="email"
+                               type="email"
+                               class="lv-input"
+                               placeholder="your@email.com"
+                               inputmode="email"
+                               autocomplete="email"
+                               required maxlength="40">
+                        <small class="lv-error" id="lvFPEmailErr" aria-live="polite"></small>
+                    </div>
+
+                    <!-- Send OTP Button -->
+                    <button type="button" id="lvSendOtpBtn" class="lv-btn lv-btn--primary">
+                        Gửi mã OTP
+                    </button>
+
+                    <!-- OTP Block -->
+                    <div class="lv-field" style="margin-top: 28px;">
+                        <label class="lv-label">Nhập mã OTP (6 số)</label>
+                        <div class="lv-otp" id="lvOtpGroup" role="group" aria-label="Mã OTP 6 số">
+                            <input class="lv-otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Ký tự 1" autocomplete="one-time-code">
+                            <input class="lv-otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Ký tự 2">
+                            <input class="lv-otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Ký tự 3">
+                            <input class="lv-otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Ký tự 4">
+                            <input class="lv-otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Ký tự 5">
+                            <input class="lv-otp__cell" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="1" aria-label="Ký tự 6">
+                        </div>
+                        <input type="hidden" id="lvOtpHidden" name="otp" value="">
+                        <small class="lv-error" id="lvOtpErr" aria-live="polite"></small>
+                    </div>
+
+                    <!-- OTP Actions -->
+                    <div class="lv-otp-actions">
+                        <button type="submit" class="lv-btn lv-btn--primary" id="lvVerifyBtn" disabled>
+                            Xác minh OTP
+                        </button>
+                        <button type="button" id="lvResendBtn" class="lv-btn lv-btn--outline" disabled>
+                            Gửi lại mã (60s)
+                        </button>
+                    </div>
+
+                    <p class="lv-note">
+                        Nhập email và nhấn <strong>"Gửi mã OTP"</strong> để nhận mã xác minh.<br>
+                        Kiểm tra cả hộp thư <strong>Spam/Promotions</strong> nếu không thấy email.
+                    </p>
+                </form>
+            </section>
+        </div>
+    </div>
+</main>

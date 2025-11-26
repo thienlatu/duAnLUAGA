@@ -1,0 +1,346 @@
+﻿/* ========== Login – LUAGA (lv-*) ========== */
+:root {
+    --lv-brand: #c41e3a;
+    --lv-text: #1a1a1a;
+    --lv-muted: #6b6b6b;
+    --lv-line: #e7e7e7;
+    --lv-bg: #ffffff;
+    --lv-shadow: 0 10px 30px rgba(0,0,0,.05);
+    --lv-radius: 10px;
+}
+
+/* vùng chính toàn trang */
+.lv-auth {
+    background: var(--lv-bg);
+    color: var(--lv-text);
+    padding-block: clamp(48px, 10vh, 96px);
+    /* full height mượt trên mobile */
+    min-height: 100vh;
+}
+
+@supports (height: 100svh) {
+    .lv-auth {
+        min-height: 100svh;
+    }
+}
+
+.lv-auth__shell {
+    display: grid;
+    grid-template-columns: 1.1fr 0.9fr;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+}
+
+/* bên brand trái */
+.lv-auth__brand {
+    text-align: left;
+    padding-inline: clamp(0px, 2vw, 20px);
+}
+
+.lv-brand__logo {
+    font-family: "Poppins", system-ui, -apple-system, "Segoe UI", Roboto, Arial, sans-serif;
+    font-weight: 400;
+    letter-spacing: .8rem;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    color: var(--lv-brand);
+    font-size: clamp(28px, 4vw, 48px);
+}
+
+.lv-brand__tag {
+    letter-spacing: .45rem;
+    text-transform: uppercase;
+    color: var(--lv-muted);
+    font-size: .9rem;
+}
+
+/* card form */
+.lv-auth__card {
+    background: #fff;
+    border: 1px solid var(--lv-line);
+    border-radius: var(--lv-radius);
+    box-shadow: var(--lv-shadow);
+    padding: clamp(24px, 4vw, 48px);
+
+}
+
+.lv-card__head {
+    text-align: center;
+    margin-bottom: 28px;
+    position: relative;
+}
+
+.lv-head__dash {
+    display: inline-block;
+    width: 36px;
+    height: 2px;
+    background: var(--lv-brand);
+    margin-bottom: 12px;
+}
+
+.lv-head__title {
+    font-weight: 400;
+    letter-spacing: .08rem;
+    margin: 0;
+}
+
+/* fieldset */
+.lv-field {
+    margin-bottom: 18px;
+}
+
+.lv-label {
+    display: block;
+    font-size: .75rem;
+    letter-spacing: .12rem;
+    color: var(--lv-muted);
+    text-transform: uppercase;
+    margin: 0 0 8px;
+}
+
+.lv-input {
+    display: block;
+    width: 100%;
+    font-size: 1rem;
+    line-height: 1.25;
+    padding: 12px 14px;
+    border: 1px solid var(--lv-line);
+    background: #fafafa;
+    color: var(--lv-text);
+    border-radius: 8px;
+    transition: border-color .2s, background-color .2s, box-shadow .2s;
+}
+
+    .lv-input::placeholder {
+        color: #a8a8a8;
+    }
+
+    .lv-input:focus {
+        outline: none;
+        background: #fff;
+        border-color: var(--lv-brand);
+        box-shadow: 0 0 0 3px rgba(196,30,58,.12);
+    }
+
+/* password with toggle */
+.lv-password {
+    position: relative;
+}
+
+.lv-password__toggle {
+    position: absolute;
+    inset-inline-end: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    border: 0;
+    background: transparent;
+    padding: 6px 8px;
+    cursor: pointer;
+    color: #888;
+    border-radius: 6px;
+}
+
+    .lv-password__toggle:hover {
+        color: var(--lv-text);
+    }
+
+    .lv-password__toggle:focus-visible {
+        outline: 2px solid var(--lv-brand);
+        outline-offset: 2px;
+    }
+
+/* hàng option */
+.lv-form__row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin: 6px 0 14px;
+    gap: 12px;
+    flex-wrap: wrap;
+}
+
+.lv-check {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    color: var(--lv-muted);
+    font-size: .95rem;
+}
+
+    .lv-check input {
+        width: 16px;
+        height: 16px;
+        accent-color: var(--lv-brand);
+    }
+
+/* buttons */
+.lv-btn {
+    width: 100%;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-weight: 600;
+    letter-spacing: .12rem;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    background: #f5f5f5;
+    color: var(--lv-text);
+    transition: transform .06s ease, box-shadow .2s, background-color .2s, border-color .2s, color .2s;
+}
+
+    .lv-btn:active {
+        transform: translateY(1px);
+    }
+
+.lv-btn--primary {
+    background: var(--lv-brand);
+    color: #fff;
+    border-color: var(--lv-brand);
+}
+
+    .lv-btn--primary:hover {
+        filter: brightness(.95);
+    }
+
+.lv-btn--outline {
+    background: #fff;
+    border-color: var(--lv-line);
+    color: #444;
+}
+
+    .lv-btn--outline:hover {
+        border-color: var(--lv-brand);
+        color: var(--lv-brand);
+    }
+
+.lv-btn--google {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.lv-btn__icon {
+    display: inline-flex;
+    width: 18px;
+    height: 18px;
+}
+
+/* divider */
+.lv-divider {
+    position: relative;
+    text-align: center;
+    margin: 18px 0;
+}
+
+    .lv-divider::before {
+        content: "";
+        position: absolute;
+        left: 0;
+        right: 0;
+        top: 50%;
+        height: 1px;
+        background: var(--lv-line);
+    }
+
+    .lv-divider > span {
+        position: relative;
+        padding: 0 12px;
+        background: #fff;
+        color: #333;
+        font-size: .9rem;
+    }
+
+/* helper */
+.lv-link {
+    color: inherit;
+    text-decoration: none;
+    border-bottom: 1px solid transparent;
+}
+
+    .lv-link:hover {
+        color: var(--lv-brand);
+        border-bottom-color: var(--lv-brand);
+    }
+
+.lv-note {
+    margin-top: 14px;
+    color: var(--lv-muted);
+    text-align: center;
+    font-size: .95rem;
+}
+
+.lv-error {
+    display: block;
+    min-height: 1.1em;
+    color: #b00020;
+    margin-top: 6px;
+    font-size: .85rem;
+}
+
+/* responsive */
+@media (max-width: 992px) {
+    .lv-auth__shell {
+        grid-template-columns: 1fr;
+    }
+
+    .lv-auth__brand {
+        text-align: center;
+    }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lv-btn, .lv-input {
+        transition: none !important;
+    }
+}
+
+/* ====== Tuning: width nhỏ hơn, height rộng hơn ====== */
+
+/* Giới hạn bề ngang card để thanh thoát hơn */
+.page-login .lv-auth__card,
+.page-register .lv-auth__card {
+    max-width: 700px; /* gợi ý: 480–560px; chỉnh tùy ý */
+    margin-inline: auto; /* canh giữa trong cột grid */
+    width : 700px;
+}
+
+/* Ở desktop, để cột phải co theo max-width ở trên */
+@media (min-width: 992px) {
+    .page-login .lv-auth__shell,
+    .page-register .lv-auth__shell {
+        grid-template-columns: 1.2fr auto; /* trái linh hoạt, phải theo kích thước card */
+        align-items: center;
+    }
+}
+
+/* Tăng không gian dọc của vùng trang để cảm giác cao hơn */
+.page-login .lv-auth,
+.page-register .lv-auth {
+    padding-block: clamp(80px, 16vh, 140px); /* trước là ~48–96px */
+}
+
+/* Tăng padding trong card để card “cao” và thoáng hơn */
+.page-login .lv-auth__card,
+.page-register .lv-auth__card {
+    padding: clamp(40px, 6vw, 72px) clamp(28px, 3.6vw, 56px);
+}
+
+/* Tăng khoảng cách giữa các field một chút để chiều cao tổng thể rộng hơn */
+.page-login .lv-field,
+.page-register .lv-field {
+    margin-bottom: 22px; /* trước là 18–20px */
+}
+
+/* Tăng chiều cao input vừa phải (để cảm giác vững hơn) */
+.page-login .lv-input,
+.page-register .lv-input {
+    padding-block: 14px; /* trước là 12px */
+}
+
+/* (Tùy chọn) Nếu muốn card hẳn cao tối thiểu một mức nào đó: */
+@media (min-width: 992px) {
+    .page-login .lv-auth__card,
+    .page-register .lv-auth__card {
+        min-height: 560px; /* có thể nâng 600–660 nếu bạn muốn */
+    }
+}

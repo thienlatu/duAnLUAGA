@@ -1,0 +1,291 @@
+﻿
+/* Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
+}
+
+button {
+    cursor: pointer;
+    font-family: inherit;
+}
+
+/* CSS Variables */
+:root {
+    --lv-brand: #c41e3a;
+    --lv-text: #1a1a1a;
+    --lv-muted: #6b6b6b;
+    --lv-line: #e7e7e7;
+    --lv-bg: #ffffff;
+    --lv-shadow: 0 10px 30px rgba(0,0,0,.05);
+    --lv-radius: 10px;
+}
+
+/* Main Layout */
+.lv-auth {
+    background: var(--lv-bg);
+    color: var(--lv-text);
+    padding-block: clamp(80px, 16vh, 140px);
+    min-height: 100vh;
+}
+
+.container-xl {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 0 20px;
+}
+
+.lv-auth__shell {
+    display: grid;
+    grid-template-columns: 1.2fr auto;
+    gap: clamp(32px, 5vw, 72px);
+    align-items: center;
+}
+
+/* Brand */
+.lv-auth__brand {
+    text-align: left;
+    padding-inline: clamp(0px, 2vw, 20px);
+}
+
+.lv-brand__logo {
+    font-family: "Poppins", sans-serif;
+    font-weight: 400;
+    letter-spacing: .8rem;
+    margin: 0 0 8px;
+    text-transform: uppercase;
+    color: var(--lv-brand);
+    font-size: clamp(28px, 4vw, 48px);
+}
+
+.lv-brand__tag {
+    letter-spacing: .45rem;
+    text-transform: uppercase;
+    color: var(--lv-muted);
+    font-size: .9rem;
+}
+
+/* Card */
+.lv-auth__card {
+    background: #fff;
+    border: 1px solid var(--lv-line);
+    border-radius: var(--lv-radius);
+    box-shadow: var(--lv-shadow);
+    padding: clamp(40px, 6vw, 72px) clamp(28px, 3.6vw, 56px);
+    max-width: 700px;
+    width: 700px;
+    margin-inline: auto;
+    min-height: 560px;
+}
+
+.lv-card__head {
+    text-align: center;
+    margin-bottom: 28px;
+}
+
+.lv-head__dash {
+    display: inline-block;
+    width: 36px;
+    height: 2px;
+    background: var(--lv-brand);
+    margin-bottom: 12px;
+}
+
+.lv-head__title {
+    font-weight: 400;
+    letter-spacing: .08rem;
+    margin: 0;
+}
+
+/* Form Fields */
+.lv-field {
+    margin-bottom: 22px;
+}
+
+.lv-label {
+    display: block;
+    font-size: .75rem;
+    letter-spacing: .12rem;
+    color: var(--lv-muted);
+    text-transform: uppercase;
+    margin: 0 0 8px;
+}
+
+.lv-input {
+    display: block;
+    width: 100%;
+    font-size: 1rem;
+    line-height: 1.25;
+    padding: 14px;
+    border: 1px solid var(--lv-line);
+    background: #fafafa;
+    color: var(--lv-text);
+    border-radius: 8px;
+    transition: border-color .2s, background-color .2s, box-shadow .2s;
+}
+
+    .lv-input::placeholder {
+        color: #a8a8a8;
+    }
+
+    .lv-input:focus {
+        outline: none;
+        background: #fff;
+        border-color: var(--lv-brand);
+        box-shadow: 0 0 0 3px rgba(196,30,58,.12);
+    }
+
+/* Buttons */
+.lv-btn {
+    width: 100%;
+    border-radius: 8px;
+    padding: 12px 16px;
+    font-weight: 600;
+    letter-spacing: .12rem;
+    text-transform: uppercase;
+    border: 1px solid transparent;
+    transition: all .2s;
+}
+
+.lv-btn--primary {
+    background: var(--lv-brand);
+    color: #fff;
+    border-color: var(--lv-brand);
+}
+
+    .lv-btn--primary:hover:not(:disabled) {
+        filter: brightness(.95);
+    }
+
+    .lv-btn--primary:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+    }
+
+.lv-btn--outline {
+    background: #fff;
+    border-color: var(--lv-line);
+    color: #444;
+}
+
+    .lv-btn--outline:hover:not(:disabled) {
+        border-color: var(--lv-brand);
+        color: var(--lv-brand);
+    }
+
+    .lv-btn--outline:disabled {
+        opacity: 0.5;
+        cursor: not-allowed;
+    }
+
+/* OTP Input */
+.lv-otp {
+    display: flex;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 12px;
+}
+
+.lv-otp__cell {
+    width: 50px;
+    height: 56px;
+    text-align: center;
+    font-size: 1.5rem;
+    font-weight: 600;
+    border: 2px solid var(--lv-line);
+    border-radius: 8px;
+    background: #fafafa;
+    transition: all .2s;
+}
+
+    .lv-otp__cell:focus {
+        outline: none;
+        border-color: var(--lv-brand);
+        background: #fff;
+        box-shadow: 0 0 0 3px rgba(196,30,58,.12);
+    }
+
+    .lv-otp__cell.filled {
+        background: #fff;
+        border-color: var(--lv-brand);
+    }
+
+/* OTP Actions */
+.lv-otp-actions {
+    display: grid;
+    gap: 12px;
+    margin-top: 20px;
+}
+
+/* Error */
+.lv-error {
+    display: block;
+    min-height: 1.1em;
+    color: #b00020;
+    margin-top: 6px;
+    font-size: .85rem;
+}
+
+/* Note */
+.lv-note {
+    margin-top: 14px;
+    color: var(--lv-muted);
+    text-align: center;
+    font-size: .85rem;
+    line-height: 1.5;
+}
+
+/* Success Message */
+.lv-success {
+    background: #e8f5e9;
+    color: #2e7d32;
+    padding: 12px;
+    border-radius: 8px;
+    margin-bottom: 16px;
+    text-align: center;
+    font-size: .9rem;
+    display: none;
+}
+
+    .lv-success.show {
+        display: block;
+    }
+
+/* Responsive */
+@media (max-width: 992px) {
+    .lv-auth__shell {
+        grid-template-columns: 1fr;
+    }
+
+    .lv-auth__brand {
+        text-align: center;
+    }
+
+    .lv-auth__card {
+        width: 100%;
+        max-width: 100%;
+    }
+
+    .lv-otp__cell {
+        width: 45px;
+        height: 52px;
+    }
+}
+
+@media (max-width: 576px) {
+    .lv-otp {
+        gap: 8px;
+    }
+
+    .lv-otp__cell {
+        width: 40px;
+        height: 48px;
+        font-size: 1.25rem;
+    }
+}
+

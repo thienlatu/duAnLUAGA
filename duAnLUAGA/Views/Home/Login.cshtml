@@ -1,0 +1,85 @@
+﻿@model duAnLUAGA.ViewModel.LoginVM
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<link href="~/css/site.css" rel="stylesheet" />
+<style>
+    #openLogin {
+        display: none !important;
+    }
+</style>
+<main class="lv-auth" id="page-login" role="main">
+    <div class="container-xl">
+        <div class="lv-auth__shell">
+            <!-- Khối thương hiệu trái -->
+            <aside class="lv-auth__brand" aria-label="LUAGA brand">
+                <h1 class="lv-brand__logo" style="text-align:center">LUAGA</h1>
+                <p class="lv-brand__tag" style="text-align:center"> LUXURY BOOK </p>
+            </aside>
+
+            <!-- Khối form phải -->
+            <section class="lv-auth__card" aria-labelledby="lvLoginTitle">
+                <div class="lv-card__head">
+                    <span class="lv-head__dash" aria-hidden="true"></span>
+                    <h2 id="lvLoginTitle" class="lv-head__title">Đăng nhập</h2>
+                </div>
+
+                <form asp-action="Login" asp-controller="Home" method="post" novalidate>
+                    <!-- Email -->
+                    <div class="lv-field" style="margin-bottom: 15px">
+                        <label asp-for="Email" class="lv-label"></label>
+                        <input asp-for="Email" class="lv-input" id="lvEmail" style="margin-bottom: 15px" maxlength="80" />
+                      
+                    </div>
+                    <!-- Mật khẩu -->
+                    <div class="lv-field">
+                        <label  class="lv-label">Mật Khẩu</label>
+                        <input asp-for="MatKhau" type="password" class="lv-input" id="lvPassword" maxlength="40" />
+
+                    </div>
+                    
+                    @Html.ValidationSummary(false, "", new { @class = "text-danger" })
+                    <!-- Tùy chọn -->
+                    <div class="lv-form__row">
+                        <label class="lv-check">
+                            <input type="checkbox" name="remember" value="1">
+                            <span>Ghi nhớ đăng nhập</span>
+                        </label>
+                        <a class="lv-link" asp-controller="Home" asp-action="FogotPass">Quên mật khẩu?</a>
+                    </div>
+
+                    <!-- Đăng nhập -->
+                    <button type="submit" class="lv-btn lv-btn--primary">Đăng nhập</button>
+
+                    <!-- Divider -->
+                    <div class="lv-divider" role="separator"><span>hoặc</span></div>
+
+                    <!-- Google -->
+                    <a class="lv-btn lv-btn--outline lv-btn--google" asp-controller="Home" asp-action="LoginWithGoogle" role="button" aria-label="Tiếp tục với Google">
+                        <span class="lv-btn__icon" aria-hidden="true">
+                            <!-- Google G (SVG inline, không cần tải ngoài) -->
+                            <svg width="18" height="18" viewBox="0 0 48 48" focusable="false" aria-hidden="true">
+                                <path fill="#FFC107" d="M43.611 20.083h-1.611V20H24v8h11.303c-1.645 4.657-6.08 8-11.303 8-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.153 7.948 3.052l5.657-5.657C34.316 6 29.392 4 24 4 12.954 4 4 12.954 4 24s8.954 20 20 20 20-8.954 20-20c0-1.339-.138-2.651-.389-3.917z" />
+                                <path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.71 16.2 18.994 12 24 12c3.059 0 5.842 1.153 7.948 3.052l5.657-5.657C34.316 6 29.392 4 24 4 16.319 4 9.661 8.336 6.306 14.691z" />
+                                <path fill="#4CAF50" d="M24 44c5.274 0 10.113-2.013 13.74-5.291l-6.341-5.405C29.339 35.147 26.809 36 24 36c-5.192 0-9.601-3.323-11.253-7.946l-6.499 5.01C8.569 39.688 15.758 44 24 44z" />
+                                <path fill="#1976D2" d="M43.611 20.083h-1.611V20H24v8h11.303c-.788 2.442-2.365 4.5-4.556 5.974l.001-.001 6.341 5.405C39.23 36.933 44 31.333 44 24c0-1.339-.138-2.651-.389-3.917z" />
+                            </svg>
+                        </span>
+                        Tiếp tục với Google
+                    </a>
+
+                    <p class="lv-note">
+                        Chưa có tài khoản?
+                        <a class="lv-link" asp-controller="Home" asp-action="Register">Tạo tài khoản</a>
+                    </p>
+                </form>
+            </section>
+        </div>
+    </div>
+</main>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}
+
