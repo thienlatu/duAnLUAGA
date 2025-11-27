@@ -88,7 +88,7 @@ namespace duAnLUAGA.Controllers
                 ModelState.AddModelError("", "Email hoặc mật khẩu không đúng.");
                 return View(model);
             }
-            if (user.TrangThai == false)
+            if (user.TrangThai == true)
             {
                 ModelState.AddModelError("", "Tài khoản này đã bị khóa");
                 return View(model);
@@ -146,7 +146,7 @@ namespace duAnLUAGA.Controllers
                 Email = model.Email,
                 MatKhau = model.MatKhau, 
                 NgayTao = DateTime.Now,
-                TrangThai = true
+                TrangThai = false
             };
 
             _context.Khachhangs.Add(kh);
@@ -222,6 +222,11 @@ namespace duAnLUAGA.Controllers
                     x.Email != null &&
                     x.Email.Trim().ToLower() == normalizedEmail
                 );
+            if (user != null && user.TrangThai == true)
+            {
+                TempData["ErrorMessage"] = "Tài khoản đã bị khóa, không thể đăng nhập bằng Google.";
+                return RedirectToAction("Login");
+            }
 
             if (user == null)
             {
@@ -231,11 +236,11 @@ namespace duAnLUAGA.Controllers
                 //  Tạo user 
                 user = new Khachhang
                 {
-                    HoVaTen = "temp",         
+                    HoVaTen = googleName ?? "user" + user.MaKh,         
                     Email = email,
                     MatKhau = randomPassword,
                     NgayTao = DateTime.Now,
-                    TrangThai = true
+                    TrangThai = false
 
                 };
 
