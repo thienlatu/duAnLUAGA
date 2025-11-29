@@ -1,0 +1,392 @@
+@using duAnLUAGA.ViewModel
+@model AddressVM
+@{
+    ViewData["Title"] = "Kho Voucher";
+}
+
+<style>
+    /* --- CSS CHUNG (Đồng bộ với toàn trang) --- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .profile-container {
+        width: 1200px;
+        margin: 20px auto;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 2px;
+        height: fit-content;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        margin-bottom: 15px;
+    }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e1e1e1;
+        }
+
+    .username {
+        font-weight: 600;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu {
+        list-style: none;
+    }
+
+        .menu li {
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            display: block;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .menu a:hover, .menu a.active {
+                color: #ee4d2d;
+                font-weight: 500;
+            }
+
+    /* Content */
+    .content {
+        flex: 1;
+        background: #fff;
+        padding: 30px;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+        min-height: 600px;
+    }
+
+    /* Header */
+    .header-section {
+        border-bottom: 1px solid #efefef;
+        padding-bottom: 15px;
+        margin-bottom: 20px;
+    }
+
+    .header-title {
+        font-size: 18px;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .header-desc {
+        font-size: 14px;
+        color: #555;
+    }
+
+    /* --- VOUCHER CARD STYLE --- */
+    .voucher-list {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+    }
+
+    .voucher-card {
+        display: flex;
+        background: #fff;
+        border: 1px solid #e8e8e8;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0,0,0,.05);
+        transition: transform 0.2s, box-shadow 0.2s;
+        height: 120px;
+    }
+
+        .voucher-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0,0,0,.1);
+        }
+
+    /* Phần bên trái (Màu cam) */
+    .voucher-left {
+        background: linear-gradient(to right, #ee4d2d, #ff7337);
+        width: 110px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-direction: column;
+        color: #fff;
+        position: relative;
+        border-right: 1px dashed #fff;
+    }
+
+        /* Hiệu ứng răng cưa */
+        .voucher-left::before, .voucher-left::after {
+            content: "";
+            position: absolute;
+            width: 12px;
+            height: 6px;
+            background: #fff;
+            border-radius: 100%;
+            right: -6px;
+        }
+
+        .voucher-left::before {
+            top: -3px;
+        }
+
+        .voucher-left::after {
+            bottom: -3px;
+        }
+
+    .brand-name {
+        font-size: 12px;
+        font-weight: 500;
+        margin-bottom: 5px;
+    }
+
+    .brand-icon {
+        font-size: 24px;
+        font-weight: bold;
+        border: 2px solid #fff;
+        padding: 2px 8px;
+        border-radius: 4px;
+    }
+
+    /* Phần bên phải (Nội dung) */
+    .voucher-right {
+        flex: 1;
+        padding: 15px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+
+    .voucher-code {
+        font-size: 14px;
+        color: #ee4d2d;
+        font-weight: 500;
+        margin-bottom: 5px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .voucher-detail {
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        margin-bottom: 5px;
+        line-height: 1.2;
+    }
+
+    .voucher-condition {
+        font-size: 12px;
+        color: #757575;
+        display: -webkit-box;
+        -webkit-line-clamp: 1;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+    }
+
+    .voucher-footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+    }
+
+    .voucher-expiry {
+        font-size: 11px;
+        color: #999;
+    }
+
+    .badge-count {
+        font-size: 11px;
+        color: #ee4d2d;
+        background: #fff1f0;
+        padding: 2px 6px;
+        border-radius: 2px;
+    }
+
+    /* Trạng thái hết hạn */
+    .voucher-expired {
+        filter: grayscale(100%);
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .badge-expired {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ccc;
+        color: #fff;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 2px;
+        transform: rotate(15deg);
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 60px;
+        color: #888;
+        grid-column: 1 / -1;
+    }
+
+    .btn-home {
+        display: inline-block;
+        margin-top: 15px;
+        padding: 10px 30px;
+        background: #ee4d2d;
+        color: #fff;
+        text-decoration: none;
+        border-radius: 2px;
+    }
+
+        .btn-home:hover {
+            background: #d73211;
+            color: #fff;
+        }
+
+    .voucher-expired {
+        filter: grayscale(100%);
+        opacity: 0.6;
+        pointer-events: none;
+    }
+
+    .badge-expired {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ccc;
+        color: #fff;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 2px;
+        transform: rotate(15deg);
+    }
+</style>
+
+<div class="profile-container">
+
+    <aside class="sidebar">
+        <div class="user-info">
+            @{
+                var avatarSrc = !string.IsNullOrEmpty(Model.ProfileAvatarPath) ? $"~/img/{Model.ProfileAvatarPath}" : "~/img/avatar.png";
+            }
+            <img src="@avatarSrc" asp-append-version="true">
+            <div class="username">@(!string.IsNullOrWhiteSpace(Model.ProfileFullName) ? Model.ProfileFullName : "Thành viên")</div>
+        </div>
+        <ul class="menu">
+            <li><a href="/Address/Index"><i class="fa-solid fa-user"></i> Tài Khoản Của Tôi</a></li>
+            <li><a href="/Address/Index#orders"><i class="fa-solid fa-clipboard-list"></i> Đơn Mua</a></li>
+            <li><a class="active" href="/Address/Vouchers"><i class="fa-solid fa-ticket"></i> Kho Voucher</a></li>
+            <li><a href="/Address/AddressBook"><i class="fa-solid fa-location-dot"></i> Địa Chỉ</a></li>
+            <li><a href="/Address/DoiMK"><i class="fa-solid fa-lock"></i> Đổi Mật Khẩu</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <div class="header-section">
+            <h3 class="header-title">Kho Voucher</h3>
+            <div class="header-desc">Xem và quản lý mã giảm giá của bạn</div>
+        </div>
+
+        <div class="voucher-list">
+            @if (Model.VoucherList != null && Model.VoucherList.Any())
+            {
+                @foreach (var v in Model.VoucherList)
+                {
+                    // Logic kiểm tra hết hạn
+                    var isExpired = v.NgayKetThuc < DateTime.Now || v.SoLuong <= 0;
+
+                    // LOGIC QUAN TRỌNG: Cắt bỏ phần đuôi _IDUser để hiển thị đẹp
+                    // Ví dụ: SALE10_123 -> Hiển thị: SALE10
+                    string displayCode = v.MaCode;
+                    if (displayCode.Contains("_"))
+                    {
+                        displayCode = displayCode.Substring(0, displayCode.LastIndexOf('_'));
+                    }
+
+                    <div class="voucher-card @(isExpired ? "voucher-expired" : "")">
+                        <div class="voucher-left">
+                            <div class="brand-name">LUAGA</div>
+                            <div class="brand-icon">L</div>
+                        </div>
+
+                        <div class="voucher-right">
+                            @if (isExpired)
+                            {
+                                <span class="badge-expired">Hết hạn</span>
+                            }
+
+                            <div class="voucher-code">
+                                <span>@displayCode</span>
+                                <span class="badge-count">x @v.SoLuong</span>
+                            </div>
+
+                            <div class="voucher-detail">
+                                @if (v.SoTienGiam > 0)
+                                {
+                                    <span>Giảm @v.SoTienGiam?.ToString("N0")₫</span>
+                                }
+                                else
+                                {
+                                    <span>Giảm @v.PhanTramGiam%</span>
+                                }
+                            </div>
+
+                            <div class="voucher-condition">
+                                Đơn tối thiểu @(v.DonHangToiThieu?.ToString("N0") ?? "0")₫
+                            </div>
+
+                            <div class="voucher-footer">
+                                <div class="voucher-expiry">HSD: @v.NgayKetThuc.ToString("dd.MM.yyyy")</div>
+                                @if (!isExpired)
+                                {
+                                    <a href="/Home/Index" style="font-size:12px; color:#ee4d2d; text-decoration:none; font-weight:bold;">Dùng ngay ></a>
+                                }
+                            </div>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-state">
+                    <i class="fa-solid fa-ticket" style="font-size: 60px; color: #ddd; margin-bottom: 15px; display: block;"></i>
+                    <p>Bạn chưa có voucher nào.</p>
+                    <a href="/Voucher/Index" class="btn-home">Săn Voucher Ngay</a>
+                </div>
+            }
+        </div>
+    </main>
+</div>

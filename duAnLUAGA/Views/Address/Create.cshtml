@@ -1,0 +1,295 @@
+@using duAnLUAGA.ViewModel
+@model AddressVM
+@{
+    ViewData["Title"] = "Thêm Địa Chỉ Mới";
+}
+
+<style>
+    /* --- CSS CHUNG --- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .profile-container {
+        width: 1200px;
+        margin: 20px auto;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 2px;
+        height: fit-content;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        margin-bottom: 15px;
+    }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e1e1e1;
+        }
+
+    .username {
+        font-weight: 600;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu {
+        list-style: none;
+    }
+
+        .menu li {
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            display: block;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .menu a:hover, .menu a.active {
+                color: #ee4d2d;
+                font-weight: 500;
+            }
+
+    /* Content */
+    .content {
+        flex: 1;
+        background: #fff;
+        padding: 30px;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .form-title {
+        font-size: 20px;
+        margin-bottom: 25px;
+        font-weight: 500;
+        border-bottom: 1px solid #efefef;
+        padding-bottom: 15px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+    }
+
+    .form-label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 500;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .form-control {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 2px;
+        outline: none;
+        transition: 0.3s;
+    }
+
+        .form-control:focus {
+            border-color: #888;
+        }
+
+    .btn-save {
+        background: #ee4d2d;
+        color: #fff;
+        border: none;
+        padding: 10px 30px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .btn-save:hover {
+            background: #d73211;
+        }
+
+    .btn-back {
+        color: #555;
+        text-decoration: none;
+        padding: 10px 20px;
+        font-size: 14px;
+        margin-right: 10px;
+    }
+
+        .btn-back:hover {
+            color: #ee4d2d;
+        }
+
+    .text-danger {
+        font-size: 12px;
+        color: #dc3545;
+        margin-top: 5px;
+        display: block;
+    }
+
+    .message {
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+        background: #eaf8f0;
+        color: #1d8f4d;
+        border: 1px solid #1d8f4d;
+    }
+</style>
+
+<div class="profile-container">
+
+    <aside class="sidebar">
+        <div class="user-info">
+            <img src="~/img/avatar.png" asp-append-version="true">
+            <div class="username">Thành viên</div>
+        </div>
+        <ul class="menu">
+            <li><a href="/Address/Index"><i class="fa-solid fa-user"></i> Tài Khoản Của Tôi</a></li>
+            <li><a href="/Address/Index#orders"><i class="fa-solid fa-clipboard-list"></i> Đơn Mua</a></li>
+            <li><a href="/Address/Vouchers"><i class="fa-solid fa-ticket"></i> Kho Voucher</a></li>
+            <li><a class="active" href="/Address/AddressBook"><i class="fa-solid fa-location-dot"></i> Địa Chỉ</a></li>
+            <li><a href="/Address/DoiMK"><i class="fa-solid fa-lock"></i> Đổi Mật Khẩu</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <div class="form-title">Thêm địa chỉ mới</div>
+
+        @if (TempData["ProfileMessage"] != null)
+        {
+            <div class="message">@TempData["ProfileMessage"]</div>
+        }
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaKh" />
+
+            <div class="form-row" style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Họ và tên</label>
+                    <input asp-for="TenNhanHang" class="form-control" placeholder="Nhập họ tên" />
+                    <span asp-validation-for="TenNhanHang" class="text-danger"></span>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Số điện thoại</label>
+                    <input asp-for="Sdt" class="form-control" placeholder="Nhập số điện thoại" />
+                    <span asp-validation-for="Sdt" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-row" style="display: flex; gap: 20px;">
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Tỉnh/Thành phố</label>
+                    <select asp-for="Tinh" id="selectTinh" class="form-control">
+                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                    </select>
+                    <span asp-validation-for="Tinh" class="text-danger"></span>
+                </div>
+                <div class="form-group" style="flex: 1;">
+                    <label class="form-label">Quận/Huyện/Phường/Xã</label>
+                    <select asp-for="XaPhuong" id="selectXaPhuong" class="form-control" disabled>
+                        <option value="">-- Chọn Xã/Phường --</option>
+                    </select>
+                    <span asp-validation-for="XaPhuong" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label">Địa chỉ cụ thể</label>
+                <textarea asp-for="DiaChiChiTiet" class="form-control" rows="2" placeholder="Số nhà, ngõ, đường..."></textarea>
+                <span asp-validation-for="DiaChiChiTiet" class="text-danger"></span>
+            </div>
+
+            <div class="form-group" style="display: flex; align-items: center; gap: 10px;">
+                <input type="checkbox" asp-for="MacDinh" id="chkDefault" style="width: 16px; height: 16px; cursor: pointer;">
+                <label for="chkDefault" style="margin: 0; cursor: pointer; font-size: 14px;">Đặt làm địa chỉ mặc định</label>
+            </div>
+
+            <div style="margin-top: 30px; text-align: right;">
+                <a asp-action="AddressBook" asp-route-maKh="@Model.MaKh" class="btn-back">Trở lại</a>
+                <button type="submit" class="btn-save">Hoàn thành</button>
+            </div>
+        </form>
+    </main>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var selectTinh = document.getElementById('selectTinh');
+            var selectXaPhuong = document.getElementById('selectXaPhuong');
+
+            // Load Tỉnh
+            fetch('/Address/GetTinhs')
+                .then(res => res.json())
+                .then(data => {
+                    selectTinh.innerHTML = '<option value="">-- Chọn Tỉnh/Thành phố --</option>';
+                    data.forEach(t => {
+                        var opt = document.createElement('option');
+                        opt.value = t.tenTinh;
+                        opt.textContent = t.tenTinh;
+                        opt.setAttribute('data-code', t.maTinh);
+                        selectTinh.appendChild(opt);
+                    });
+                })
+                .catch(err => console.error(err));
+
+            // Event Change Tỉnh
+            selectTinh.addEventListener('change', function() {
+                var option = this.options[this.selectedIndex];
+                var code = option.getAttribute('data-code');
+
+                selectXaPhuong.innerHTML = '<option value="">-- Đang tải... --</option>';
+                selectXaPhuong.disabled = true;
+
+                if (code) {
+                    fetch('/Address/GetXaPhuongs?maTinh=' + code)
+                        .then(res => res.json())
+                        .then(data => {
+                            selectXaPhuong.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+                            selectXaPhuong.disabled = false;
+                            data.forEach(x => {
+                                var opt = document.createElement('option');
+                                opt.value = x.tenXaPhuong;
+                                opt.textContent = x.tenXaPhuong;
+                                selectXaPhuong.appendChild(opt);
+                            });
+                        });
+                } else {
+                    selectXaPhuong.innerHTML = '<option value="">-- Chọn Xã/Phường --</option>';
+                }
+            });
+        });
+    </script>
+}

@@ -1,6 +1,4 @@
-﻿
-
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -10,28 +8,48 @@
     <meta name="description" content="">
     <meta name="keywords" content="">
     <script src="https://kit.fontawesome.com/05da1950ae.js" crossorigin="anonymous"></script>
- 
-    <!-- Favicons -->
+
     <link href="~/assets/img/favicon.png" rel="icon">
     <link href="~/assets/img/apple-touch-icon.png" rel="apple-touch-icon">
     <link href="~/Edit/dangKy.css" rel="stylesheet" />
 
-    <!-- Fonts -->
     <link href="https://fonts.googleapis.com" rel="preconnect">
     <link href="https://fonts.gstatic.com" rel="preconnect" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:ital,wght@0,100;0,300;0,400;0,500;0,700;0,900;1,100;1,300;1,400;1,500;1,700;1,900&family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&family=Raleway:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap" rel="stylesheet">
 
-    <!-- Vendor CSS Files -->
     <link href="~/assets/vendor/bootstrap/css/bootstrap.min.css" rel="stylesheet">
     <link href="~/assets/vendor/bootstrap-icons/bootstrap-icons.css" rel="stylesheet">
     <link href="~/assets/vendor/aos/aos.css" rel="stylesheet">
     <link href="~/assets/vendor/glightbox/css/glightbox.min.css" rel="stylesheet">
     <link href="~/assets/vendor/swiper/swiper-bundle.min.css" rel="stylesheet">
 
-    <!-- Main CSS File -->
     <link href="~/assets/css/main.css" rel="stylesheet">
+    @await RenderSectionAsync("Styles", required: false)
 
     <style>
+        /* --- [BẮT ĐẦU] CSS CỐ ĐỊNH FOOTER (STICKY FOOTER) --- */
+        html, body {
+            height: 100%;
+            margin: 0;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh; /* Chiều cao tối thiểu 100% màn hình */
+        }
+
+        /* Class .main bao quanh @RenderBody sẽ giãn ra chiếm hết khoảng trống */
+        .main {
+            flex: 1;
+        }
+
+        footer {
+            flex-shrink: 0; /* Footer không bị co lại */
+        }
+        /* --- [KẾT THÚC] CSS CỐ ĐỊNH FOOTER --- */
+
+
         /* Nền mờ bên trái */
         .login-overlay {
             display: none;
@@ -264,6 +282,63 @@
                 .register-link a:hover {
                     text-decoration: underline;
                 }
+
+        /* --- CSS NÚT SĂN VOUCHER NỔI --- */
+        .float-voucher-btn {
+            position: fixed;
+            bottom: 100px; /* Cách đáy 100px để tránh nút Scroll Top nếu có */
+            right: 20px;
+            width: 60px;
+            height: 60px;
+            background: linear-gradient(135deg, #ff5722, #ee4d2d);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            box-shadow: 0 4px 15px rgba(238, 77, 45, 0.4);
+            z-index: 9990;
+            transition: transform 0.3s;
+            animation: floatBounce 3s infinite ease-in-out;
+        }
+
+            .float-voucher-btn:hover {
+                transform: scale(1.1);
+            }
+
+            .float-voucher-btn i {
+                font-size: 28px;
+                color: #fff;
+            }
+
+        .voucher-tooltip {
+            position: absolute;
+            right: 70px;
+            background: #333;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+            opacity: 0;
+            transition: 0.3s;
+            pointer-events: none;
+        }
+
+        .float-voucher-btn:hover .voucher-tooltip {
+            opacity: 1;
+            right: 75px;
+        }
+
+        @@keyframes floatBounce {
+            0%, 100% {
+                transform: translateY(0);
+            }
+
+            50% {
+                transform: translateY(-10px);
+            }
+        }
     </style>
 </head>
 
@@ -276,24 +351,25 @@
                 <h1 class="sitename">LUAGA</h1>
             </a>
 
-            <!-- Bắt đầu tìm kiếm -->
+            <a href="/Voucher/Index" class="float-voucher-btn">
+                <i class="fa-solid fa-ticket"></i>
+                <span class="voucher-tooltip">Săn Voucher</span>
+            </a>
+
             <form class="search-form d-flex" asp-controller="Home" asp-action="Search" method="get">
                 <input class="search-input form-control" type="search" name="query" placeholder="Search..." aria-label="Search" style="margin-right: 12px;">
                 <button class="search-btn" type="submit"><i class="bi bi-search"></i></button>
             </form>
-            <!-- kết thúc tìm kiếm -->
-
             <nav id="navmenu" class="navmenu">
                 <ul>
                     <li><a asp-controller="Home" asp-action="Index" class="active">Trang Chủ</a></li>
-                    <li><a asp-controller="Product" asp-action="Index">Sản Phẩm</a></li>
+                    <li><a asp-controller="SanPham" asp-action="Index">Sản Phẩm</a></li>
                     <li><a asp-controller="Cart" asp-action="Index"><i class="fa-solid fa-cart-shopping"></i></a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
 
             <div class="ms-3">
-                <!-- margin-left để tách ra khỏi nav/search -->
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="dropdown">
@@ -301,7 +377,7 @@
                             <i class="fa-solid fa-user"></i> @User.Identity.Name
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
-                            <li><a class="dropdown-item" asp-controller="Home" asp-action="Profile">Profile</a></li>
+                            <li><a class="dropdown-item" asp-controller="Address" asp-action="Index">Profile</a></li>
                             <li><a class="dropdown-item" asp-controller="Home" asp-action="Logout">Logout</a></li>
                         </ul>
                     </div>
@@ -311,11 +387,10 @@
                     <a asp-controller="Home" asp-action="Login" class="btn-getstarted" id="openLogin">Login</a>
                 }
             </div>
-          
+
 
         </div>
     </header>
-
 
 
     <main class="main">
@@ -334,7 +409,7 @@
                         <p> Buon Ma Thuot,Dak Lak</p>
                         <p>Viet Nam, VE +84</p>
                         <p class="mt-3"><strong>Phone:</strong> <span>+84 0347361338</span></p>
-                        <p><strong>Email:</strong> <span>LUAGA@gmail.com</span></p>
+                        <p class="mt-3"><strong>Email:</strong> <span>LUAGA@gmail.com</span></p>
                     </div>
                     <div class="social-links d-flex mt-4">
                         <a href="#"><i class="bi bi-twitter-x"></i></a>
@@ -357,11 +432,11 @@
                 <div class="col-lg-2 col-md-3 footer-links">
                     <h4>Dịch Vụ</h4>
                     <ul>
-                        <li><a asp-controller="" asp-action="">Sản phẩm Sale</a></li>
-                        <li><a asp-controller="" asp-action="">Hot Copunent</a></li>
-                        <li><a asp-controller="" asp-action="">Thông tin tài khoản</a></li>
-                        <li><a asp-controller="" asp-action="">Sản phẩm</a></li>
-                        <li><a asp-controller="" asp-action="">Danh mục</a></li>
+                        <li><a href="#">Sản phẩm Sale</a></li>
+                        <li><a href="#">Hot Copunent</a></li>
+                        <li><a href="#">Thông tin tài khoản</a></li>
+                        <li><a href="#">Sản phẩm</a></li>
+                        <li><a href="#">Danh mục</a></li>
                     </ul>
                 </div>
 
@@ -392,7 +467,6 @@
     </footer>
 
 
-    <!-- Vendor JS Files -->
     <script src="~/assets/vendor/bootstrap/js/bootstrap.bundle.min.js"></script>
     <script src="~/assets/vendor/php-email-form/validate.js"></script>
     <script src="~/assets/vendor/aos/aos.js"></script>
@@ -403,15 +477,14 @@
     <script src="~/assets/vendor/waypoints/noframework.waypoints.js"></script>
     <script src="~/assets/vendor/swiper/swiper-bundle.min.js"></script>
     <script src="~/js/site.js"></script>
-    <!-- Main JS File -->
     <script src="~/assets/js/main.js"></script>
 
-   
+
 
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {
-    <partial name="_ValidationScriptsPartial" />
-}
+        <partial name="_ValidationScriptsPartial" />
+    }
 </body>
 
 </html>

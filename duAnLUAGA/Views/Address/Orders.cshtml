@@ -1,0 +1,396 @@
+@using duAnLUAGA.ViewModel
+@model AddressVM
+@{
+    ViewData["Title"] = "Đơn Mua";
+}
+
+<style>
+    /* --- CSS CHUNG (Đồng bộ) --- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .profile-container {
+        width: 1200px;
+        margin: 20px auto;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 2px;
+        height: fit-content;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        margin-bottom: 15px;
+    }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e1e1e1;
+        }
+
+    .username {
+        font-weight: 600;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu {
+        list-style: none;
+    }
+
+        .menu li {
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            display: block;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .menu a:hover, .menu a.active {
+                color: #ee4d2d;
+                font-weight: 500;
+            }
+
+    /* Content */
+    .content {
+        flex: 1;
+        background: #fff;
+        padding: 0;
+        border-radius: 2px;
+        box-shadow: none;
+        background: transparent;
+    }
+
+    /* Tabs */
+    .order-tabs {
+        display: flex;
+        background: #fff;
+        border-bottom: 2px solid #eaeaea;
+        margin-bottom: 20px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .order-tab-item {
+        flex: 1;
+        text-align: center;
+        padding: 15px 0;
+        cursor: pointer;
+        font-size: 16px;
+        color: #555;
+        position: relative;
+        transition: color 0.2s;
+    }
+
+        .order-tab-item:hover {
+            color: #ee4d2d;
+        }
+
+        .order-tab-item.active {
+            color: #ee4d2d;
+            font-weight: 500;
+            border-bottom: 2px solid #ee4d2d;
+            margin-bottom: -2px;
+        }
+
+    /* Order Card */
+    .order-card {
+        background: #fff;
+        margin-bottom: 20px;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .card-header {
+        background: #fafafa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    }
+
+    .status-badge {
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .card-body {
+        padding: 0 20px;
+    }
+
+    .order-item {
+        display: flex;
+        padding: 15px 0;
+        border-bottom: 1px solid #f5f5f5;
+        align-items: center;
+    }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+    .item-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 1px solid #e1e1e1;
+        margin-right: 15px;
+    }
+
+    .item-info {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .item-qty {
+        font-size: 13px;
+        color: #888;
+    }
+
+    .item-price {
+        font-size: 14px;
+        color: #ee4d2d;
+    }
+
+    .card-footer {
+        padding: 20px;
+        background: #fffefb;
+        border-top: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .total-amount {
+        font-size: 20px;
+        color: #ee4d2d;
+        font-weight: bold;
+    }
+
+    .btn-detail {
+        background: #ee4d2d;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 20px;
+        border-radius: 2px;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+    }
+
+        .btn-detail:hover {
+            background: #d73211;
+        }
+
+    .hidden-order {
+        display: none !important;
+    }
+
+    .empty-order {
+        text-align: center;
+        padding: 50px;
+        color: #888;
+        background: #fff;
+        border-radius: 2px;
+    }
+</style>
+
+<div class="profile-container">
+
+    <aside class="sidebar">
+        <div class="user-info">
+            @{
+                var avatarSrc = !string.IsNullOrEmpty(Model.ProfileAvatarPath)
+                ? $"~/img/{Model.ProfileAvatarPath}"
+                : "~/img/avatar.png";
+            }
+            <img src="@avatarSrc" asp-append-version="true">
+            <div class="username">@(!string.IsNullOrWhiteSpace(Model.ProfileFullName) ? Model.ProfileFullName : "Thành viên")</div>
+        </div>
+
+        <ul class="menu">
+            <li><a href="/Address/Index"><i class="fa-solid fa-user"></i> Tài Khoản Của Tôi</a></li>
+            <li><a class="active" href="/Address/Index#orders"><i class="fa-solid fa-clipboard-list"></i> Đơn Mua</a></li>
+            <li><a href="/Address/Vouchers"><i class="fa-solid fa-ticket"></i> Kho Voucher</a></li>
+            <li><a href="/Address/AddressBook"><i class="fa-solid fa-location-dot"></i> Địa Chỉ</a></li>
+            <li><a href="/Address/DoiMK"><i class="fa-solid fa-lock"></i> Đổi Mật Khẩu</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <div class="order-tabs">
+            <div class="order-tab-item active" onclick="filterOrderStatus('all', this)">Tất cả</div>
+            <div class="order-tab-item" onclick="filterOrderStatus('ChoXacNhan', this)">Chờ xác nhận</div>
+            <div class="order-tab-item" onclick="filterOrderStatus('ChoLayHang', this)">Chờ lấy hàng</div>
+            <div class="order-tab-item" onclick="filterOrderStatus('DangGiao', this)">Đang giao</div>
+            <div class="order-tab-item" onclick="filterOrderStatus('DaGiao', this)">Đã giao</div>
+            <div class="order-tab-item" onclick="filterOrderStatus('DaHuy', this)">Đã hủy</div>
+        </div>
+
+        @if (Model.OrderList != null && Model.OrderList.Any())
+        {
+            <div class="order-list-container">
+                @foreach (var donHang in Model.OrderList)
+                {
+                    <div class="order-card" data-status="@donHang.TrangThai">
+                        <div class="card-header">
+                            <div>
+                                <span style="font-weight:bold; margin-right:10px;">LUAGA Store</span>
+                                <span style="color:#888;">| Ngày đặt: @donHang.NgayXuatHoaDon.ToString("dd/MM/yyyy")</span>
+                            </div>
+                            <div class="status-badge">
+                                @if (donHang.TrangThai == "ChoXacNhan")
+                                {
+                                    <span style="color:#ee4d2d">CHỜ XÁC NHẬN</span>
+                                }
+                                else if (donHang.TrangThai == "ChoLayHang")
+                                {
+
+                                    <span style="color:#26aa99">CHỜ LẤY HÀNG</span>
+                                }
+                                else if (donHang.TrangThai == "DangGiao")
+                                {
+
+                                    <span style="color:#2673dd">ĐANG GIAO</span>
+                                }
+                                else if (donHang.TrangThai == "DaGiao")
+                                {
+
+                                    <span style="color:#28a745">ĐÃ GIAO</span>
+                                }
+                                else if (donHang.TrangThai == "DaHuy")
+                                {
+
+                                    <span style="color:#999">ĐÃ HỦY</span>
+                                }
+                                else
+                                {
+
+                                    <span>@donHang.TrangThai</span>
+                                }
+                            </div>
+                        </div>
+
+                        @if (donHang.Chitiethoadons != null && donHang.Chitiethoadons.Any())
+                        {
+                            <div class="card-body">
+                                @foreach (var ct in donHang.Chitiethoadons)
+                                {
+                                    <div class="order-item">
+                                        <img src="@(string.IsNullOrEmpty(ct.MaSpNavigation?.HinhDaiDien) ? "/img/no-image.png" : $"/img/{ct.MaSpNavigation.HinhDaiDien}")" class="item-img">
+                                        <div class="item-info">
+                                            <div class="item-name">@ct.MaSpNavigation?.TenSanPham</div>
+                                            <div class="item-qty">x @ct.SoLuong</div>
+                                        </div>
+                                        <div class="item-price">
+                                            <span>@ct.DonGia.ToString("N0")₫</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+                        }
+                        else
+                        {
+                            <div class="card-body" style="padding:20px; text-align:center; color:#888;">
+                                <i>(Chi tiết sản phẩm chưa được tải)</i>
+                            </div>
+                        }
+
+                        <div class="card-footer">
+                            <div style="font-size:14px; color:#555;">
+                                Tổng số tiền: <span class="total-amount">@donHang.ThanhTien.ToString("N0")₫</span>
+                            </div>
+                            <div>
+                                <a asp-action="ChiTietDonHang" asp-controller="Address" asp-route-id="@donHang.MaHd" class="btn-detail">Xem chi tiết</a>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <div id="no-order-message" class="empty-order" style="display:none;">
+                <img src="https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/5fafbb923393b712b96488590b8f781d.png" width="100" style="opacity:0.6">
+                <p style="margin-top:10px">Chưa có đơn hàng nào</p>
+            </div>
+        }
+        else
+        {
+            <div class="empty-order">
+                <img src="https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/5fafbb923393b712b96488590b8f781d.png" width="100" style="opacity:0.6">
+                <p style="margin-top:10px">Chưa có đơn hàng nào</p>
+                <a href="/" style="color:#ee4d2d; text-decoration:none;">Mua sắm ngay</a>
+            </div>
+        }
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        // HÀM LỌC TRẠNG THÁI ĐƠN HÀNG
+        function filterOrderStatus(status, tabElement) {
+            // Active tab con
+            document.querySelectorAll('.order-tab-item').forEach(t => t.classList.remove('active'));
+            tabElement.classList.add('active');
+
+            // Lọc
+            const orders = document.querySelectorAll('.order-card');
+            let hasVisible = false;
+
+            orders.forEach(order => {
+                const orderStatus = order.getAttribute('data-status');
+                if (status === 'all' || orderStatus === status) {
+                    order.classList.remove('hidden-order');
+                    hasVisible = true;
+                } else {
+                    order.classList.add('hidden-order');
+                }
+            });
+
+            // Hiện thông báo nếu trống
+            const emptyMsg = document.getElementById('no-order-message');
+            if (emptyMsg) {
+                emptyMsg.style.display = hasVisible ? 'none' : 'block';
+            }
+        }
+    </script>
+}

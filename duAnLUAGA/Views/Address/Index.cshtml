@@ -1,0 +1,755 @@
+@using duAnLUAGA.ViewModel
+@model AddressVM
+@{
+    ViewData["Title"] = "Hồ sơ & Đơn hàng";
+}
+
+<style>
+    /* --- CSS CHUNG & LAYOUT --- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .profile-container {
+        width: 1200px;
+        margin: 20px auto;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 2px;
+        height: fit-content;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        margin-bottom: 15px;
+    }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e1e1e1;
+        }
+
+    .username {
+        font-weight: 600;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu {
+        list-style: none;
+    }
+
+        .menu li {
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            display: block;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .menu a:hover, .menu a.active {
+                color: #ee4d2d;
+                font-weight: 500;
+            }
+
+    /* Content */
+    .content {
+        flex: 1;
+        background: #fff;
+        padding: 30px;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+        min-height: 600px;
+    }
+
+    /* Tab ẩn hiện */
+    .tab-section {
+        display: none;
+    }
+
+        .tab-section.active {
+            display: block;
+        }
+
+    /* --- CSS FORM HỒ SƠ --- */
+    .form-content-wrapper {
+        display: flex;
+        gap: 50px;
+    }
+
+    .form-left {
+        flex: 1;
+    }
+
+    .form-right {
+        width: 280px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        border-left: 1px solid #efefef;
+        padding-left: 50px;
+    }
+
+    .form-group {
+        margin-bottom: 20px;
+        display: flex;
+        align-items: center;
+    }
+
+        .form-group label {
+            width: 120px;
+            text-align: right;
+            margin-right: 20px;
+            color: #555;
+            font-size: 14px;
+        }
+
+    .form-control {
+        flex: 1;
+        padding: 10px;
+        border: 1px solid #e0e0e0;
+        border-radius: 2px;
+        outline: none;
+        transition: border 0.3s;
+    }
+
+        .form-control:focus {
+            border-color: #888;
+        }
+
+    .gender-group {
+        display: flex;
+        gap: 20px;
+        align-items: center;
+    }
+
+        .gender-group label {
+            width: auto;
+            text-align: left;
+            margin-right: 0;
+            cursor: pointer;
+        }
+
+    .save-btn {
+        background: #ee4d2d;
+        color: #fff;
+        border: none;
+        padding: 10px 25px;
+        border-radius: 2px;
+        cursor: pointer;
+        margin-left: 140px;
+    }
+
+        .save-btn:hover {
+            background: #d73211;
+        }
+
+    .avatar-preview {
+        width: 100px;
+        height: 100px;
+        border-radius: 50%;
+        object-fit: cover;
+        border: 1px solid #e1e1e1;
+        margin-bottom: 20px;
+    }
+
+    .upload-btn {
+        border: 1px solid #e0e0e0;
+        background: #fff;
+        padding: 8px 15px;
+        cursor: pointer;
+        font-size: 14px;
+        color: #555;
+    }
+
+    .upload-note {
+        font-size: 12px;
+        color: #999;
+        margin-top: 10px;
+        text-align: center;
+    }
+
+    /* --- CSS ĐƠN MUA (TAB ORDER) --- */
+    .order-tabs {
+        display: flex;
+        background: #fff;
+        border-bottom: 2px solid #eaeaea;
+        margin-bottom: 20px;
+        position: sticky;
+        top: 0;
+        z-index: 10;
+    }
+
+    .order-tab-item {
+        flex: 1;
+        text-align: center;
+        padding: 15px 0;
+        cursor: pointer;
+        font-size: 16px;
+        color: #555;
+        position: relative;
+        transition: color 0.2s;
+    }
+
+        .order-tab-item:hover {
+            color: #ee4d2d;
+        }
+
+        .order-tab-item.active {
+            color: #ee4d2d;
+            font-weight: 500;
+            border-bottom: 2px solid #ee4d2d;
+            margin-bottom: -2px;
+        }
+
+    .order-card {
+        background: #fff;
+        border: 1px solid #eaeaea;
+        margin-bottom: 20px;
+        border-radius: 2px;
+    }
+
+    .card-header {
+        background: #fafafa;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 13px;
+    }
+
+    .status-badge {
+        font-weight: 500;
+        text-transform: uppercase;
+    }
+
+    .card-body {
+        padding: 0 20px;
+    }
+
+    .order-item {
+        display: flex;
+        padding: 15px 0;
+        border-bottom: 1px solid #f5f5f5;
+        align-items: center;
+    }
+
+        .order-item:last-child {
+            border-bottom: none;
+        }
+
+    .item-img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border: 1px solid #e1e1e1;
+        margin-right: 15px;
+    }
+
+    .item-info {
+        flex: 1;
+    }
+
+    .item-name {
+        font-size: 15px;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .item-qty {
+        font-size: 13px;
+        color: #888;
+    }
+
+    .item-price {
+        font-size: 14px;
+        color: #ee4d2d;
+    }
+
+    .card-footer {
+        padding: 20px;
+        background: #fffefb;
+        border-top: 1px solid #eaeaea;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .total-amount {
+        font-size: 20px;
+        color: #ee4d2d;
+        font-weight: bold;
+        margin-left: 5px;
+    }
+
+    .btn-detail {
+        background: #ee4d2d;
+        color: #fff;
+        text-decoration: none;
+        padding: 8px 20px;
+        border-radius: 2px;
+        font-size: 14px;
+        border: none;
+        cursor: pointer;
+    }
+
+        .btn-detail:hover {
+            background: #d73211;
+            color: #fff;
+        }
+
+    .btn-cancel {
+        background: #fff;
+        border: 1px solid #ddd;
+        color: #555;
+        padding: 7px 15px;
+        border-radius: 2px;
+        font-size: 14px;
+        cursor: pointer;
+        margin-right: 10px;
+    }
+
+        .btn-cancel:hover {
+            background: #f8f8f8;
+            color: #333;
+        }
+
+    .hidden-order {
+        display: none !important;
+    }
+
+    .empty-order {
+        text-align: center;
+        padding: 50px;
+        color: #888;
+    }
+
+    .message {
+        padding: 10px;
+        margin-bottom: 15px;
+        border-radius: 4px;
+    }
+
+        .message.success {
+            background: #eaf8f0;
+            color: #1d8f4d;
+            border: 1px solid #1d8f4d;
+        }
+
+    /* --- MODAL HỦY ĐƠN --- */
+    .modal-overlay {
+        display: none;
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.4);
+        z-index: 9999;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .modal-box {
+        background: #fff;
+        width: 500px;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+    }
+
+    .modal-header {
+        padding: 20px;
+        font-size: 18px;
+        font-weight: 500;
+        color: #222;
+    }
+
+    .modal-body {
+        padding: 0 20px 20px;
+    }
+
+    .warning-box {
+        background: #fffbf2;
+        border: 1px solid #ffecb8;
+        padding: 12px;
+        font-size: 13px;
+        color: #333;
+        border-radius: 4px;
+        margin-bottom: 15px;
+        display: flex;
+        gap: 8px;
+    }
+
+    .reason-group {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .reason-item {
+        display: flex;
+        align-items: center;
+        cursor: pointer;
+        font-size: 14px;
+        color: #333;
+    }
+
+        .reason-item input {
+            margin-right: 10px;
+            width: 18px;
+            height: 18px;
+            accent-color: #ee4d2d;
+            cursor: pointer;
+        }
+
+    .modal-footer {
+        background: #f5f5f5;
+        padding: 15px 20px;
+        display: flex;
+        justify-content: flex-end;
+        gap: 10px;
+    }
+
+    .btn-modal-close {
+        padding: 10px 30px;
+        background: #fff;
+        border: 1px solid #ddd;
+        color: #555;
+        cursor: pointer;
+        border-radius: 2px;
+        font-size: 14px;
+    }
+
+    .btn-modal-confirm {
+        padding: 10px 30px;
+        background: #ee4d2d;
+        border: none;
+        color: #fff;
+        cursor: pointer;
+        border-radius: 2px;
+        font-size: 14px;
+    }
+
+        .btn-modal-confirm:disabled {
+            background: #facac3;
+            cursor: not-allowed;
+        }
+</style>
+
+<div class="profile-container">
+
+    <aside class="sidebar">
+        <div class="user-info">
+            @{
+                var avatarSrc = !string.IsNullOrEmpty(Model.ProfileAvatarPath)
+                ? $"~/img/{Model.ProfileAvatarPath}"
+                : "~/img/avatar.png";
+            }
+            <img id="sidebar-avatar" src="@avatarSrc" asp-append-version="true">
+            <div class="username">@(!string.IsNullOrWhiteSpace(Model.ProfileFullName) ? Model.ProfileFullName : "Thành viên")</div>
+        </div>
+
+        <ul class="menu">
+            <li><a class="nav-link active" onclick="switchTab('profile', this)"><i class="fa-solid fa-user"></i> Tài Khoản Của Tôi</a></li>
+            <li><a class="nav-link" onclick="switchTab('orders', this)"><i class="fa-solid fa-clipboard-list"></i> Đơn Mua</a></li>
+            <li><a asp-action="Vouchers" asp-route-maKh="@Model.MaKh"><i class="fa-solid fa-ticket"></i> Kho Voucher</a></li>
+            <li><a asp-action="AddressBook" asp-route-maKh="@Model.MaKh"><i class="fa-solid fa-location-dot"></i> Địa Chỉ</a></li>
+            <li><a asp-action="DoiMK" asp-route-maKh="@Model.MaKh"><i class="fa-solid fa-lock"></i> Đổi Mật Khẩu</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+
+        <div id="tab-profile" class="tab-section active">
+            <div style="border-bottom: 1px solid #efefef; padding-bottom: 15px; margin-bottom: 20px;">
+                <h3 style="font-weight: 500; margin-bottom: 5px;">Hồ Sơ Của Tôi</h3>
+                <div style="font-size: 14px; color: #555;">Quản lý thông tin hồ sơ để bảo mật tài khoản</div>
+            </div>
+
+            @if (TempData["ProfileMessage"] != null)
+            {
+                <div class="message success">@TempData["ProfileMessage"]</div>
+            }
+
+            <form asp-action="UpdateProfile" method="post" enctype="multipart/form-data" id="profileForm">
+                <input type="hidden" asp-for="MaKh" />
+                <input type="file" asp-for="ProfileAvatarFile" id="fileInput" style="display: none;" accept="image/*">
+
+                <div class="form-content-wrapper">
+                    <div class="form-left">
+                        <div class="form-group">
+                            <label>Tên đăng nhập</label>
+                            <span style="font-size: 14px;">@Model.ProfileUserName</span>
+                        </div>
+                        <div class="form-group">
+                            <label>Họ tên</label>
+                            <input asp-for="ProfileFullName" class="form-control" />
+                            <span asp-validation-for="ProfileFullName" class="text-danger"></span>
+                        </div>
+                        <div class="form-group">
+                            <label>Email</label>
+                            <span>@Model.ProfileEmail</span>
+                            <input type="hidden" asp-for="ProfileEmail" />
+                        </div>
+                        <div class="form-group">
+                            <label>Số điện thoại</label>
+                            <span>@Model.ProfilePhone</span>
+                            <input type="hidden" asp-for="ProfilePhone" />
+                        </div>
+                        <div class="form-group">
+                            <label>Giới tính</label>
+                            <div class="gender-group">
+                                <label><input type="radio" asp-for="ProfileGender" value="Nam"> Nam</label>
+                                <label><input type="radio" asp-for="ProfileGender" value="Nữ"> Nữ</label>
+                                <label><input type="radio" asp-for="ProfileGender" value="Khác"> Khác</label>
+                            </div>
+                        </div>
+                        <button type="submit" class="save-btn">Lưu</button>
+                    </div>
+
+                    <div class="form-right">
+                        <img id="main-avatar" src="@avatarSrc" class="avatar-preview" asp-append-version="true">
+                        <button type="button" class="upload-btn" onclick="document.getElementById('fileInput').click()">Chọn Ảnh</button>
+                        <div class="upload-note">Dụng lượng file tối đa 1 MB<br>Định dạng: .JPEG, .PNG</div>
+                    </div>
+                </div>
+            </form>
+        </div>
+
+        <div id="tab-orders" class="tab-section">
+            <div class="order-tabs">
+                <div class="order-tab-item active" onclick="filterOrderStatus('all', this)">Tất cả</div>
+                <div class="order-tab-item" onclick="filterOrderStatus('ChoXacNhan', this)">Chờ xác nhận</div>
+                <div class="order-tab-item" onclick="filterOrderStatus('ChoLayHang', this)">Chờ lấy hàng</div>
+                <div class="order-tab-item" onclick="filterOrderStatus('DangGiao', this)">Đang giao</div>
+                <div class="order-tab-item" onclick="filterOrderStatus('DaGiao', this)">Đã giao</div>
+                <div class="order-tab-item" onclick="filterOrderStatus('DaHuy', this)">Đã hủy</div>
+            </div>
+
+            @if (Model.DanhSachDonHang != null && Model.DanhSachDonHang.Any())
+            {
+                <div class="order-list-container">
+                    @foreach (var donHang in Model.DanhSachDonHang)
+                    {
+                        <div class="order-card" data-status="@donHang.TrangThai">
+                            <div class="card-header">
+                                <div>
+                                    <span style="font-weight:bold; margin-right:10px;">LUAGA Store</span>
+                                    <span style="color:#888;">| Ngày đặt: @donHang.NgayXuatHoaDon.ToString("dd/MM/yyyy")</span>
+                                </div>
+                                <div class="status-badge">
+                                    @if (donHang.TrangThai == "ChoXacNhan")
+                                    {
+                                        <span style="color:#ee4d2d">CHỜ XÁC NHẬN</span>
+                                    }
+                                    else if (donHang.TrangThai == "ChoLayHang")
+                                    {
+
+                                        <span style="color:#26aa99">CHỜ LẤY HÀNG</span>
+                                    }
+                                    else if (donHang.TrangThai == "DangGiao")
+                                    {
+
+                                        <span style="color:#2673dd">ĐANG GIAO</span>
+                                    }
+                                    else if (donHang.TrangThai == "DaGiao")
+                                    {
+
+                                        <span style="color:#28a745">ĐÃ GIAO</span>
+                                    }
+                                    else if (donHang.TrangThai == "DaHuy")
+                                    {
+
+                                        <span style="color:#999">ĐÃ HỦY</span>
+                                    }
+                                    else
+                                    {
+
+                                        <span>@donHang.TrangThai</span>
+                                    }
+                                </div>
+                            </div>
+
+                            <div class="card-body">
+                                @foreach (var ct in donHang.Chitiethoadons)
+                                {
+                                    <div class="order-item">
+                                        <img src="@(string.IsNullOrEmpty(ct.MaSpNavigation?.HinhDaiDien) ? "/img/no-image.png" : $"/img/{ct.MaSpNavigation.HinhDaiDien}")" class="item-img">
+                                        <div class="item-info">
+                                            <div class="item-name">@ct.MaSpNavigation?.TenSanPham</div>
+                                            <div class="item-qty">x @ct.SoLuong</div>
+                                        </div>
+                                        <div class="item-price">
+                                            <span>@ct.DonGia.ToString("N0")₫</span>
+                                        </div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="card-footer">
+                                <div style="font-size:14px; color:#555;">
+                                    Tổng tiền: <span class="total-amount">@donHang.ThanhTien.ToString("N0")₫</span>
+                                </div>
+                                <div style="display:flex; gap:10px;">
+                                    @if (donHang.TrangThai == "ChoXacNhan")
+                                    {
+                                        <button type="button" class="btn-cancel" onclick="openCancelModal(@donHang.MaHd)">Hủy Đơn</button>
+                                    }
+                                    <a asp-action="ChiTietDonHang" asp-controller="Address" asp-route-id="@donHang.MaHd" class="btn-detail">Xem chi tiết</a>
+                                </div>
+                            </div>
+                        </div>
+                    }
+                </div>
+
+                <div id="no-order-message" class="empty-order" style="display:none;">
+                    <img src="https://deo.shopeemobile.com/shopee/shopee-pcmall-live-sg/assets/5fafbb923393b712b96488590b8f781d.png" width="100" style="opacity:0.6">
+                    <p style="margin-top:10px">Chưa có đơn hàng nào</p>
+                </div>
+            }
+            else
+            {
+                <div class="empty-order">
+                    <p>Chưa có đơn hàng nào</p>
+                    <a href="/" style="color:#ee4d2d; text-decoration:none;">Mua sắm ngay</a>
+                </div>
+            }
+        </div>
+
+    </main>
+</div>
+
+<div id="cancelOrderModal" class="modal-overlay">
+    <div class="modal-box">
+        <div class="modal-header">Chọn Lý Do Hủy</div>
+        <form asp-action="CancelOrder" asp-controller="Address" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" name="orderId" id="hiddenCancelOrderId" />
+
+            <div class="modal-body">
+                <div class="warning-box">
+                    <i class="fa-solid fa-circle-exclamation warning-icon"></i>
+                    <div>Vui lòng chọn lý do hủy đơn hàng. Lưu ý: Thao tác này sẽ hủy tất cả các sản phẩm có trong đơn hàng.</div>
+                </div>
+
+                <div class="reason-group">
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Muốn thay đổi địa chỉ giao hàng" onchange="checkReason()"> Muốn thay đổi địa chỉ giao hàng</label>
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Muốn nhập/thay đổi mã Voucher" onchange="checkReason()"> Muốn nhập/thay đổi mã Voucher</label>
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Muốn thay đổi sản phẩm (size, màu...)" onchange="checkReason()"> Muốn thay đổi sản phẩm</label>
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Thủ tục thanh toán quá rắc rối" onchange="checkReason()"> Thủ tục thanh toán quá rắc rối</label>
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Tìm thấy giá rẻ hơn ở chỗ khác" onchange="checkReason()"> Tìm thấy giá rẻ hơn ở chỗ khác</label>
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Đổi ý, không muốn mua nữa" onchange="checkReason()"> Đổi ý, không muốn mua nữa</label>
+                    <label class="reason-item"><input type="radio" name="lyDoHuy" value="Khác" onchange="checkReason()"> Khác</label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn-modal-close" onclick="closeCancelModal()">KHÔNG PHẢI BÂY GIỜ</button>
+                <button type="submit" class="btn-modal-confirm" id="btnConfirmCancel" disabled>Hủy Đơn Hàng</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // 1. CHUYỂN TAB
+        function switchTab(tabName, linkElement) {
+            document.querySelectorAll('.tab-section').forEach(el => el.classList.remove('active'));
+            document.querySelectorAll('.menu a').forEach(el => el.classList.remove('active'));
+            document.getElementById('tab-' + tabName).classList.add('active');
+            if(linkElement) linkElement.classList.add('active');
+        }
+
+        // 2. LỌC ĐƠN HÀNG
+        function filterOrderStatus(status, tabElement) {
+            document.querySelectorAll('.order-tab-item').forEach(t => t.classList.remove('active'));
+            tabElement.classList.add('active');
+            const orders = document.querySelectorAll('.order-card');
+            let hasVisible = false;
+            orders.forEach(order => {
+                const orderStatus = order.getAttribute('data-status');
+                if (status === 'all' || orderStatus === status) {
+                    order.classList.remove('hidden-order');
+                    hasVisible = true;
+                } else {
+                    order.classList.add('hidden-order');
+                }
+            });
+            const emptyMsg = document.getElementById('no-order-message');
+            if (emptyMsg) emptyMsg.style.display = hasVisible ? 'none' : 'block';
+        }
+
+        // 3. AUTO MỞ TAB ĐƠN MUA
+        document.addEventListener("DOMContentLoaded", function() {
+            if(window.location.hash === '#orders') {
+                const orderLink = document.querySelector('.menu a[onclick*="orders"]');
+                if(orderLink) switchTab('orders', orderLink);
+            }
+        });
+
+        // 4. MODAL HỦY ĐƠN
+        function openCancelModal(orderId) {
+            document.getElementById('hiddenCancelOrderId').value = orderId;
+            document.getElementById('cancelOrderModal').style.display = 'flex';
+            document.getElementsByName('lyDoHuy').forEach(r => r.checked = false);
+            document.getElementById('btnConfirmCancel').disabled = true;
+        }
+        function closeCancelModal() {
+            document.getElementById('cancelOrderModal').style.display = 'none';
+        }
+        function checkReason() {
+            document.getElementById('btnConfirmCancel').disabled = false;
+        }
+        window.onclick = function(event) {
+            if (event.target == document.getElementById('cancelOrderModal')) closeCancelModal();
+        }
+
+        // 5. PREVIEW ẢNH
+        document.getElementById('fileInput')?.addEventListener('change', function(e) {
+            if (e.target.files && e.target.files[0]) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    document.getElementById('main-avatar').src = e.target.result;
+                    document.getElementById('sidebar-avatar').src = e.target.result;
+                }
+                reader.readAsDataURL(e.target.files[0]);
+            }
+        });
+    </script>
+}

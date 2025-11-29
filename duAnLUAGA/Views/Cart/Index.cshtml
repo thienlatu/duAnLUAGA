@@ -1,0 +1,784 @@
+@using duAnLUAGA.ViewModel
+@model CartVM
+@{
+    ViewData["Title"] = "Giỏ Hàng";
+}
+
+@section Styles {
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { 
+    background: #f5f5f5; 
+    font-family: -apple-system, BlinkMacSystemFont, "Helvetica Neue", Roboto, sans-serif;
+    font-size: 14px;
+    color: #222;
+  }
+
+  .cart-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px 0;
+  }
+
+  .cart-header {
+    background: #fff;
+    padding: 18px 10px;
+    border-radius: 3px;
+    margin-bottom: 12px;
+    display: grid;
+    grid-template-columns: 38% 16% 16% 12% 20%; 
+    align-items: center;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+  }
+
+  .cart-header div {
+    font-size: 12px;
+    color: rgba(0,0,0,.54);
+    text-transform: capitalize;
+  }
+
+  .cart-header div:nth-child(2),
+  .cart-header div:nth-child(3),
+  .cart-header div:nth-child(4),
+  .cart-header div:nth-child(5) {
+    text-align: center;
+  }
+
+  .cart-item {
+    display: flex;
+    align-items: center;
+    padding: 20px 0;
+    border-top: 1px solid #f2f2f2;
+    padding-right: 10px;
+    background: #fff;
+    margin-bottom: 1px;
+  }
+
+  .item-left {
+    display: flex;
+    align-items: center;
+    flex: 3;                
+    gap: 14px;
+  }
+
+  .item-check {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+    accent-color: #ee4d2d;
+  }
+
+  .item-img {
+    width: 80px;
+    height: 80px;
+    object-fit: cover;
+    border: 1px solid #eaeaea;
+  }
+
+  .item-info {
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+    max-width: 320px;
+  }
+
+  .item-name {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .item-variant {
+    font-size: 12px;
+    color: rgba(0,0,0,.54);
+  }
+
+  .item-price {
+    flex: 1;
+    text-align: center;
+    font-size: 14px;
+    margin-left: 20px;
+  }
+
+  .item-qty {
+    flex: 1;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 0;
+    margin-left: 20px;
+  }
+
+  .qty-btn {
+    width: 32px;
+    height: 32px;
+    border: 1px solid #ccc;
+    background: #fff;
+    cursor: pointer;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .qty-btn:hover {
+    background: #f5f5f5;
+  }
+
+  .qty-btn:disabled {
+    cursor: not-allowed;
+    opacity: 0.3;
+  }
+
+  .qty-input {
+    width: 50px;
+    height: 32px;
+    text-align: center;
+    border: 1px solid #ccc;
+    border-left: none;
+    border-right: none;
+    outline: none;
+  }
+
+  .item-total {
+    flex: 1;
+    text-align: center;
+    font-size: 14px;
+    color: #ee4d2d;
+    font-weight: bold;
+    margin-left: 20px;
+  }
+
+  .item-action {
+    flex: 1;
+    text-align: center;
+    margin-left: 60px;
+  }
+
+  .item-action div {
+    cursor: pointer;
+    color: rgba(0,0,0,.54);
+    margin-bottom: 5px;
+    font-size: 12px;
+  }
+
+  .item-action div:hover {
+    color: #ee4d2d;
+  }
+
+  .shop-voucher {
+    padding: 12px 20px;
+    background: #fffefb;
+    border: 1px dashed rgba(224,168,0,.4);
+    margin: 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 12px;
+  }
+  .voucher-text {
+    flex: 1;
+    color: rgba(0,0,0,.87);
+  }
+  .voucher-link {
+    color: #05a;
+    text-decoration: none;
+    cursor: pointer;
+  }
+
+  .main-voucher {
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 3px;
+    margin-top: 12px;
+    margin-bottom: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: 0 1px 1px rgba(0,0,0,.05);
+  }
+  .voucher-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .voucher-title {
+    font-size: 14px;
+    color: #222;
+  }
+  .voucher-note {
+    font-size: 12px;
+    color: rgba(0,0,0,.54);
+  }
+  .voucher-right {
+    font-size: 14px;
+    color: #05a;
+    cursor: pointer;
+  }
+
+  .checkout-bar {
+    background: #fff;
+    padding: 16px 20px;
+    border-radius: 3px;
+    box-shadow: 0 1px 4px rgba(0,0,0,.12);
+    position: sticky;
+    bottom: 0;
+    z-index: 100;
+    margin-top: 12px;
+  }
+  .checkout-content {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+  .checkout-left {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+  .select-all-wrapper {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .select-all-label {
+    font-size: 14px;
+    color: #222;
+    cursor: pointer;
+    user-select: none;
+  }
+  .checkbox {
+    width: 16px;
+    height: 16px;
+    cursor: pointer;
+    accent-color: #ee4d2d;
+  }
+  .checkout-actions {
+    display: flex;
+    gap: 16px;
+  }
+  .action-btn {
+    background: none;
+    border: none;
+    font-size: 14px;
+    color: #222;
+    cursor: pointer;
+    padding: 0;
+  }
+  .action-btn:hover {
+    color: #ee4d2d;
+  }
+  .checkout-right {
+    display: flex;
+    align-items: center;
+    gap: 30px;
+  }
+  .voucher-promo {
+    font-size: 12px;
+    color: #05a;
+    cursor: pointer;
+  }
+  .total-wrapper {
+    display: flex;
+    align-items: baseline;
+    gap: 12px;
+  }
+  .total-label {
+    font-size: 14px;
+    color: rgba(0,0,0,.54);
+  }
+  .total-price {
+    font-size: 30px;
+    color: #ee4d2d;
+    font-weight: 400;
+  }
+  .checkout-btn {
+    background: #ee4d2d;
+    border: none;
+    color: #fff;
+    font-size: 14px;
+    padding: 10px 70px;
+    border-radius: 2px;
+    cursor: pointer;
+    text-transform: capitalize;
+  }
+  .checkout-btn:hover {
+    background: #d73211;
+  }
+  .checkout-btn:disabled {
+    background: rgba(238,77,45,.4);
+    cursor: not-allowed;
+  }
+
+  /* Modal Overlay */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 9999;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .modal-overlay.active {
+    display: flex;
+  }
+
+  .modal-box {
+    background: #fff;
+    border-radius: 4px;
+    width: 400px;
+    box-shadow: 0 2px 8px rgba(0,0,0,.15);
+    overflow: hidden;
+  }
+
+  .modal-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 18px;
+    color: rgba(0,0,0,.87);
+  }
+
+  .modal-body {
+    padding: 24px;
+    font-size: 14px;
+    color: rgba(0,0,0,.65);
+    line-height: 1.6;
+  }
+
+  .modal-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .modal-btn {
+    padding: 8px 24px;
+    border: none;
+    border-radius: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 80px;
+  }
+
+  .modal-btn-cancel {
+    background: #fff;
+    color: rgba(0,0,0,.87);
+    border: 1px solid rgba(0,0,0,.26);
+  }
+
+  .modal-btn-cancel:hover {
+    background: #f5f5f5;
+  }
+
+  .modal-btn-confirm {
+    background: #ee4d2d;
+    color: #fff;
+  }
+
+  .modal-btn-confirm:hover {
+    background: #d73211;
+  }
+
+  .empty-cart {
+    text-align: center;
+    padding: 60px 20px;
+    background: #fff;
+    border-radius: 3px;
+    color: rgba(0,0,0,.54);
+  }
+</style>
+}
+
+<div class="cart-container">
+  @if (TempData["CartMessage"] != null)
+  {
+    <div style="background: #fff; padding: 12px; margin-bottom: 12px; border-radius: 3px; color: #1d8f4d;">
+      @TempData["CartMessage"]
+    </div>
+  }
+
+  <div class="cart-header">
+    <div>Sản Phẩm</div>
+    <div>Đơn Giá</div>
+    <div>Số Lượng</div>
+    <div>Số Tiền</div>
+    <div>Thao Tác</div>
+  </div>
+
+  @if (Model.CartItems != null && Model.CartItems.Any())
+  {
+    <div id="products-container">
+      @foreach (var item in Model.CartItems)
+      {
+        <div class="cart-item" id="cart-item-@item.MaSp">
+          <div class="item-left">
+            <input type="checkbox" class="item-check" id="product-@item.MaSp" onchange="updateTotal()">
+            <img src="@(string.IsNullOrEmpty(item.HinhDaiDien) ? "~/img/no-image.png" : $"~/img/{item.HinhDaiDien}")" class="item-img" alt="@item.TenSanPham" asp-append-version="true">
+            <div class="item-info">
+              <div class="item-name">@item.TenSanPham</div>
+              <div class="item-variant">Phân Loại Hàng: @item.Variant</div>
+            </div>
+          </div>
+
+          <div class="item-price">@item.Gia.ToString("N0")₫</div>
+
+          <div class="item-qty">
+            <button class="qty-btn" onclick="changeQty(@item.MaSp, -1)">−</button>
+            <input type="text" class="qty-input" id="qty-@item.MaSp" value="@item.SoLuong" readonly>
+            <button class="qty-btn" onclick="changeQty(@item.MaSp, 1)">+</button>
+          </div>
+
+          <div class="item-total" id="total-@item.MaSp" data-price="@item.ThanhTien">@item.ThanhTien.ToString("#,##0")₫</div>
+
+          <div class="item-action">
+            <div class="delete" onclick="deleteProduct(@item.MaSp)">Xóa</div>
+          </div>
+        </div>
+      }
+    </div>
+
+    @* <div class="shop-voucher">
+      <span>🚚</span>
+      <span class="voucher-text">Giảm 500.000₫ phí vận chuyển đơn tối thiểu 0₫</span>
+      <a href="#" class="voucher-link">Tìm hiểu thêm</a>
+    </div> *@
+
+@*     <div class="main-voucher">
+      <div class="voucher-left">
+        <span style="font-size: 20px;">🎫</span>
+        <span class="voucher-title">LUAGA Voucher</span>
+        <span class="voucher-note" id="voucher-note">Bạn chưa chọn sản phẩm</span>
+      </div>
+      <div class="voucher-right">Chọn hoặc nhập mã</div>
+    </div>  *@
+
+    <div class="checkout-bar">
+      <div class="checkout-content">
+        <div class="checkout-left">
+          <div class="select-all-wrapper">
+            <input type="checkbox" class="checkbox" id="select-all" onchange="toggleAll(this)">
+            <label for="select-all" class="select-all-label">Chọn Tất Cả (<span id="item-count">@Model.CartItems.Count</span>)</label>
+          </div>
+          <div class="checkout-actions">
+            <button class="action-btn" onclick="deleteSelected()">Xóa</button>
+            <button class="action-btn">Lưu vào mục Đã thích</button>
+          </div>
+        </div>
+        <div class="checkout-right">
+          <span class="voucher-promo">Chọn hoặc nhập Khuyến mã khác</span>
+          <div class="total-wrapper">
+            <span class="total-label">Tổng thanh toán (<span id="selected-count">0</span> Sản phẩm):</span>
+            <span class="total-price" id="grand-total">0₫</span>
+          </div>
+          <button class="checkout-btn" id="checkout-button" disabled>Mua Hàng</button>
+        </div>
+      </div>
+    </div>
+  }
+  else
+  {
+    <div class="empty-cart">
+      <p style="font-size: 16px; margin-bottom: 10px;">Giỏ hàng của bạn đang trống</p>
+      <a asp-controller="SanPham" asp-action="Index" style="color: #ee4d2d; text-decoration: none;">Tiếp tục mua sắm</a>
+    </div>
+  }
+</div>
+
+<!-- Modal Xác Nhận Xóa -->
+<div class="modal-overlay" id="deleteModal">
+  <div class="modal-box">
+    <div class="modal-header">Xóa Sản Phẩm</div>
+    <div class="modal-body" id="modalMessage">
+      Bạn có chắc chắn muốn xóa sản phẩm này?
+    </div>
+    <div class="modal-footer">
+      <button class="modal-btn modal-btn-cancel" onclick="closeModal()">Hủy</button>
+      <button class="modal-btn modal-btn-confirm" onclick="confirmDelete()">Xác Nhận</button>
+    </div>
+  </div>
+</div>
+
+@section Scripts {
+<script>
+let pendingDeleteId = null;
+let pendingDeleteIds = [];
+
+function toggleSelectAll(source) {
+        checkboxes = document.getElementsByClassName('item-checkbox');
+        for(var i=0, n=checkboxes.length;i<n;i++) {
+            checkboxes[i].checked = source.checked;
+        }
+    }
+
+// Thay đổi số lượng
+function changeQty(maSp, change) {
+  const qtyInput = document.getElementById(`qty-${maSp}`);
+  const currentQty = parseInt(qtyInput.value) || 1;
+  const newQty = Math.max(1, currentQty + change);
+  
+  if (newQty === currentQty) return;
+  
+  fetch('/Cart/UpdateQuantity', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded',
+    },
+    body: `maSp=${maSp}&soLuong=${newQty}`
+  })
+  .then(response => response.json())
+  .then(data => {
+    if (data.success) {
+      qtyInput.value = data.soLuong;
+      const totalElement = document.getElementById(`total-${maSp}`);
+      if (totalElement) {
+        // Format số với dấu chấm như format Việt Nam
+        const formattedPrice = data.tongTien.toLocaleString('vi-VN').replace(/,/g, '.');
+        totalElement.textContent = formattedPrice + '₫';
+        totalElement.setAttribute('data-price', data.tongTien);
+      }
+      updateTotal();
+    } else {
+      alert(data.message || 'Có lỗi xảy ra');
+    }
+  })
+  .catch(error => {
+    console.error('Error:', error);
+    alert('Có lỗi xảy ra khi cập nhật số lượng');
+  });
+}
+
+// Hiển thị modal xóa
+function showDeleteModal(message) {
+  document.getElementById('modalMessage').textContent = message;
+  document.getElementById('deleteModal').classList.add('active');
+}
+
+// Đóng modal
+function closeModal() {
+  document.getElementById('deleteModal').classList.remove('active');
+  pendingDeleteId = null;
+  pendingDeleteIds = [];
+}
+
+// Xác nhận xóa
+function confirmDelete() {
+  if (pendingDeleteId !== null) {
+    // Xóa 1 sản phẩm
+    fetch('/Cart/Delete', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: `maSp=${pendingDeleteId}`
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        const item = document.getElementById(`cart-item-${pendingDeleteId}`);
+        if (item) {
+          item.remove();
+        }
+        updateTotal();
+        updateItemCount();
+        closeModal();
+        if (data.soLuongSanPham === 0) {
+          location.reload();
+        }
+      } else {
+        alert(data.message || 'Có lỗi xảy ra');
+        closeModal();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra khi xóa sản phẩm');
+      closeModal();
+    });
+  } else if (pendingDeleteIds.length > 0) {
+    // Xóa nhiều sản phẩm
+    fetch('/Cart/DeleteSelected', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(pendingDeleteIds)
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        pendingDeleteIds.forEach(id => {
+          const item = document.getElementById(`cart-item-${id}`);
+          if (item) {
+            item.remove();
+          }
+        });
+        updateTotal();
+        updateItemCount();
+        closeModal();
+        if (data.soLuongSanPham === 0) {
+          location.reload();
+        }
+      } else {
+        alert(data.message || 'Có lỗi xảy ra');
+        closeModal();
+      }
+    })
+    .catch(error => {
+      console.error('Error:', error);
+      alert('Có lỗi xảy ra khi xóa sản phẩm');
+      closeModal();
+    });
+  }
+}
+
+// Xóa sản phẩm
+function deleteProduct(maSp) {
+  pendingDeleteId = maSp;
+  showDeleteModal('Bạn có chắc chắn muốn xóa sản phẩm này?');
+}
+
+// Xóa sản phẩm đã chọn
+function deleteSelected() {
+  const checkboxes = document.querySelectorAll('.item-check:checked');
+  
+  if (checkboxes.length === 0) {
+    alert('Vui lòng chọn ít nhất một sản phẩm để xóa');
+    return;
+  }
+  
+  pendingDeleteIds = Array.from(checkboxes).map(cb => parseInt(cb.id.replace('product-', '')));
+  pendingDeleteId = null;
+  showDeleteModal(`Bạn có chắc chắn muốn xóa ${checkboxes.length} sản phẩm đã chọn?`);
+}
+
+// Toggle all checkbox
+function toggleAll(checkbox) {
+  const productCheckboxes = document.querySelectorAll('.item-check');
+  productCheckboxes.forEach(cb => cb.checked = checkbox.checked);
+  updateTotal();
+}
+
+// Cập nhật số lượng sản phẩm
+function updateItemCount() {
+  const items = document.querySelectorAll('.cart-item');
+  document.getElementById('item-count').textContent = items.length;
+}
+
+// Cập nhật tổng thanh toán
+function updateTotal() {
+  const checkboxes = document.querySelectorAll('.item-check:checked');
+  let total = 0;
+  let count = 0;
+  
+  checkboxes.forEach(cb => {
+    const maSp = parseInt(cb.id.replace('product-', ''));
+    const totalElement = document.getElementById(`total-${maSp}`);
+    if (totalElement) {
+      // Lấy giá trị từ data-price attribute thay vì parse từ text
+      const price = parseFloat(totalElement.getAttribute('data-price')) || 0;
+      total += price;
+      count++;
+    }
+  });
+  
+  document.getElementById('selected-count').textContent = count;
+  // Format số với dấu chấm như format Việt Nam
+  document.getElementById('grand-total').textContent = total.toLocaleString('vi-VN').replace(/,/g, '.') + '₫';
+  
+  const checkoutBtn = document.getElementById('checkout-button');
+  if (checkoutBtn) {
+    checkoutBtn.disabled = count === 0;
+  }
+  
+  // Cập nhật trạng thái checkbox "Chọn tất cả"
+  const selectAllCheckbox = document.getElementById('select-all');
+  const allProductCheckboxes = document.querySelectorAll('.item-check');
+  const checkedCount = document.querySelectorAll('.item-check:checked').length;
+  
+  if (selectAllCheckbox) {
+    if (checkedCount === allProductCheckboxes.length && allProductCheckboxes.length > 0) {
+      selectAllCheckbox.checked = true;
+    } else {
+      selectAllCheckbox.checked = false;
+    }
+  }
+  
+  // Cập nhật voucher note
+  const voucherNote = document.getElementById('voucher-note');
+  if (voucherNote) {
+    if (count > 0) {
+      voucherNote.textContent = `Đã chọn ${count} sản phẩm`;
+    } else {
+      voucherNote.textContent = 'Bạn chưa chọn sản phẩm';
+    }
+  }
+}
+
+// Đóng modal khi click bên ngoài
+document.addEventListener('click', function(e) {
+  const modal = document.getElementById('deleteModal');
+  if (e.target === modal) {
+    closeModal();
+  }
+});
+
+// Format số tiền với dấu chấm (format Việt Nam)
+function formatVND(amount) {
+  return amount.toLocaleString('vi-VN').replace(/,/g, '.');
+}
+
+// Xử lý nút "Mua Hàng"
+document.getElementById('checkout-button')?.addEventListener('click', function() {
+    const checkboxes = document.querySelectorAll('.item-check:checked');
+
+    if (checkboxes.length === 0) {
+    alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
+    return;
+    }
+
+  // Kiểm tra đăng nhập
+    fetch('/Cart/CheckLogin')
+    .then(response => response.json())
+    .then(data => {
+        if (!data.isLoggedIn) {
+        // Chưa đăng nhập
+        if (confirm('Bạn cần đăng nhập để thanh toán. Đăng nhập ngay?')) {
+            window.location.href = '/Home/Login'; // Sửa link login của bạn
+        }
+        } else {
+        // 2. Đã đăng nhập: Lấy danh sách ID đã chọn
+        const selectedProducts = Array.from(checkboxes).map(cb => cb.id.replace('product-', ''));
+
+        // 3. Tạo URL chứa tham số selectedIds
+        // Kết quả sẽ dạng: /ThanhToan/Index?selectedIds=101&selectedIds=102
+        const params = new URLSearchParams();
+        selectedProducts.forEach(id => params.append("selectedIds", id));
+
+        // 4. Chuyển hướng
+        window.location.href = '/ThanhToan/Index?' + params.toString();
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        // Fallback nếu API check login lỗi: Cứ chuyển hướng để Controller chặn sau
+        const selectedProducts = Array.from(checkboxes).map(cb => cb.id.replace('product-', ''));
+        const params = new URLSearchParams();
+        selectedProducts.forEach(id => params.append("selectedIds", id));
+        window.location.href = '/ThanhToan/Index?' + params.toString();
+    });
+});
+
+// Khởi tạo
+document.addEventListener('DOMContentLoaded', function() {
+  updateItemCount();
+  updateTotal();
+});
+</script>
+}
+

@@ -1,0 +1,388 @@
+@using duAnLUAGA.ViewModel
+@model AddressVM
+@{
+    ViewData["Title"] = "Sổ Địa Chỉ";
+    var addresses = Model.AddressList ?? new List<AddressVM>();
+}
+
+<style>
+    /* --- CSS CHUNG & LAYOUT (Đồng bộ toàn hệ thống) --- */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: Arial, sans-serif;
+    }
+
+    body {
+        background: #f5f5f5;
+        color: #333;
+    }
+
+    .profile-container {
+        width: 1200px;
+        margin: 20px auto;
+        display: flex;
+        gap: 20px;
+    }
+
+    /* Sidebar */
+    .sidebar {
+        width: 250px;
+        background: #fff;
+        padding: 20px;
+        border-radius: 2px;
+        height: fit-content;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    .user-info {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding-bottom: 20px;
+        border-bottom: 1px solid #efefef;
+        margin-bottom: 15px;
+    }
+
+        .user-info img {
+            width: 50px;
+            height: 50px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 1px solid #e1e1e1;
+        }
+
+    .username {
+        font-weight: 600;
+        font-size: 14px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .menu {
+        list-style: none;
+    }
+
+        .menu li {
+            margin-bottom: 15px;
+        }
+
+        .menu a {
+            text-decoration: none;
+            color: #333;
+            font-size: 14px;
+            display: block;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+            .menu a:hover, .menu a.active {
+                color: #ee4d2d;
+                font-weight: 500;
+            }
+
+    /* Content */
+    .content {
+        flex: 1;
+        background: #fff;
+        padding: 30px;
+        border-radius: 2px;
+        box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+        min-height: 600px;
+    }
+
+    /* Header Section */
+    .header-section {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        border-bottom: 1px solid #efefef;
+        padding-bottom: 20px;
+        margin-bottom: 20px;
+    }
+
+    .header-title h3 {
+        font-weight: 500;
+        margin: 0 0 5px 0;
+        font-size: 18px;
+    }
+
+    .header-desc {
+        font-size: 14px;
+        color: #555;
+    }
+
+    .btn-add-new {
+        background: #ee4d2d;
+        color: #fff;
+        text-decoration: none;
+        padding: 10px 20px;
+        border-radius: 2px;
+        font-size: 14px;
+        display: inline-flex;
+        align-items: center;
+        gap: 5px;
+        border: none;
+        cursor: pointer;
+        transition: 0.2s;
+    }
+
+        .btn-add-new:hover {
+            background: #d73211;
+            color: #fff;
+        }
+
+    /* Address List Style */
+    .address-list {
+        margin-top: 20px;
+    }
+
+    .address-item {
+        display: flex;
+        justify-content: space-between;
+        padding: 20px 0;
+        border-bottom: 1px solid #efefef;
+    }
+
+        .address-item:last-child {
+            border-bottom: none;
+        }
+
+    .addr-info {
+        flex: 1;
+        font-size: 14px;
+        line-height: 1.6;
+    }
+
+    .addr-row {
+        display: flex;
+        align-items: center;
+        margin-bottom: 5px;
+    }
+
+    .name-col {
+        font-weight: bold;
+        color: #333;
+        border-right: 1px solid #ddd;
+        padding-right: 10px;
+        margin-right: 10px;
+    }
+
+    .phone-col {
+        color: #757575;
+    }
+
+    .addr-detail {
+        color: #555;
+        margin-top: 5px;
+    }
+
+    .addr-badges {
+        margin-top: 10px;
+    }
+
+    .badge-default {
+        padding: 2px 6px;
+        border: 1px solid #ee4d2d;
+        color: #ee4d2d;
+        font-size: 12px;
+        border-radius: 2px;
+    }
+
+    .addr-actions {
+        display: flex;
+        flex-direction: column;
+        align-items: flex-end;
+        gap: 10px;
+        min-width: 150px;
+    }
+
+    .action-links {
+        display: flex;
+        gap: 10px;
+        font-size: 14px;
+    }
+
+    .link-edit {
+        color: #4080ee;
+        cursor: pointer;
+        text-decoration: none;
+    }
+
+        .link-edit:hover {
+            text-decoration: underline;
+        }
+
+    .link-delete {
+        color: #555;
+        cursor: pointer;
+        text-decoration: none;
+        background: none;
+        border: none;
+        padding: 0;
+        font-size: 14px;
+    }
+
+        .link-delete:hover {
+            color: #ee4d2d;
+            text-decoration: underline;
+        }
+
+    .btn-set-default {
+        border: 1px solid #ddd;
+        background: #fff;
+        color: #555;
+        padding: 5px 10px;
+        font-size: 13px;
+        cursor: pointer;
+        border-radius: 2px;
+        transition: 0.2s;
+    }
+
+        .btn-set-default:hover:not([disabled]) {
+            background: #f8f8f8;
+            border-color: #ccc;
+        }
+
+        .btn-set-default[disabled] {
+            border-color: #ee4d2d;
+            color: #ee4d2d;
+            cursor: default;
+            background: #fff;
+            opacity: 1;
+        }
+
+    .empty-addr {
+        text-align: center;
+        padding: 60px;
+        color: #888;
+    }
+
+    .message {
+        padding: 12px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+
+        .message.success {
+            background: #eaf8f0;
+            color: #1d8f4d;
+            border: 1px solid #1d8f4d;
+        }
+
+        .message.error {
+            background: #ffecec;
+            color: #d93025;
+            border: 1px solid #d93025;
+        }
+</style>
+
+<div class="profile-container">
+
+    <aside class="sidebar">
+        <div class="user-info">
+            @{
+                var avatarSrc = !string.IsNullOrEmpty(Model.ProfileAvatarPath)
+                ? $"~/img/{Model.ProfileAvatarPath}"
+                : "~/img/avatar.png";
+            }
+            <img src="@avatarSrc" asp-append-version="true">
+            <div class="username">@(!string.IsNullOrWhiteSpace(Model.ProfileFullName) ? Model.ProfileFullName : "Thành viên")</div>
+        </div>
+
+        <ul class="menu">
+            <li><a href="/Address/Index"><i class="fa-solid fa-user"></i> Tài Khoản Của Tôi</a></li>
+            <li><a href="/Address/Index#orders"><i class="fa-solid fa-clipboard-list"></i> Đơn Mua</a></li>
+            <li><a href="/Address/Vouchers"><i class="fa-solid fa-ticket"></i> Kho Voucher</a></li>
+            <li><a class="active" href="/Address/AddressBook"><i class="fa-solid fa-location-dot"></i> Địa Chỉ</a></li>
+            <li><a href="/Address/DoiMK"><i class="fa-solid fa-lock"></i> Đổi Mật Khẩu</a></li>
+        </ul>
+    </aside>
+
+    <main class="content">
+        <div class="header-section">
+            <div class="header-title">
+                <h3>Địa chỉ của tôi</h3>
+                <div class="header-desc">Quản lý thông tin nhận hàng</div>
+            </div>
+            <a class="btn-add-new" asp-action="Create" asp-route-maKh="@Model.MaKh">
+                <i class="fa-solid fa-plus"></i> Thêm địa chỉ mới
+            </a>
+        </div>
+
+        @if (TempData["ProfileMessage"] != null)
+        {
+            <div class="message success" id="notificationMessage">
+                <i class="fa-solid fa-check-circle"></i> @TempData["ProfileMessage"]
+            </div>
+        }
+
+        <div class="address-list">
+            @if (addresses.Any())
+            {
+                @foreach (var item in addresses)
+                {
+                    <div class="address-item">
+                        <div class="addr-info">
+                            <div class="addr-row">
+                                <span class="name-col">@item.TenNhanHang</span>
+                                <span class="phone-col">@item.Sdt</span>
+                            </div>
+                            <div class="addr-detail">
+                                @item.DiaChiChiTiet<br>
+                                @item.XaPhuong, @item.Tinh
+                            </div>
+                            @if (item.MacDinh)
+                            {
+                                <div class="addr-badges"><span class="badge-default">Mặc định</span></div>
+                            }
+                        </div>
+
+                        <div class="addr-actions">
+                            <div class="action-links">
+                                <a class="link-edit" asp-action="Edit" asp-route-id="@item.Id">Cập nhật</a>
+                                @if (!item.MacDinh)
+                                {
+                                    <form asp-action="Delete" method="post" style="display:inline;" onsubmit="return confirm('Bạn có chắc chắn muốn xóa địa chỉ này?');">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="id" value="@item.Id" />
+                                        <button type="submit" class="link-delete">Xóa</button>
+                                    </form>
+                                }
+                            </div>
+
+                            <button class="btn-set-default" @(item.MacDinh ? "disabled" : "")>
+                                Thiết lập mặc định
+                            </button>
+                        </div>
+                    </div>
+                }
+            }
+            else
+            {
+                <div class="empty-addr">
+                    <i class="fa-solid fa-map-location-dot" style="font-size: 50px; margin-bottom: 15px; color: #ccc;"></i>
+                    <p>Bạn chưa có địa chỉ nào.</p>
+                </div>
+            }
+        </div>
+    </main>
+</div>
+
+@section Scripts {
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Tự động ẩn thông báo sau 3 giây
+            var msg = document.getElementById('notificationMessage');
+            if (msg) {
+                setTimeout(function() {
+                    msg.style.opacity = '0';
+                    msg.style.transition = 'opacity 0.5s';
+                    setTimeout(() => msg.remove(), 500);
+                }, 3000);
+            }
+        });
+    </script>
+}

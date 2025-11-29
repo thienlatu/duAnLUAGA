@@ -1,0 +1,313 @@
+﻿@model IEnumerable<duAnLUAGA.Domain.Entitie.Magiamgium>
+@{
+    ViewData["Title"] = "Săn Voucher";
+}
+
+<style>
+    body {
+        background-color: #f5f5f5;
+        font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    }
+
+    .voucher-center {
+        max-width: 1200px;
+        margin: 30px auto;
+    }
+
+    /* --- Debug Box (Chỉ hiện khi có lỗi) --- */
+    .debug-box {
+        background-color: #fff3cd;
+        color: #856404;
+        border: 1px solid #ffeeba;
+        padding: 15px;
+        margin-bottom: 20px;
+        border-radius: 4px;
+        text-align: center;
+        font-weight: bold;
+    }
+
+    /* --- Banner --- */
+    .voucher-banner {
+        background: linear-gradient(135deg, #ee4d2d 0%, #ff7337 100%);
+        border-radius: 8px;
+        padding: 40px;
+        margin-bottom: 30px;
+        text-align: center;
+        color: #fff;
+        box-shadow: 0 4px 15px rgba(238, 77, 45, 0.3);
+    }
+
+        .voucher-banner h1 {
+            font-size: 32px;
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+    /* --- Grid --- */
+    .voucher-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+    }
+
+    /* --- Card Voucher --- */
+    .v-card {
+        display: flex;
+        background: #fff;
+        height: 130px;
+        border-radius: 4px;
+        overflow: hidden;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+        transition: transform 0.2s;
+        position: relative;
+    }
+
+        .v-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+        }
+
+    .v-left {
+        width: 130px;
+        background: linear-gradient(to bottom right, #ee4d2d, #ff5722);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        color: #fff;
+        border-right: 2px dashed #fff;
+        position: relative;
+    }
+        /* Răng cưa */
+        .v-left::before, .v-left::after {
+            content: "";
+            position: absolute;
+            right: -6px;
+            width: 12px;
+            height: 12px;
+            background: #f5f5f5;
+            border-radius: 50%;
+        }
+
+        .v-left::before {
+            top: -6px;
+        }
+
+        .v-left::after {
+            bottom: -6px;
+        }
+
+    .v-icon {
+        font-size: 32px;
+        font-weight: bold;
+        border: 2px solid #fff;
+        width: 50px;
+        height: 50px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: 50%;
+    }
+
+    .v-right {
+        flex: 1;
+        padding: 15px 20px;
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+        position: relative;
+    }
+
+    .v-code {
+        color: #ee4d2d;
+        font-size: 12px;
+        border: 1px solid #ee4d2d;
+        padding: 1px 6px;
+        border-radius: 2px;
+        width: fit-content;
+        margin-bottom: 8px;
+    }
+
+    .v-title {
+        font-size: 18px;
+        font-weight: 700;
+        color: #333;
+        margin-bottom: 5px;
+    }
+
+    .v-cond {
+        font-size: 13px;
+        color: #757575;
+    }
+
+    .v-expiry {
+        font-size: 11px;
+        color: #999;
+        margin-top: 5px;
+    }
+
+    .btn-save {
+        position: absolute;
+        right: 20px;
+        top: 50%;
+        transform: translateY(-50%);
+        background-color: #ee4d2d;
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 2px;
+        cursor: pointer;
+        font-size: 14px;
+    }
+
+        .btn-save:hover {
+            background-color: #d03416;
+        }
+
+        .btn-save:disabled {
+            background-color: #ccc;
+            cursor: not-allowed;
+        }
+
+    .empty-state {
+        grid-column: 1 / -1;
+        text-align: center;
+        padding: 60px;
+        color: #888;
+    }
+</style>
+
+<div class="voucher-center">
+    <div class="voucher-banner">
+        <h1>TRUNG TÂM VOUCHER</h1>
+        <p>Săn mã giảm giá độc quyền - Mua sắm thả ga</p>
+    </div>
+
+    <div class="voucher-grid">
+        @if (Model != null && Model.Any())
+        {
+            @foreach (var v in Model)
+            {
+                <div class="v-card">
+                    <div class="v-left">
+                        <div class="v-brand">LUAGA</div>
+                        <div class="v-icon">%</div>
+                    </div>
+                    <div class="v-right">
+                        <div class="v-code">@v.MaCode</div>
+                        <div class="v-title">
+                            @(v.SoTienGiam > 0 ? $"Giảm {v.SoTienGiam:N0}₫" : $"Giảm {v.PhanTramGiam}%")
+                        </div>
+                        <div class="v-cond">Đơn tối thiểu @(v.DonHangToiThieu?.ToString("N0") ?? "0")₫</div>
+                        <div class="v-expiry">HSD: @v.NgayKetThuc.ToString("dd/MM/yyyy")</div>
+
+                        <button type="button" class="btn-save" onclick="collectVoucher('@v.MaCode', this)">Lưu</button>
+                    </div>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="empty-state">
+                <i class="bi bi-emoji-frown" style="font-size:50px; display:block; margin-bottom:10px;"></i>
+                <p>Hiện tại không có voucher nào để săn.</p>
+                <a href="/" style="color:#ee4d2d;">Quay lại trang chủ</a>
+            </div>
+        }
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <script>
+        // Cấu hình Toast
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true
+        });
+
+        function collectVoucher(code, btn) {
+            const originalText = btn.innerText;
+            btn.innerText = "⏳";
+            btn.disabled = true;
+            btn.style.opacity = "0.7";
+
+            const formData = new FormData();
+            formData.append('id', code);
+
+            fetch('/Voucher/Collect', {
+                method: 'POST',
+                body: formData
+            })
+            .then(res => res.json())
+            .then(data => {
+                // 1. Chưa đăng nhập -> Hiện Popup đẹp
+                if (data.requireLogin) {
+                    Swal.fire({
+                        title: 'Chưa đăng nhập!',
+                        text: "Vui lòng đăng nhập để lưu voucher.",
+                        icon: 'warning',
+                        showCancelButton: true,
+                        confirmButtonColor: '#ee4d2d',
+                        cancelButtonColor: '#d33',
+                        confirmButtonText: 'Đăng nhập ngay',
+                        cancelButtonText: 'Hủy'
+                    }).then((result) => {
+                        if (result.isConfirmed) {
+                            window.location.href = "/Home/Login"; // Sửa lại link nếu cần
+                        }
+                    });
+
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                    return;
+                }
+
+                // 2. Thành công -> Hiện Toast & Ẩn card
+                if (data.success) {
+                    Toast.fire({
+                        icon: 'success',
+                        title: data.message
+                    });
+
+                    btn.innerText = "Đã Lưu";
+                    btn.style.backgroundColor = "#28a745";
+                    btn.style.opacity = "1";
+
+                    setTimeout(() => {
+                        const card = btn.closest('.v-card');
+                        card.style.transition = "all 0.5s ease";
+                        card.style.opacity = "0";
+                        card.style.transform = "translateX(50px)";
+                        setTimeout(() => {
+                            card.remove();
+                            if (document.querySelectorAll('.v-card').length === 0) location.reload();
+                        }, 500);
+                    }, 1000);
+                }
+                // 3. Lỗi khác
+                else {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Oops...',
+                        text: data.message,
+                        confirmButtonColor: '#ee4d2d'
+                    });
+                    btn.innerText = originalText;
+                    btn.disabled = false;
+                    btn.style.opacity = "1";
+                }
+            })
+            .catch(err => {
+                Swal.fire({ icon: 'error', title: 'Lỗi', text: 'Lỗi kết nối server' });
+                btn.innerText = originalText;
+                btn.disabled = false;
+            });
+        }
+    </script>
+}

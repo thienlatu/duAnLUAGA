@@ -1,0 +1,346 @@
+﻿@model duAnLUAGA.ViewModel.CheckoutVM
+@{
+    ViewData["Title"] = "Thanh Toán";
+    var formatMoney = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<style>
+    body { background-color: #f5f5f5; font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif; }
+    .checkout-container { max-width: 1200px; margin: 20px auto; }
+
+    .section-block {
+        background: #fff; padding: 25px 30px; margin-bottom: 12px;
+        border-radius: 2px; box-shadow: 0 1px 1px 0 rgba(0,0,0,.05);
+    }
+
+    /* Viền màu địa chỉ */
+    .address-border-top {
+        height: 3px;
+        background: repeating-linear-gradient(45deg,#6fa6d6,#6fa6d6 33px,transparent 0,transparent 41px,#f18d9b 0,#f18d9b 74px,transparent 0,transparent 82px);
+        margin-bottom: 20px;
+    }
+
+    .section-title { color: #ee4d2d; font-size: 18px; margin-bottom: 15px; display: flex; align-items: center; gap: 8px; }
+
+    /* Modal Địa chỉ */
+    .address-radio-group { border-bottom: 1px solid #eee; padding: 15px 0; display: flex; align-items: flex-start; }
+    .address-radio-group:last-child { border-bottom: none; }
+    .radio-custom { margin-top: 5px; margin-right: 15px; accent-color: #ee4d2d; transform: scale(1.2); cursor: pointer; }
+    .addr-name { font-weight: bold; font-size: 16px; margin-bottom: 4px; }
+    .addr-detail { color: #555; font-size: 14px; margin-bottom: 4px; }
+    .badge-default { border: 1px solid #ee4d2d; color: #ee4d2d; font-size: 12px; padding: 1px 4px; margin-left: 10px; }
+    .btn-update { color: #0055aa; font-size: 14px; text-decoration: none; margin-left: auto; cursor: pointer; }
+
+    /* Nút Thanh toán */
+    .payment-btn { border: 1px solid #e0e0e0; background: #fff; padding: 10px 20px; margin-right: 10px; cursor: pointer; min-width: 120px; }
+    .payment-btn.selected { border-color: #ee4d2d; color: #ee4d2d; position: relative; }
+    .payment-btn.selected::after { content: "✓"; position: absolute; bottom: 0; right: 0; background: #ee4d2d; color: #fff; font-size: 10px; padding: 0 5px; }
+
+    .btn-checkout { background: #ee4d2d; color: #fff; border: none; padding: 12px 60px; font-size: 16px; border-radius: 2px; transition: 0.3s; }
+    .btn-checkout:hover { background: #d73211; }
+
+    /* Voucher */
+    .voucher-ticket { border: 1px solid #ddd; padding: 10px; margin-bottom: 10px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid #ee4d2d; cursor: pointer; transition: 0.2s; }
+    .voucher-ticket:hover { background-color: #fcfcfc; border-color: #ee4d2d; }
+</style>
+
+<div class="checkout-container">
+    <form asp-action="DatHang" method="post" id="checkoutForm">
+        <input type="hidden" asp-for="MaDc" id="selectedMaDc" />
+        <input type="hidden" asp-for="MaVoucher" />
+        <input type="hidden" asp-for="PhuongThucThanhToan" id="hiddenPaymentMethod" value="COD" />
+
+        @if (ViewBag.SelectedIds != null)
+        {
+            foreach (var id in (List<int>)ViewBag.SelectedIds)
+            {
+                <input type="hidden" name="selectedIds" value="@id" />
+            }
+        }
+
+        <div class="section-block" style="padding-top: 5px;">
+            <div class="address-border-top"></div>
+            <div class="section-title"><i class="bi bi-geo-alt-fill"></i> Địa Chỉ Nhận Hàng</div>
+            
+            <div class="d-flex justify-content-between align-items-center">
+                @if (Model.MaDc != null)
+                {
+                    <div style="font-size: 15px;">
+                        <strong id="display-name-phone">@Model.TenNguoiNhan @Model.SoDienThoai</strong>
+                        <span class="mx-3" id="display-address">@Model.DiaChiChiTiet, @Model.XaPhuong, @Model.Tinh</span>
+                        
+                        @{ var isDefault = Model.DanhSachDiaChi.FirstOrDefault(x => x.Id == Model.MaDc)?.MacDinh == true; }
+                        <span id="display-badge" class="text-danger border border-danger px-1" 
+                              style="font-size:12px; display: @(isDefault ? "inline" : "none")">Mặc định</span>
+                    </div>
+                    <a href="#" class="text-primary text-decoration-none fw-bold" data-bs-toggle="modal" data-bs-target="#addressModal">THAY ĐỔI</a>
+                }
+                else
+                {
+                    <div class="text-danger">Bạn chưa chọn địa chỉ nhận hàng.</div>
+                    <a href="/Address/Create" class="btn btn-sm btn-outline-danger">Thêm địa chỉ</a>
+                }
+            </div>
+        </div>
+
+        <div class="section-block">
+            <div class="row text-muted mb-4 small">
+                <div class="col-6">Sản phẩm</div>
+                <div class="col-2 text-center">Đơn giá</div>
+                <div class="col-2 text-center">Số lượng</div>
+                <div class="col-2 text-end">Thành tiền</div>
+            </div>
+
+            @foreach (var item in Model.Items)
+            {
+                <div class="row align-items-center mb-3">
+                    <div class="col-6 d-flex align-items-center">
+                        <img src="@item.HinhDaiDien" style="width:50px; height:50px; border:1px solid #ddd; object-fit:cover;" class="me-3">
+                        <div>
+                            <div style="font-weight:500;">@item.TenSanPham</div>
+                            <small class="text-muted">@item.Variant</small>
+                        </div>
+                    </div>
+                    <div class="col-2 text-center">@item.Gia.ToString("n0", formatMoney)₫</div>
+                    <div class="col-2 text-center">@item.SoLuong</div>
+                    <div class="col-2 text-end">@item.ThanhTien.ToString("n0", formatMoney)₫</div>
+                </div>
+            }
+
+            <div class="border-top pt-4 mt-4">
+                <div class="d-flex justify-content-between mb-4 align-items-center">
+                    <div class="text-danger fw-bold"><i class="bi bi-ticket-perforated"></i> Voucher của Shop</div>
+                    <div>
+                        @if (!string.IsNullOrEmpty(Model.MaVoucher))
+                        {
+                            // --- [SỬA] ĐƯA LOGIC TÍNH TOÁN LÊN ĐẦU (Không cần @{ } bao quanh) ---
+                            var cancelUrl = Url.Action("Index", new { maVoucherDuocChon = "" });
+
+                            if (ViewBag.SelectedIds != null)
+                            {
+                                var ids = (List<int>)ViewBag.SelectedIds;
+                                var queryString = string.Join("&", ids.Select(id => "selectedIds=" + id));
+                                cancelUrl += "&" + queryString;
+                            }
+                            // ---------------------------------------------------------------------
+
+                            // Sau đó mới đến phần hiển thị HTML
+                            <span class="text-success me-2 small">
+                                Đã dùng: <strong>@Model.MaVoucher</strong> (-@Model.GiamGiaVoucher.ToString("n0", formatMoney)₫)
+                            </span>
+
+                            <a href="@cancelUrl" class="text-secondary small border px-2 rounded text-decoration-none">Hủy</a>
+                        }
+                        else
+                        {
+                            <a href="#" data-bs-toggle="modal" data-bs-target="#voucherModal" class="text-primary text-decoration-none">Chọn Voucher</a>
+                        }
+                    </div>
+                </div>
+
+                <div class="row align-items-center">
+                    <div class="col-6 d-flex align-items-center">
+                        <label class="me-3 text-nowrap">Lời nhắn:</label>
+                        <input asp-for="GhiChu" class="form-control form-control-sm" placeholder="Lưu ý cho người bán...">
+                    </div>
+                    <div class="col-6 text-end small">
+                        <span class="text-success">Đơn vị vận chuyển: <strong>Nhanh</strong></span>
+                        <span class="ms-3">@Model.PhiVanChuyen.ToString("n0", formatMoney)₫</span>
+                        <div class="text-muted mt-1">Nhận hàng vào 28 Th11 - 30 Th11</div>
+                    </div>
+                </div>
+
+                <div class="text-end mt-4 pt-3 border-top">
+                    Tổng số tiền (@Model.Items.Count sản phẩm):
+                    <span class="fs-4 text-danger fw-bold">@((Model.TongTienHang + Model.PhiVanChuyen).ToString("n0", formatMoney))₫</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="section-block">
+            <div class="mb-3 fw-bold">Phương thức thanh toán</div>
+            <div class="d-flex mb-3">
+                <button type="button" class="payment-btn" onclick="selectPayment(this, 'MOMO')">Ví MoMo</button>
+                <button type="button" class="payment-btn" onclick="selectPayment(this, 'VNPAY')">VNPay</button>
+                <button type="button" class="payment-btn selected" onclick="selectPayment(this, 'COD')">Thanh toán khi nhận hàng</button>
+            </div>
+            
+            <div id="payment-desc" class="bg-light p-3 border small text-muted">
+                Thanh toán khi nhận hàng (COD). 
+            </div>
+        </div>
+
+        <div class="section-block bg-light border-top">
+            <div class="row text-end text-muted small justify-content-end">
+                <div class="col-3 mb-2">Tổng tiền hàng</div>
+                <div class="col-3 mb-2">@Model.TongTienHang.ToString("n0", formatMoney)₫</div>
+            </div>
+            <div class="row text-end text-muted small justify-content-end">
+                <div class="col-3 mb-2">Phí vận chuyển</div>
+                <div class="col-3 mb-2">@Model.PhiVanChuyen.ToString("n0", formatMoney)₫</div>
+            </div>
+            @if (Model.GiamGiaVoucher > 0)
+            {
+                <div class="row text-end text-muted small justify-content-end">
+                    <div class="col-3 mb-2">Voucher giảm giá</div>
+                    <div class="col-3 mb-2">-@Model.GiamGiaVoucher.ToString("n0", formatMoney)₫</div>
+                </div>
+            }
+            <div class="row text-end mt-3 align-items-center justify-content-end">
+                <div class="col-3">Tổng thanh toán</div>
+                <div class="col-3 fs-3 text-danger fw-bold">@Model.TongThanhToan.ToString("n0", formatMoney)₫</div>
+            </div>
+
+            <div class="row mt-4 pt-3 border-top">
+                <div class="col-12 text-end">
+                    <button type="submit" class="btn-checkout">Đặt Hàng</button>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="modal fade" id="voucherModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title">Chọn Voucher</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body bg-light">
+                @if (Model.AvailableVouchers.Any())
+                {
+                    foreach (var v in Model.AvailableVouchers)
+                    {
+                        // Logic tạo link áp dụng voucher kèm selectedIds
+                        var applyUrl = Url.Action("Index", new { maVoucherDuocChon = v.MaCode });
+                        if (ViewBag.SelectedIds != null)
+                        {
+                            var ids = (List<int>)ViewBag.SelectedIds;
+                            var queryString = string.Join("&", ids.Select(id => "selectedIds=" + id));
+                            applyUrl += "&" + queryString;
+                        }
+
+                        <div class="voucher-ticket bg-white">
+                            <div>
+                                <strong class="text-danger">@v.MaCode</strong>
+                                <div class="small text-muted">@v.MoTa</div>
+                                <div style="font-size:11px; color:#888;">HSD: @v.NgayKetThuc.ToString("dd/MM/yyyy")</div>
+                            </div>
+                            <a href="@applyUrl" class="btn btn-sm btn-danger">Áp dụng</a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center p-3 text-muted">Không có voucher khả dụng.</div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addressModal" tabindex="-1">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header border-0 pb-0">
+                <h5 class="modal-title">Địa Chỉ Của Tôi</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body" style="max-height: 500px; overflow-y: auto;">
+                @if (Model.DanhSachDiaChi != null)
+                {
+                    foreach (var addr in Model.DanhSachDiaChi)
+                    {
+                        <div class="address-radio-group">
+                            <input type="radio" name="addressGroup" 
+                                   id="addr_@addr.Id" 
+                                   class="radio-custom" 
+                                   value="@addr.Id" 
+                                   @(Model.MaDc == addr.Id ? "checked" : "")
+                                   data-name="@addr.TenNhanHang"
+                                   data-phone="@addr.Sdt"
+                                   data-fulladdr="@addr.DiaChiChiTiet, @addr.XaPhuong, @addr.Tinh"
+                                   data-isdefault="@(addr.MacDinh ? "true" : "false")">
+                            
+                            <label for="addr_@addr.Id" style="flex-grow: 1; cursor: pointer;">
+                                <div class="d-flex align-items-center">
+                                    <span class="addr-name">@addr.TenNhanHang</span>
+                                    <span style="margin: 0 10px; color: #ccc;">|</span>
+                                    <span class="text-muted">@addr.Sdt</span>
+                                    @if (addr.MacDinh) { <span class="badge-default">Mặc định</span> }
+                                </div>
+                                <div class="addr-detail">@addr.DiaChiChiTiet</div>
+                                <div class="addr-detail">@addr.XaPhuong, @addr.Tinh</div>
+                            </label>
+                            <a href="/Address/Edit/@addr.Id" class="btn-update">Cập nhật</a>
+                        </div>
+                    }
+                }
+                <a href="/Address/Create" class="btn btn-outline-secondary w-100 mt-3"><i class="bi bi-plus-lg"></i> Thêm Địa Chỉ Mới</a>
+            </div>
+            <div class="modal-footer border-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal" style="min-width: 140px;">Hủy</button>
+                <button type="button" class="btn btn-danger" onclick="confirmAddress()" style="background: #ee4d2d; border:none; min-width: 140px;">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+
+    function confirmAddress() {
+    var selectedRadio = document.querySelector('input[name="addressGroup"]:checked');
+    
+    if (selectedRadio) {
+        var newAddressId = selectedRadio.value;
+
+        // --- [SỬA] TẠO URL ĐỂ RELOAD TRANG ---
+        var currentUrl = new URL(window.location.href);
+        
+        // Thêm/Cập nhật tham số selectedAddressId
+        currentUrl.searchParams.set("selectedAddressId", newAddressId);
+        
+        // Giữ nguyên các tham số khác (như voucher, selectedIds...)
+        // Reload trang
+        window.location.href = currentUrl.toString();
+    }
+}
+
+    function selectPayment(btn, method) {
+        document.querySelectorAll('.payment-btn').forEach(b => b.classList.remove('selected'));
+        btn.classList.add('selected');
+        document.getElementById('hiddenPaymentMethod').value = method;
+        
+        var desc = document.getElementById('payment-desc');
+        if(method === 'COD') {
+            desc.innerText = "Thanh toán khi nhận hàng (COD).";
+        } else if(method === 'VNPAY') {
+            desc.innerText = "Thanh toán qua cổng VNPay.";
+        } else if(method === 'MOMO') {
+            desc.innerText = "Thanh toán qua ví MoMo.";
+        }
+    }
+
+    function confirmAddress() {
+        var selectedRadio = document.querySelector('input[name="addressGroup"]:checked');
+        if (selectedRadio) {
+            var id = selectedRadio.value;
+            var name = selectedRadio.getAttribute('data-name');
+            var phone = selectedRadio.getAttribute('data-phone');
+            var address = selectedRadio.getAttribute('data-fulladdr');
+            var isDefault = selectedRadio.getAttribute('data-isdefault') === "true";
+
+            document.getElementById('selectedMaDc').value = id;
+            document.getElementById('display-name-phone').innerText = name + ' ' + phone;
+            document.getElementById('display-address').innerText = address;
+            
+            var badge = document.getElementById('display-badge');
+            if(isDefault) badge.style.display = 'inline'; else badge.style.display = 'none';
+
+            var modalEl = document.getElementById('addressModal');
+            var modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+        }
+    }
+</script>
