@@ -1,0 +1,88 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.DiaChiVM
+@{
+    ViewData["Title"] = "Chi tiết Địa chỉ";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4">Chi tiết Địa chỉ</h3>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã ĐC:</dt>
+            <dd class="col-sm-9">#@Model.Id</dd>
+
+            <dt class="col-sm-3">Khách hàng:</dt>
+            <dd class="col-sm-9">
+                <div>
+                    <div class="fw-bold">@Model.TenKhachHang</div>
+                    <small class="text-muted">@Model.EmailKhachHang</small>
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Tên người nhận:</dt>
+            <dd class="col-sm-9">@Model.TenNhanHang</dd>
+
+            <dt class="col-sm-3">Số điện thoại:</dt>
+            <dd class="col-sm-9">
+                <i class="fa fa-phone me-2 text-muted"></i>@Model.Sdt
+            </dd>
+
+            <dt class="col-sm-3">Tỉnh/Thành phố:</dt>
+            <dd class="col-sm-9">@Model.Tinh</dd>
+
+            <dt class="col-sm-3">Xã/Phường:</dt>
+            <dd class="col-sm-9">@Model.XaPhuong</dd>
+
+            <dt class="col-sm-3">Địa chỉ chi tiết:</dt>
+            <dd class="col-sm-9">@Model.DiaChiChiTiet</dd>
+
+            <dt class="col-sm-3">Địa chỉ đầy đủ:</dt>
+            <dd class="col-sm-9">
+                <div class="p-3 bg-dark rounded">
+                    <i class="fa fa-map-marker-alt me-2 text-primary"></i>
+                    @Model.DiaChiChiTiet, @Model.XaPhuong, @Model.Tinh
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Mặc định:</dt>
+            <dd class="col-sm-9">
+                @if (Model.MacDinh)
+                {
+                    <span class="badge bg-warning rounded-pill">
+                        <i class="fa fa-star me-1"></i>Địa chỉ mặc định
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-secondary rounded-pill">Không</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Trạng thái:</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsDelete)
+                {
+                    <span class="badge bg-danger rounded-pill">
+                        <i class="fa fa-trash me-1"></i>Đã xóa
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-success rounded-pill">
+                        <i class="fa fa-check-circle me-1"></i>Còn hạn
+                    </span>
+                }
+            </dd>
+        </dl>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.Id" class="btn btn-primary">
+                <i class="fa fa-edit me-2"></i>Sửa
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+    </div>
+</div>
+

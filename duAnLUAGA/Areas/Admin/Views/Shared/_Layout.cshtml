@@ -52,12 +52,12 @@
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
-                    <a href="" class="nav-item nav-link active"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
+                    <a asp-area="Admin" asp-controller="Home" asp-action="Index" class="nav-item nav-link"><i class="fa fa-tachometer-alt me-2"></i>Dashboard</a>
                     <a href="" class="nav-item nav-link"><i class="fa fa-th me-2"></i>Sản Phẩm</a>
                     <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Danh Mục</a>
-                    <a href="" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Khách Hàng</a>
+                    <a asp-area="Admin" asp-controller="KhachHang" asp-action="Index" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Khách Hàng</a>
                     <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Mã giảm Giá</a>
-                    <a href="" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Nhân Viên</a>
+                    <a asp-area="Admin" asp-controller="NhanVien" asp-action="Index" class="nav-item nav-link"><i class="fa fa-chart-bar me-2"></i>Nhân Viên</a>
                     <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Flash Sale</a>
                     <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Đơn Hàng</a>
                     <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Đánh Giá</a>
@@ -125,6 +125,8 @@
 
     <!-- Template Javascript -->
     <script src="~/templateAdmin/js/main.js"></script>
+    
+    @RenderSection("Scripts", required: false)
 </body>
 
 </html>

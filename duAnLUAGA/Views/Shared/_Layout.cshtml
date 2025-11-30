@@ -49,6 +49,25 @@
         }
         /* --- [KẾT THÚC] CSS CỐ ĐỊNH FOOTER --- */
 
+        /* Cart Badge Styles */
+        .cart-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #ee4d2d;
+            color: #fff;
+            border-radius: 10px;
+            min-width: 20px;
+            height: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 11px;
+            font-weight: bold;
+            padding: 0 6px;
+            line-height: 1;
+        }
+
 
         /* Nền mờ bên trái */
         .login-overlay {
@@ -364,7 +383,10 @@
                 <ul>
                     <li><a asp-controller="Home" asp-action="Index" class="active">Trang Chủ</a></li>
                     <li><a asp-controller="SanPham" asp-action="Index">Sản Phẩm</a></li>
-                    <li><a asp-controller="Cart" asp-action="Index"><i class="fa-solid fa-cart-shopping"></i></a></li>
+                    <li><a asp-controller="Cart" asp-action="Index" style="position: relative;">
+                        <i class="fa-solid fa-cart-shopping"></i>
+                        <span id="cart-badge" class="cart-badge" style="display: none;">0</span>
+                    </a></li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
@@ -479,7 +501,35 @@
     <script src="~/js/site.js"></script>
     <script src="~/assets/js/main.js"></script>
 
+    <script>
+        // Hàm cập nhật số sản phẩm trong giỏ hàng
+        function updateCartBadge() {
+            fetch('/Cart/GetCartCount')
+                .then(response => response.json())
+                .then(data => {
+                    const badge = document.getElementById('cart-badge');
+                    if (badge) {
+                        if (data.count > 0) {
+                            badge.textContent = data.count > 99 ? '99+' : data.count;
+                            badge.style.display = 'flex';
+                        } else {
+                            badge.style.display = 'none';
+                        }
+                    }
+                })
+                .catch(error => {
+                    console.error('Error updating cart badge:', error);
+                });
+        }
 
+        // Cập nhật badge khi trang được tải
+        document.addEventListener('DOMContentLoaded', function() {
+            updateCartBadge();
+        });
+
+        // Tạo hàm global để các trang khác có thể gọi
+        window.updateCartBadge = updateCartBadge;
+    </script>
 
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {

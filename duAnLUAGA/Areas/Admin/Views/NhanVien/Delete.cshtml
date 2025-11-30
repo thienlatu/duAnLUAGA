@@ -1,0 +1,87 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.NhanVienVM
+@{
+    ViewData["Title"] = "Xóa Nhân viên";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4 text-danger">Xác nhận Xóa Nhân viên</h3>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            Bạn có chắc chắn muốn xóa nhân viên này? Hành động này không thể hoàn tác!
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã NV:</dt>
+            <dd class="col-sm-9">@Model.MaNv</dd>
+
+            <dt class="col-sm-3">Tên Nhân viên:</dt>
+            <dd class="col-sm-9">@Model.TenNhanVien</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Số điện thoại:</dt>
+            <dd class="col-sm-9">@(Model.Sdt ?? "-")</dd>
+
+            <dt class="col-sm-3">Trạng thái:</dt>
+            <dd class="col-sm-9">
+                @if (Model.TrangThai)
+                {
+                    <span class="badge bg-danger">Vô hiệu hóa</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Hoạt động</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-area="Admin" asp-controller="NhanVien" asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaNv" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger" id="confirmDeleteBtn">
+                    <i class="fa fa-trash me-2"></i>Xác nhận Xóa
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.getElementById('confirmDeleteBtn').addEventListener('click', function (e) {
+            e.preventDefault();
+            const form = this.closest('form');
+            Swal.fire({
+                title: 'Bạn có chắc chắn muốn xóa?',
+                text: "Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa',
+                cancelButtonText: 'Hủy'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    form.submit();
+                }
+            });
+        });
+    </script>
+}
+

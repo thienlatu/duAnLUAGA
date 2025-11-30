@@ -1,0 +1,80 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.NhanVienVM
+@{
+    ViewData["Title"] = "Chi tiết Nhân viên";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4">Chi tiết Nhân viên</h3>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã NV:</dt>
+            <dd class="col-sm-9">@Model.MaNv</dd>
+
+            <dt class="col-sm-3">Tên Nhân viên:</dt>
+            <dd class="col-sm-9">@Model.TenNhanVien</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Tên đăng nhập:</dt>
+            <dd class="col-sm-9">@Model.TenDangNhap</dd>
+
+            <dt class="col-sm-3">Giới tính:</dt>
+            <dd class="col-sm-9">@(Model.GioiTinh ?? "-")</dd>
+
+            <dt class="col-sm-3">Năm sinh:</dt>
+            <dd class="col-sm-9">@(Model.NamSinh?.ToString("dd/MM/yyyy") ?? "-")</dd>
+
+            <dt class="col-sm-3">Số điện thoại:</dt>
+            <dd class="col-sm-9">@(Model.Sdt ?? "-")</dd>
+
+            <dt class="col-sm-3">CCCD/CMND:</dt>
+            <dd class="col-sm-9">@(Model.Cccd ?? "-")</dd>
+
+            <dt class="col-sm-3">Địa chỉ:</dt>
+            <dd class="col-sm-9">@(Model.DiaChi ?? "-")</dd>
+
+            <dt class="col-sm-3">Hình ảnh:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                {
+                    <img src="~/img/@Model.HinhAnh" alt="Avatar" style="max-width: 100px; max-height: 100px;" 
+                         onerror="this.style.display='none';" />
+                }
+                else
+                {
+                    <div class="bg-secondary d-inline-flex align-items-center justify-content-center" style="width: 100px; height: 100px;">
+                        <i class="fa fa-user fa-2x text-muted"></i>
+                    </div>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Trạng thái:</dt>
+            <dd class="col-sm-9">
+                @if (Model.TrangThai)
+                {
+                    <span class="badge bg-danger rounded-pill">
+                        <i class="fa fa-ban me-1"></i>Vô hiệu hóa
+                    </span>
+                }
+                else
+                {
+                    <span class="badge bg-success rounded-pill">
+                        <i class="fa fa-check-circle me-1"></i>Hoạt động
+                    </span>
+                }
+            </dd>
+        </dl>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.MaNv" class="btn btn-primary">
+                <i class="fa fa-edit me-2"></i>Sửa
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+    </div>
+</div>
+

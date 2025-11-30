@@ -129,7 +129,7 @@ namespace duAnLUAGA.Controllers
         {
             // Xóa tất cả validation errors trước
             ModelState.Clear();
-            
+
             // Chỉ validate các trường địa chỉ, bỏ qua tất cả các trường khác
             ClearLoginValidation();
 
@@ -294,7 +294,7 @@ namespace duAnLUAGA.Controllers
         {
             // Xóa tất cả validation errors trước
             ModelState.Clear();
-            
+
             // Chỉ validate các trường địa chỉ, bỏ qua tất cả các trường khác
             ClearLoginValidation();
 
@@ -561,6 +561,63 @@ namespace duAnLUAGA.Controllers
             var khach = _context.Khachhangs.FirstOrDefault(k => k.MaKh == vm.MaKh);
             if (khach == null) return NotFound();
 
+            // XỬ LÝ ẢNH TRƯỚC KHI VALIDATION - Đảm bảo ảnh được lưu dù validation fail
+            if (vm.ProfileAvatarFile != null && vm.ProfileAvatarFile.Length > 0)
+            {
+                try
+                {
+                    // ĐƯỜNG DẪN TUYỆT ĐỐI ĐẾN wwwroot/img
+                    var uploadsFolder = Path.Combine(_env.WebRootPath, "img");
+
+                    // Tạo thư mục nếu chưa tồn tại
+                    if (!Directory.Exists(uploadsFolder))
+                        Directory.CreateDirectory(uploadsFolder);
+
+                    // Xóa ảnh cũ nếu có
+                    if (!string.IsNullOrEmpty(khach.HinhAnh))
+                    {
+                        var oldImagePath = Path.Combine(_env.WebRootPath, "img", khach.HinhAnh);
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            try
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                            catch { }
+                        }
+                    }
+
+                    // Tạo tên file duy nhất
+                    var fileName = $"avatar_{vm.MaKh}_{DateTime.Now.Ticks}{Path.GetExtension(vm.ProfileAvatarFile.FileName)}";
+
+                    // ĐƯỜNG DẪN FILE: wwwroot/img/<filename>
+                    var filePath = Path.Combine(uploadsFolder, fileName);
+
+                    // Lưu file xuống wwwroot/img
+                    using (var fileStream = new FileStream(filePath, FileMode.Create))
+                    {
+                        vm.ProfileAvatarFile.CopyTo(fileStream);
+                        fileStream.Flush(); // Đảm bảo file được ghi vào disk
+                    }
+
+                    // Kiểm tra file đã được tạo thành công
+                    if (System.IO.File.Exists(filePath) && new FileInfo(filePath).Length > 0)
+                    {
+                        // Gán đường dẫn file vào DB NGAY LẬP TỨC
+                        khach.HinhAnh = fileName;
+                        _context.SaveChanges(); // Lưu ngay để đảm bảo ảnh được cập nhật
+                    }
+                }
+                catch (Exception ex)
+                {
+                    // Log lỗi nhưng không block các thao tác khác
+                    System.Diagnostics.Debug.WriteLine($"Lỗi khi lưu ảnh: {ex.Message}");
+                }
+            }
+
+            // Bỏ qua validation cho ProfileAvatarFile để không block form
+            ModelState.Remove("ProfileAvatarFile");
+
             if (!string.IsNullOrWhiteSpace(vm.ProfileEmail))
             {
                 if (!vm.ProfileEmail.Contains("@") || !vm.ProfileEmail.Contains("."))
@@ -625,27 +682,8 @@ namespace duAnLUAGA.Controllers
             if (!string.IsNullOrWhiteSpace(vm.ProfileEmail)) khach.Email = vm.ProfileEmail;
             if (!string.IsNullOrWhiteSpace(vm.ProfileGender)) khach.GioiTinh = vm.ProfileGender;
 
-            if (vm.ProfileAvatarFile != null && vm.ProfileAvatarFile.Length > 0)
-            {
-                var uploadsFolder = Path.Combine(_env.WebRootPath, "img");
-                if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
+            // Ảnh đã được xử lý ở trên (trước validation) để đảm bảo luôn được lưu
 
-                if (!string.IsNullOrEmpty(khach.HinhAnh))
-                {
-                    var oldImagePath = Path.Combine(_env.WebRootPath, "img", khach.HinhAnh);
-                    if (System.IO.File.Exists(oldImagePath)) System.IO.File.Delete(oldImagePath);
-                }
-
-                var fileName = $"avatar_{vm.MaKh}_{DateTime.Now.Ticks}{Path.GetExtension(vm.ProfileAvatarFile.FileName)}";
-                var filePath = Path.Combine(uploadsFolder, fileName);
-
-                using (var fileStream = new FileStream(filePath, FileMode.Create))
-                {
-                    vm.ProfileAvatarFile.CopyTo(fileStream);
-                }
-
-                khach.HinhAnh = fileName;
-            }
 
             var phoneTarget = _context.Diachis
                 .Where(x => x.MaKh == vm.MaKh && !x.IsDelete)
@@ -749,7 +787,7 @@ namespace duAnLUAGA.Controllers
                 // So sánh mật khẩu cũ với password hash trong DB (trim cả hai bên để tránh lỗi khoảng trắng)
                 var oldPasswordTrimmed = vm.OldPassword.Trim();
                 var currentPasswordTrimmed = currentPasswordHash.Trim();
-                
+
                 if (currentPasswordTrimmed != oldPasswordTrimmed)
                 {
                     // Nếu sai → trả về lỗi "Mật khẩu cũ không chính xác"
@@ -811,7 +849,7 @@ namespace duAnLUAGA.Controllers
             // ========== BƯỚC 9-10: HASH MẬT KHẨU MỚI VÀ UPDATE DATABASE ==========
             // Nếu đúng → hash mật khẩu mới (trong hệ thống này lưu plain text, nhưng trim để đồng nhất)
             var newPasswordHash = vm.NewPassword.Trim();
-            
+
             // Update mật khẩu mới (đã hash) vào database
             khach.MatKhau = newPasswordHash;
             _context.SaveChanges();
@@ -854,7 +892,7 @@ namespace duAnLUAGA.Controllers
             var currentUserId = GetCurrentUserId();
             if (currentUserId == null)
             {
-                return RedirectToAction("Index"); 
+                return RedirectToAction("Index");
             }
 
             var order = _context.Hoadons
@@ -946,16 +984,16 @@ namespace duAnLUAGA.Controllers
                     // Lấy dữ liệu từ API provinces.open-api.vn
                     var apiUrl = "https://provinces.open-api.vn/api/v2/";
                     var response = await httpClient.GetStringAsync(apiUrl);
-                    
+
                     // Parse JSON response
                     using (JsonDocument doc = JsonDocument.Parse(response))
                     {
                         var provinces = doc.RootElement.EnumerateArray();
                         int count = 0;
-                        
+
                         var connection = _context.Database.GetDbConnection();
                         var wasOpen = connection.State == ConnectionState.Open;
-                        
+
                         if (!wasOpen)
                         {
                             connection.Open();
@@ -969,9 +1007,9 @@ namespace duAnLUAGA.Controllers
                                 {
                                     var tenTinh = province.GetProperty("name").GetString();
                                     var code = province.GetProperty("code").GetInt32().ToString();
-                                    
+
                                     if (string.IsNullOrEmpty(tenTinh)) continue;
-                                    
+
                                     // Kiểm tra xem tỉnh đã tồn tại chưa
                                     var checkSql = "SELECT COUNT(*) FROM TINH WHERE tenTinh = @tenTinh";
                                     using (var checkCmd = connection.CreateCommand())
@@ -982,9 +1020,9 @@ namespace duAnLUAGA.Controllers
                                         param.ParameterName = "@tenTinh";
                                         param.Value = tenTinh;
                                         checkCmd.Parameters.Add(param);
-                                        
+
                                         var exists = Convert.ToInt32(checkCmd.ExecuteScalar());
-                                        
+
                                         if (exists == 0)
                                         {
                                             // Insert tỉnh mới
@@ -993,17 +1031,17 @@ namespace duAnLUAGA.Controllers
                                             {
                                                 insertCmd.Transaction = transaction;
                                                 insertCmd.CommandText = insertSql;
-                                                
+
                                                 var paramTenTinh = insertCmd.CreateParameter();
                                                 paramTenTinh.ParameterName = "@tenTinh";
                                                 paramTenTinh.Value = tenTinh;
                                                 insertCmd.Parameters.Add(paramTenTinh);
-                                                
+
                                                 var paramMaTinh = insertCmd.CreateParameter();
                                                 paramMaTinh.ParameterName = "@maTinh";
                                                 paramMaTinh.Value = code;
                                                 insertCmd.Parameters.Add(paramMaTinh);
-                                                
+
                                                 insertCmd.ExecuteNonQuery();
                                                 count++;
                                             }
@@ -1011,12 +1049,12 @@ namespace duAnLUAGA.Controllers
                                     }
                                 }
                                 transaction.Commit();
-                                
+
                                 if (!wasOpen)
                                 {
                                     connection.Close();
                                 }
-                                
+
                                 return count;
                             }
                             catch (Exception ex)
@@ -1071,7 +1109,7 @@ namespace duAnLUAGA.Controllers
             try
             {
                 var tinhs = new List<dynamic>();
-                
+
                 // Luôn lấy mới từ API provinces.open-api.vn (không dùng database cache)
                 using (var httpClient = new HttpClient())
                 {
@@ -1079,10 +1117,10 @@ namespace duAnLUAGA.Controllers
                     // Thêm header để tránh cache
                     httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
                     httpClient.DefaultRequestHeaders.Add("Pragma", "no-cache");
-                    
+
                     var apiUrl = "https://provinces.open-api.vn/api/p/";
                     var response = await httpClient.GetStringAsync(apiUrl);
-                    
+
                     using (JsonDocument doc = JsonDocument.Parse(response))
                     {
                         var provinces = doc.RootElement.EnumerateArray();
@@ -1091,11 +1129,12 @@ namespace duAnLUAGA.Controllers
                         {
                             var tenTinh = province.GetProperty("name").GetString();
                             var code = province.GetProperty("code").GetInt32();
-                            
+
                             if (!string.IsNullOrEmpty(tenTinh))
                             {
-                                tinhs.Add(new { 
-                                    id = index++, 
+                                tinhs.Add(new
+                                {
+                                    id = index++,
                                     tenTinh = tenTinh,
                                     maTinh = code.ToString()
                                 });
@@ -1103,7 +1142,7 @@ namespace duAnLUAGA.Controllers
                         }
                     }
                 }
-                
+
                 // Tự động import vào database để lần sau có thể lấy từ database (nếu cần)
                 try
                 {
@@ -1119,21 +1158,21 @@ namespace duAnLUAGA.Controllers
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine($"Lỗi GetTinhs: {ex.Message}");
-                
+
                 // Nếu API lỗi, thử lấy từ database như fallback
                 try
                 {
                     var tinhs = new List<dynamic>();
                     var connection = _context.Database.GetDbConnection();
                     var wasOpen = connection.State == ConnectionState.Open;
-                    
+
                     if (!wasOpen)
                     {
                         connection.Open();
                     }
 
                     var sql = "SELECT ID, tenTinh, maTinh FROM TINH WHERE isDelete = 0 ORDER BY tenTinh";
-                    
+
                     using (var command = connection.CreateCommand())
                     {
                         command.CommandText = sql;
@@ -1141,8 +1180,9 @@ namespace duAnLUAGA.Controllers
                         {
                             while (reader.Read())
                             {
-                                tinhs.Add(new { 
-                                    id = reader.GetInt32(0), 
+                                tinhs.Add(new
+                                {
+                                    id = reader.GetInt32(0),
                                     tenTinh = reader.GetString(1),
                                     maTinh = reader.IsDBNull(2) ? "" : reader.GetString(2)
                                 });
@@ -1154,7 +1194,7 @@ namespace duAnLUAGA.Controllers
                     {
                         connection.Close();
                     }
-                    
+
                     return Json(tinhs);
                 }
                 catch
@@ -1166,8 +1206,8 @@ namespace duAnLUAGA.Controllers
         }
 
         /// <summary>
-        /// API: Lấy danh sách xã/phường theo tỉnh từ API provinces.open-api.vn
-        /// maTinh là code của tỉnh (từ API), không phải ID trong database
+        /// API: Lấy danh sách xã/phường theo tỉnh - Thử nhiều API khác nhau
+        /// maTinh: MÃ TỈNH (code từ API) - VÍ DỤ: "1", "24", "79"
         /// Trả về JSON: [{ id: number, tenXaPhuong: string }]
         /// </summary>
         [HttpGet]
@@ -1176,111 +1216,286 @@ namespace duAnLUAGA.Controllers
             try
             {
                 var xaPhuongs = new List<dynamic>();
-                
-                System.Diagnostics.Debug.WriteLine($"GetXaPhuongs được gọi với maTinh: {maTinh}");
-                
-                // Lấy trực tiếp từ API provinces.open-api.vn (maTinh là code từ API)
-                if (!string.IsNullOrEmpty(maTinh))
+
+                System.Diagnostics.Debug.WriteLine($"=== GetXaPhuongs với maTinh: {maTinh} ===");
+
+                if (string.IsNullOrEmpty(maTinh))
                 {
+                    System.Diagnostics.Debug.WriteLine("maTinh rỗng, trả về danh sách rỗng");
+                    return Json(xaPhuongs);
+                }
+
+                var cleanMaTinh = maTinh.Trim();
+                string tenTinh = ""; // Lưu tên tỉnh để dùng cho database fallback
+
+                // BƯỚC 1: Thử API provinces.open-api.vn trước
+                try
+                {
+                    using (var httpClient = new HttpClient())
+                    {
+                        httpClient.Timeout = TimeSpan.FromSeconds(60);
+                        httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+
+                        // Lấy districts với depth=1
+                        var provinceUrl = $"https://provinces.open-api.vn/api/p/{cleanMaTinh}?depth=1";
+                        System.Diagnostics.Debug.WriteLine($"[API 1] Gọi API lấy districts: {provinceUrl}");
+
+                        var provinceResponse = await httpClient.GetStringAsync(provinceUrl);
+                        System.Diagnostics.Debug.WriteLine($"Response length: {provinceResponse?.Length ?? 0}");
+
+                        using (JsonDocument provinceDoc = JsonDocument.Parse(provinceResponse))
+                        {
+                            var province = provinceDoc.RootElement;
+
+                            // Lấy tên tỉnh
+                            if (province.TryGetProperty("name", out var nameProp))
+                            {
+                                tenTinh = nameProp.GetString() ?? "";
+                            }
+
+                            // Kiểm tra xem có districts không
+                            if (province.TryGetProperty("districts", out var districts))
+                            {
+                                var districtCount = districts.GetArrayLength();
+                                System.Diagnostics.Debug.WriteLine($"Số lượng districts: {districtCount}");
+
+                                if (districtCount > 0)
+                                {
+                                    int processedDistricts = 0;
+                                    int totalWards = 0;
+
+                                    foreach (var district in districts.EnumerateArray())
+                                    {
+                                        if (district.TryGetProperty("code", out var districtCode))
+                                        {
+                                            var districtCodeValue = districtCode.GetInt32();
+                                            var districtName = district.TryGetProperty("name", out var dn) ? dn.GetString() : "Unknown";
+
+                                            try
+                                            {
+                                                // Gọi API district với depth=2 để lấy wards
+                                                var districtApiUrl = $"https://provinces.open-api.vn/api/d/{districtCodeValue}?depth=2";
+                                                System.Diagnostics.Debug.WriteLine($"  Gọi API district: {districtApiUrl}");
+                                                var districtResponse = await httpClient.GetStringAsync(districtApiUrl);
+
+                                                using (JsonDocument districtDoc = JsonDocument.Parse(districtResponse))
+                                                {
+                                                    var districtObj = districtDoc.RootElement;
+
+                                                    if (districtObj.TryGetProperty("wards", out var wards))
+                                                    {
+                                                        var wardCount = wards.GetArrayLength();
+                                                        totalWards += wardCount;
+                                                        System.Diagnostics.Debug.WriteLine($"  District {districtName}: {wardCount} wards");
+
+                                                        foreach (var ward in wards.EnumerateArray())
+                                                        {
+                                                            if (ward.TryGetProperty("name", out var nameElement))
+                                                            {
+                                                                var tenXaPhuong = nameElement.GetString();
+                                                                var code = 0;
+                                                                if (ward.TryGetProperty("code", out var codeElement))
+                                                                {
+                                                                    code = codeElement.GetInt32();
+                                                                }
+
+                                                                if (!string.IsNullOrEmpty(tenXaPhuong))
+                                                                {
+                                                                    // Kiểm tra trùng lặp
+                                                                    if (!xaPhuongs.Any(x => x.tenXaPhuong == tenXaPhuong))
+                                                                    {
+                                                                        xaPhuongs.Add(new
+                                                                        {
+                                                                            id = code > 0 ? code : 0,
+                                                                            tenXaPhuong = tenXaPhuong
+                                                                        });
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+
+                                                        processedDistricts++;
+                                                    }
+                                                }
+                                            }
+                                            catch (Exception districtEx)
+                                            {
+                                                System.Diagnostics.Debug.WriteLine($"  Lỗi district {districtName} (code {districtCodeValue}): {districtEx.Message}");
+                                            }
+                                        }
+                                    }
+
+                                    System.Diagnostics.Debug.WriteLine($"Đã xử lý {processedDistricts}/{districtCount} districts, tổng {totalWards} wards, lấy được {xaPhuongs.Count} xã/phường unique");
+                                }
+                            }
+                        }
+                    }
+                }
+                catch (Exception apiEx)
+                {
+                    System.Diagnostics.Debug.WriteLine($"[API 1] Lỗi khi lấy từ API provinces.open-api.vn: {apiEx.Message}");
+                }
+
+                // BƯỚC 2: Nếu API 1 không có dữ liệu, thử API khác (34tinhthanh.com)
+                if (xaPhuongs.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("[API 2] Thử API 34tinhthanh.com...");
                     try
                     {
                         using (var httpClient = new HttpClient())
                         {
                             httpClient.Timeout = TimeSpan.FromSeconds(30);
-                            // Thêm header để tránh cache
-                            httpClient.DefaultRequestHeaders.Add("Cache-Control", "no-cache");
-                            httpClient.DefaultRequestHeaders.Add("Pragma", "no-cache");
-                            
-                            var apiUrl = $"https://provinces.open-api.vn/api/p/{maTinh}?depth=2";
-                            System.Diagnostics.Debug.WriteLine($"Đang gọi API: {apiUrl}");
-                            var response = await httpClient.GetStringAsync(apiUrl);
-                            
-                            using (JsonDocument doc = JsonDocument.Parse(response))
+                            httpClient.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0");
+
+                            // API 34tinhthanh.com: https://34tinhthanh.com/api/wards?province_code={code}
+                            // Mã tỉnh cần format 2 chữ số (01, 02, ...)
+                            var provinceCodeFormatted = cleanMaTinh.PadLeft(2, '0');
+                            var api2Url = $"https://34tinhthanh.com/api/wards?province_code={provinceCodeFormatted}";
+                            System.Diagnostics.Debug.WriteLine($"[API 2] Gọi API: {api2Url}");
+
+                            var api2Response = await httpClient.GetStringAsync(api2Url);
+                            System.Diagnostics.Debug.WriteLine($"[API 2] Response length: {api2Response?.Length ?? 0}");
+
+                            using (JsonDocument api2Doc = JsonDocument.Parse(api2Response))
                             {
-                                var province = doc.RootElement;
-                                if (province.TryGetProperty("districts", out var districts))
+                                var root = api2Doc.RootElement;
+
+                                // API này có thể trả về array trực tiếp hoặc object có property data
+                                JsonElement wardsArray;
+                                if (root.ValueKind == JsonValueKind.Array)
                                 {
-                                    foreach (var district in districts.EnumerateArray())
+                                    wardsArray = root;
+                                }
+                                else if (root.TryGetProperty("data", out var dataProp) && dataProp.ValueKind == JsonValueKind.Array)
+                                {
+                                    wardsArray = dataProp;
+                                }
+                                else if (root.TryGetProperty("wards", out var wardsProp) && wardsProp.ValueKind == JsonValueKind.Array)
+                                {
+                                    wardsArray = wardsProp;
+                                }
+                                else
+                                {
+                                    System.Diagnostics.Debug.WriteLine("[API 2] Không tìm thấy array wards trong response");
+                                    wardsArray = default;
+                                }
+
+                                if (wardsArray.ValueKind == JsonValueKind.Array)
+                                {
+                                    var wardCount = wardsArray.GetArrayLength();
+                                    System.Diagnostics.Debug.WriteLine($"[API 2] Tìm thấy {wardCount} wards");
+
+                                    foreach (var ward in wardsArray.EnumerateArray())
                                     {
-                                        if (district.TryGetProperty("wards", out var wards))
+                                        string? tenXaPhuong = null;
+                                        int code = 0;
+
+                                        // Thử các property name khác nhau
+                                        if (ward.TryGetProperty("name", out var nameProp))
                                         {
-                                            foreach (var ward in wards.EnumerateArray())
+                                            tenXaPhuong = nameProp.GetString();
+                                        }
+                                        else if (ward.TryGetProperty("ward_name", out var wardNameProp))
+                                        {
+                                            tenXaPhuong = wardNameProp.GetString();
+                                        }
+                                        else if (ward.TryGetProperty("ten", out var tenProp))
+                                        {
+                                            tenXaPhuong = tenProp.GetString();
+                                        }
+
+                                        if (ward.TryGetProperty("code", out var codeProp))
+                                        {
+                                            if (codeProp.ValueKind == JsonValueKind.Number)
                                             {
-                                                var tenXaPhuong = ward.GetProperty("name").GetString();
-                                                if (!string.IsNullOrEmpty(tenXaPhuong))
-                                                {
-                                                    xaPhuongs.Add(new { 
-                                                        id = ward.GetProperty("code").GetInt32(), 
-                                                        tenXaPhuong = tenXaPhuong 
-                                                    });
-                                                }
+                                                code = codeProp.GetInt32();
+                                            }
+                                            else if (codeProp.ValueKind == JsonValueKind.String && int.TryParse(codeProp.GetString(), out var parsedCode))
+                                            {
+                                                code = parsedCode;
                                             }
                                         }
-                                    }
-                                }
-                            }
-                        }
-                        
-                        System.Diagnostics.Debug.WriteLine($"Đã lấy được {xaPhuongs.Count} xã/phường từ API");
-                    }
-                    catch (Exception ex)
-                    {
-                        System.Diagnostics.Debug.WriteLine($"Lỗi gọi API xã/phường: {ex.Message}");
-                        // Nếu API lỗi, thử lấy từ database
-                        try
-                        {
-                            var connection = _context.Database.GetDbConnection();
-                            var wasOpen = connection.State == ConnectionState.Open;
-                            
-                            if (!wasOpen)
-                            {
-                                connection.Open();
-                            }
 
-                            // Tìm ID tỉnh từ maTinh (code)
-                            var tinhId = 0;
-                            var tinhSql = $"SELECT ID FROM TINH WHERE maTinh = '{maTinh}' AND isDelete = 0";
-                            using (var tinhCmd = connection.CreateCommand())
-                            {
-                                tinhCmd.CommandText = tinhSql;
-                                var result = tinhCmd.ExecuteScalar();
-                                if (result != null)
-                                {
-                                    tinhId = Convert.ToInt32(result);
-                                }
-                            }
-                            
-                            if (tinhId > 0)
-                            {
-                                var sql = $"SELECT ID, tenXaPhuong FROM XAPHƯỜNG WHERE maTinh = {tinhId} AND isDelete = 0 ORDER BY tenXaPhuong";
-                                using (var command = connection.CreateCommand())
-                                {
-                                    command.CommandText = sql;
-                                    using (var reader = command.ExecuteReader())
-                                    {
-                                        while (reader.Read())
+                                        if (!string.IsNullOrEmpty(tenXaPhuong) && !xaPhuongs.Any(x => x.tenXaPhuong == tenXaPhuong))
                                         {
-                                            xaPhuongs.Add(new { 
-                                                id = reader.GetInt32(0), 
-                                                tenXaPhuong = reader.GetString(1) 
+                                            xaPhuongs.Add(new
+                                            {
+                                                id = code > 0 ? code : 0,
+                                                tenXaPhuong = tenXaPhuong
                                             });
                                         }
                                     }
+
+                                    System.Diagnostics.Debug.WriteLine($"[API 2] Lấy được {xaPhuongs.Count} xã/phường");
                                 }
                             }
-
-                            if (!wasOpen)
-                            {
-                                connection.Close();
-                            }
                         }
-                        catch
-                        {
-                            // Nếu cả API và database đều lỗi, trả về rỗng
-                        }
+                    }
+                    catch (Exception api2Ex)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"[API 2] Lỗi: {api2Ex.Message}");
                     }
                 }
 
+                // BƯỚC 3: Nếu cả 2 API đều không có dữ liệu, lấy từ database
+                if (xaPhuongs.Count == 0)
+                {
+                    System.Diagnostics.Debug.WriteLine("API không có dữ liệu, lấy từ database...");
+
+                    try
+                    {
+                        // Nếu chưa có tên tỉnh, lấy lại từ API
+                        if (string.IsNullOrEmpty(tenTinh))
+                        {
+                            using (var httpClient = new HttpClient())
+                            {
+                                httpClient.Timeout = TimeSpan.FromSeconds(10);
+                                var provinceInfoUrl = $"https://provinces.open-api.vn/api/p/{cleanMaTinh}";
+                                var provinceInfoResponse = await httpClient.GetStringAsync(provinceInfoUrl);
+                                using (JsonDocument provinceInfoDoc = JsonDocument.Parse(provinceInfoResponse))
+                                {
+                                    var provinceInfo = provinceInfoDoc.RootElement;
+                                    tenTinh = provinceInfo.TryGetProperty("name", out var pn) ? pn.GetString() ?? "" : "";
+                                }
+                            }
+                        }
+
+                        if (!string.IsNullOrEmpty(tenTinh))
+                        {
+                            System.Diagnostics.Debug.WriteLine($"Tìm xã/phường trong database cho tỉnh: {tenTinh}");
+
+                            // Lấy danh sách xã/phường từ database theo tên tỉnh
+                            var xaPhuongsFromDb = _context.Diachis
+                                .Where(d => d.Tinh == tenTinh && !d.IsDelete)
+                                .Select(d => d.XaPhuong)
+                                .Distinct()
+                                .OrderBy(x => x)
+                                .ToList();
+
+                            System.Diagnostics.Debug.WriteLine($"Tìm thấy {xaPhuongsFromDb.Count} xã/phường trong database");
+
+                            foreach (var xp in xaPhuongsFromDb)
+                            {
+                                if (!string.IsNullOrEmpty(xp) && !xaPhuongs.Any(x => x.tenXaPhuong == xp))
+                                {
+                                    xaPhuongs.Add(new
+                                    {
+                                        id = 0,
+                                        tenXaPhuong = xp
+                                    });
+                                }
+                            }
+
+                            System.Diagnostics.Debug.WriteLine($"Đã thêm {xaPhuongs.Count} xã/phường từ database vào danh sách");
+                        }
+                    }
+                    catch (Exception dbEx)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Lỗi khi lấy từ database: {dbEx.Message}");
+                    }
+                }
+
+                System.Diagnostics.Debug.WriteLine($"=== KẾT QUẢ: Trả về {xaPhuongs.Count} xã/phường ===");
                 return Json(xaPhuongs);
             }
             catch (Exception ex)
@@ -1289,6 +1504,7 @@ namespace duAnLUAGA.Controllers
                 return Json(new List<object>());
             }
         }
+
     }
 }
 

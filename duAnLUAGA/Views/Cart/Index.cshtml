@@ -392,6 +392,211 @@
     border-radius: 3px;
     color: rgba(0,0,0,.54);
   }
+
+  /* Toast Notification Styles */
+  .toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 10000;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .toast {
+    min-width: 320px;
+    max-width: 400px;
+    background: #fff;
+    border-radius: 4px;
+    box-shadow: 0 4px 12px rgba(0,0,0,.15);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    animation: slideInRight 0.3s ease-out;
+    border-left: 4px solid;
+  }
+
+  .toast.success {
+    border-left-color: #1d8f4d;
+  }
+
+  .toast.error {
+    border-left-color: #ee4d2d;
+  }
+
+  .toast.warning {
+    border-left-color: #ff9800;
+  }
+
+  .toast.info {
+    border-left-color: #2196f3;
+  }
+
+  .toast-icon {
+    font-size: 20px;
+    flex-shrink: 0;
+  }
+
+  .toast.success .toast-icon {
+    color: #1d8f4d;
+  }
+
+  .toast.error .toast-icon {
+    color: #ee4d2d;
+  }
+
+  .toast.warning .toast-icon {
+    color: #ff9800;
+  }
+
+  .toast.info .toast-icon {
+    color: #2196f3;
+  }
+
+  .toast-content {
+    flex: 1;
+    font-size: 14px;
+    color: rgba(0,0,0,.87);
+    line-height: 1.5;
+  }
+
+  .toast-close {
+    background: none;
+    border: none;
+    font-size: 18px;
+    color: rgba(0,0,0,.45);
+    cursor: pointer;
+    padding: 0;
+    width: 20px;
+    height: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .toast-close:hover {
+    color: rgba(0,0,0,.65);
+  }
+
+    #keyframes slideInRight {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+        #keyframes slideOutRight {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
+
+  .toast.hiding {
+    animation: slideOutRight 0.3s ease-out forwards;
+  }
+
+  /* Confirm Dialog Styles */
+  .confirm-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0,0,0,.4);
+    z-index: 10001;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .confirm-overlay.active {
+    display: flex;
+  }
+
+  .confirm-box {
+    background: #fff;
+    border-radius: 4px;
+    width: 400px;
+    box-shadow: 0 4px 16px rgba(0,0,0,.2);
+    overflow: hidden;
+    animation: fadeInScale 0.2s ease-out;
+  }
+
+        #keyframes fadeInScale {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+
+  .confirm-header {
+    padding: 20px 24px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 16px;
+    font-weight: 500;
+    color: rgba(0,0,0,.87);
+  }
+
+  .confirm-body {
+    padding: 24px;
+    font-size: 14px;
+    color: rgba(0,0,0,.65);
+    line-height: 1.6;
+  }
+
+  .confirm-footer {
+    padding: 16px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 12px;
+    border-top: 1px solid #f0f0f0;
+  }
+
+  .confirm-btn {
+    padding: 8px 24px;
+    border: none;
+    border-radius: 2px;
+    font-size: 14px;
+    cursor: pointer;
+    min-width: 80px;
+    transition: all 0.2s;
+  }
+
+  .confirm-btn-cancel {
+    background: #fff;
+    color: rgba(0,0,0,.87);
+    border: 1px solid rgba(0,0,0,.26);
+  }
+
+  .confirm-btn-cancel:hover {
+    background: #f5f5f5;
+    border-color: rgba(0,0,0,.4);
+  }
+
+  .confirm-btn-ok {
+    background: #ee4d2d;
+    color: #fff;
+  }
+
+  .confirm-btn-ok:hover {
+    background: #d73211;
+  }
 </style>
 }
 
@@ -490,6 +695,21 @@
   }
 </div>
 
+<!-- Toast Notification Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Confirm Dialog -->
+<div class="confirm-overlay" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-header" id="confirmTitle">Xác Nhận</div>
+    <div class="confirm-body" id="confirmMessage"></div>
+    <div class="confirm-footer">
+      <button class="confirm-btn confirm-btn-cancel" id="confirmCancel">Hủy</button>
+      <button class="confirm-btn confirm-btn-ok" id="confirmOk">Xác Nhận</button>
+    </div>
+  </div>
+</div>
+
 <!-- Modal Xác Nhận Xóa -->
 <div class="modal-overlay" id="deleteModal">
   <div class="modal-box">
@@ -508,6 +728,95 @@
 <script>
 let pendingDeleteId = null;
 let pendingDeleteIds = [];
+let confirmCallback = null;
+
+// Toast Notification System
+function showToast(message, type = 'info') {
+  const container = document.getElementById('toastContainer');
+  if (!container) return;
+
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  
+  const icons = {
+    success: '✓',
+    error: '✕',
+    warning: '⚠',
+    info: 'ℹ'
+  };
+
+  toast.innerHTML = `
+    <span class="toast-icon">${icons[type] || icons.info}</span>
+    <span class="toast-content">${message}</span>
+    <button class="toast-close" onclick="removeToast(this.parentElement)">×</button>
+  `;
+
+  container.appendChild(toast);
+
+  // Tự động xóa sau 4 giây
+  setTimeout(() => {
+    removeToast(toast);
+  }, 4000);
+}
+
+function removeToast(toast) {
+  if (!toast) return;
+  toast.classList.add('hiding');
+  setTimeout(() => {
+    if (toast.parentElement) {
+      toast.parentElement.removeChild(toast);
+    }
+  }, 300);
+}
+
+// Confirm Dialog System
+function showConfirm(title, message, onConfirm, onCancel = null) {
+  const dialog = document.getElementById('confirmDialog');
+  const titleEl = document.getElementById('confirmTitle');
+  const messageEl = document.getElementById('confirmMessage');
+  const okBtn = document.getElementById('confirmOk');
+  const cancelBtn = document.getElementById('confirmCancel');
+
+  if (!dialog || !titleEl || !messageEl || !okBtn || !cancelBtn) return;
+
+  titleEl.textContent = title;
+  messageEl.textContent = message;
+  dialog.classList.add('active');
+
+  // Xóa các event listener cũ
+  const newOkBtn = okBtn.cloneNode(true);
+  const newCancelBtn = cancelBtn.cloneNode(true);
+  okBtn.parentNode.replaceChild(newOkBtn, okBtn);
+  cancelBtn.parentNode.replaceChild(newCancelBtn, cancelBtn);
+
+  // Thêm event listener mới
+  confirmCallback = onConfirm;
+  newOkBtn.addEventListener('click', function() {
+    closeConfirm();
+    if (onConfirm) onConfirm();
+  });
+
+  newCancelBtn.addEventListener('click', function() {
+    closeConfirm();
+    if (onCancel) onCancel();
+  });
+
+  // Đóng khi click bên ngoài
+  dialog.addEventListener('click', function(e) {
+    if (e.target === dialog) {
+      closeConfirm();
+      if (onCancel) onCancel();
+    }
+  });
+}
+
+function closeConfirm() {
+  const dialog = document.getElementById('confirmDialog');
+  if (dialog) {
+    dialog.classList.remove('active');
+  }
+  confirmCallback = null;
+}
 
 function toggleSelectAll(source) {
         checkboxes = document.getElementsByClassName('item-checkbox');
@@ -543,13 +852,17 @@ function changeQty(maSp, change) {
         totalElement.setAttribute('data-price', data.tongTien);
       }
       updateTotal();
+      showToast('Đã cập nhật số lượng thành công', 'success');
+      if (window.updateCartBadge) {
+        window.updateCartBadge();
+      }
     } else {
-      alert(data.message || 'Có lỗi xảy ra');
+      showToast(data.message || 'Có lỗi xảy ra', 'error');
     }
   })
   .catch(error => {
     console.error('Error:', error);
-    alert('Có lỗi xảy ra khi cập nhật số lượng');
+    showToast('Có lỗi xảy ra khi cập nhật số lượng', 'error');
   });
 }
 
@@ -589,15 +902,20 @@ function confirmDelete() {
         closeModal();
         if (data.soLuongSanPham === 0) {
           location.reload();
+        } else {
+          showToast('Đã xóa sản phẩm thành công', 'success');
+          if (window.updateCartBadge) {
+            window.updateCartBadge();
+          }
         }
       } else {
-        alert(data.message || 'Có lỗi xảy ra');
+        showToast(data.message || 'Có lỗi xảy ra', 'error');
         closeModal();
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Có lỗi xảy ra khi xóa sản phẩm');
+      showToast('Có lỗi xảy ra khi xóa sản phẩm', 'error');
       closeModal();
     });
   } else if (pendingDeleteIds.length > 0) {
@@ -623,15 +941,20 @@ function confirmDelete() {
         closeModal();
         if (data.soLuongSanPham === 0) {
           location.reload();
+        } else {
+          showToast(`Đã xóa ${pendingDeleteIds.length} sản phẩm thành công`, 'success');
+          if (window.updateCartBadge) {
+            window.updateCartBadge();
+          }
         }
       } else {
-        alert(data.message || 'Có lỗi xảy ra');
+        showToast(data.message || 'Có lỗi xảy ra', 'error');
         closeModal();
       }
     })
     .catch(error => {
       console.error('Error:', error);
-      alert('Có lỗi xảy ra khi xóa sản phẩm');
+      showToast('Có lỗi xảy ra khi xóa sản phẩm', 'error');
       closeModal();
     });
   }
@@ -648,7 +971,7 @@ function deleteSelected() {
   const checkboxes = document.querySelectorAll('.item-check:checked');
   
   if (checkboxes.length === 0) {
-    alert('Vui lòng chọn ít nhất một sản phẩm để xóa');
+    showToast('Vui lòng chọn ít nhất một sản phẩm để xóa', 'warning');
     return;
   }
   
@@ -738,8 +1061,8 @@ document.getElementById('checkout-button')?.addEventListener('click', function()
     const checkboxes = document.querySelectorAll('.item-check:checked');
 
     if (checkboxes.length === 0) {
-    alert('Vui lòng chọn ít nhất một sản phẩm để thanh toán');
-    return;
+      showToast('Vui lòng chọn ít nhất một sản phẩm để thanh toán', 'warning');
+      return;
     }
 
   // Kiểm tra đăng nhập
@@ -748,9 +1071,13 @@ document.getElementById('checkout-button')?.addEventListener('click', function()
     .then(data => {
         if (!data.isLoggedIn) {
         // Chưa đăng nhập
-        if (confirm('Bạn cần đăng nhập để thanh toán. Đăng nhập ngay?')) {
-            window.location.href = '/Home/Login'; // Sửa link login của bạn
-        }
+        showConfirm(
+          'Đăng nhập cần thiết',
+          'Bạn cần đăng nhập để thanh toán. Đăng nhập ngay?',
+          function() {
+            window.location.href = '/Home/Login';
+          }
+        );
         } else {
         // 2. Đã đăng nhập: Lấy danh sách ID đã chọn
         const selectedProducts = Array.from(checkboxes).map(cb => cb.id.replace('product-', ''));

@@ -392,6 +392,10 @@
                 cartBadge.hide();
             }
         }
+        // Cập nhật badge trong header
+        if (window.updateCartBadge) {
+            window.updateCartBadge();
+        }
     }
     
     // Load số lượng giỏ hàng từ server
