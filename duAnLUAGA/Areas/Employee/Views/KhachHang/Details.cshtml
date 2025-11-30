@@ -1,0 +1,88 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.KhachHangVM
+@{
+    ViewData["Title"] = "Chi tiết Khách hàng";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4">Chi tiết Khách hàng</h3>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã KH:</dt>
+            <dd class="col-sm-9">@Model.MaKh</dd>
+
+            <dt class="col-sm-3">Họ và Tên:</dt>
+            <dd class="col-sm-9">@Model.HoVaTen</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Giới tính:</dt>
+            <dd class="col-sm-9">@(Model.GioiTinh ?? "-")</dd>
+
+            <dt class="col-sm-3">Ngày tạo:</dt>
+            <dd class="col-sm-9">@Model.NgayTao.ToString("dd/MM/yyyy HH:mm")</dd>
+
+            <dt class="col-sm-3">Hình ảnh:</dt>
+            <dd class="col-sm-9">
+                @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                {
+                    <img src="~/img/@Model.HinhAnh" alt="Avatar" style="max-width: 100px; max-height: 100px;" />
+                }
+                else
+                {
+                    <span>-</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Trạng thái:</dt>
+            <dd class="col-sm-9">
+                @if (Model.TrangThai)
+                {
+                    <span class="badge bg-success">Hoạt động</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Vô hiệu hóa</span>
+                }
+            </dd>
+
+            @if (ViewBag.SoDonHang != null)
+            {
+                <dt class="col-sm-3">Số đơn hàng:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-primary">@ViewBag.SoDonHang</span>
+                </dd>
+            }
+
+            @if (ViewBag.SoDiaChi != null)
+            {
+                <dt class="col-sm-3">Số địa chỉ:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-info">@ViewBag.SoDiaChi</span>
+                </dd>
+            }
+
+            @if (ViewBag.SoGioHang != null)
+            {
+                <dt class="col-sm-3">Số giỏ hàng:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-warning">@ViewBag.SoGioHang</span>
+                </dd>
+            }
+        </dl>
+
+        <div class="d-flex gap-2">
+            <a asp-action="Edit" asp-route-id="@Model.MaKh" class="btn btn-primary">
+                <i class="fa fa-edit me-2"></i>Sửa
+            </a>
+            <a asp-area="Admin" asp-controller="DiaChi" asp-action="Index" asp-route-maKh="@Model.MaKh" class="btn btn-info">
+                <i class="fa fa-map-marker-alt me-2"></i>Quản lý Địa chỉ
+            </a>
+            <a asp-action="Index" class="btn btn-secondary">
+                <i class="fa fa-arrow-left me-2"></i>Quay lại
+            </a>
+        </div>
+    </div>
+</div>
+

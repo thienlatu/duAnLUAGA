@@ -1,0 +1,246 @@
+@model IEnumerable<duAnLUAGA.Areas.Admin.ViewModels.KhachHangVM>
+@{
+    ViewData["Title"] = "Quản lý Khách hàng";
+    var totalCustomers = Model.Count();
+    var activeCustomers = Model.Count(kh => kh.TrangThai);
+    var inactiveCustomers = totalCustomers - activeCustomers;
+}
+
+<!-- DataTables CSS -->
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css" />
+
+<div class="container-fluid pt-4 px-4">
+    <!-- Statistics Cards -->
+    <div class="row g-4 mb-4">
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa fa-users fa-3x text-primary"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Tổng Khách hàng</p>
+                    <h6 class="mb-0">@totalCustomers</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa fa-check-circle fa-3x text-success"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Đang hoạt động</p>
+                    <h6 class="mb-0">@inactiveCustomers</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa fa-ban fa-3x text-danger"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Vô hiệu hóa</p>
+                    <h6 class="mb-0">@activeCustomers</h6>
+                </div>
+            </div>
+        </div>
+        <div class="col-sm-6 col-xl-3">
+            <div class="bg-secondary rounded d-flex align-items-center justify-content-between p-4">
+                <i class="fa fa-chart-line fa-3x text-info"></i>
+                <div class="ms-3">
+                    <p class="mb-2">Tỷ lệ hoạt động</p>
+                    <h6 class="mb-0">@(totalCustomers > 0 ? ((inactiveCustomers * 100) / totalCustomers) : 0)%</h6>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content Card -->
+    <div class="bg-secondary rounded p-4">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h4 class="mb-1"><i class="fa fa-users me-2 text-primary"></i>Danh sách Khách hàng</h4>
+                <p class="mb-0 text-muted">Quản lý thông tin khách hàng của hệ thống</p>
+            </div>
+            <a asp-action="Create" class="btn btn-primary">
+                <i class="fa fa-plus me-2"></i>Thêm Khách hàng
+            </a>
+        </div>
+
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show" role="alert">
+                <i class="fa fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                <i class="fa fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <!-- Filter Section -->
+        <div class="mb-3">
+            <form method="get" asp-action="Index" class="d-flex gap-2 align-items-end">
+                <div class="flex-grow-1">
+                    <label class="form-label">Lọc theo trạng thái:</label>
+                    <select name="trangThai" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tất cả</option>
+                        @if (ViewBag.TrangThaiFilter == "hoatdong")
+                        {
+                            <option value="hoatdong" selected>Đang hoạt động</option>
+                        }
+                        else
+                        {
+                            <option value="hoatdong">Đang hoạt động</option>
+                        }
+                        @if (ViewBag.TrangThaiFilter == "vohieuhoa")
+                        {
+                            <option value="vohieuhoa" selected>Vô hiệu hóa</option>
+                        }
+                        else
+                        {
+                            <option value="vohieuhoa">Vô hiệu hóa</option>
+                        }
+                    </select>
+                </div>
+                <div>
+                    <a asp-action="Index" class="btn btn-secondary">
+                        <i class="fa fa-refresh me-2"></i>Làm mới
+                    </a>
+                </div>
+            </form>
+        </div>
+
+        <div class="table-responsive">
+            <table id="myTable" class="table table-hover table-bordered align-middle" style="width:100%">
+                <thead class="table-dark">
+                    <tr>
+                        <th width="80">Mã KH</th>
+                        <th>Họ và Tên</th>
+                        <th>Email</th>
+                        <th width="100">Giới tính</th>
+                        <th width="120">Ngày tạo</th>
+                        <th width="120">Trạng thái</th>
+                        <th width="180" class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-bold text-primary">#@item.MaKh</td>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                    {
+                                        <img src="~/img/@item.HinhAnh" alt="Avatar" class="rounded-circle me-2" style="width: 32px; height: 32px; object-fit: cover;" />
+                                    }
+                                    else
+                                    {
+                                        <div class="bg-primary rounded-circle me-2 d-flex align-items-center justify-content-center" style="width: 32px; height: 32px;">
+                                            <i class="fa fa-user text-white" style="font-size: 14px;"></i>
+                                        </div>
+                                    }
+                                    <span>@item.HoVaTen</span>
+                                </div>
+                            </td>
+                            <td>
+                                <i class="fa fa-envelope me-2 text-muted"></i>@item.Email
+                            </td>
+                            <td class="text-center">
+                                @if (!string.IsNullOrEmpty(item.GioiTinh))
+                                {
+                                    <span class="badge bg-info">@item.GioiTinh</span>
+                                }
+                                else
+                                {
+                                    <span class="text-muted">-</span>
+                                }
+                            </td>
+                            <td>
+                                <i class="fa fa-calendar me-2 text-muted"></i>@item.NgayTao.ToString("dd/MM/yyyy")
+                            </td>
+                            <td>
+                                @if (item.TrangThai)
+                                {
+                                    <span class="badge bg-danger rounded-pill">
+                                        <i class="fa fa-ban me-1"></i>Vô hiệu hóa
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success rounded-pill">
+                                        <i class="fa fa-check-circle me-1"></i>Hoạt động
+                                    </span>
+                                }
+                            </td>
+                            <td>
+                                <div class="d-flex gap-1 justify-content-center">
+                                    <a asp-action="Details" asp-route-id="@item.MaKh" class="btn btn-sm btn-info" title="Chi tiết">
+                                        <i class="fa fa-eye"></i>
+                                    </a>
+                                    <a asp-action="Edit" asp-route-id="@item.MaKh" class="btn btn-sm btn-primary" title="Sửa">
+                                        <i class="fa fa-edit"></i>
+                                    </a>
+                                    <form asp-action="ToggleStatus" asp-route-id="@item.MaKh" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm @(item.TrangThai ? "btn-success" : "btn-warning")" title="@(item.TrangThai ? "Kích hoạt" : "Vô hiệu hóa")">
+                                            <i class="fa @(item.TrangThai ? "fa-check" : "fa-ban")"></i>
+                                        </button>
+                                    </form>
+                                    <form asp-action="Delete" asp-route-id="@item.MaKh" method="post" style="display:inline;">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-sm btn-danger delete-btn" title="Xóa">
+                                            <i class="fa fa-trash"></i>
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        document.querySelectorAll('.delete-btn').forEach(btn => {
+            btn.addEventListener('click', function (e) {
+                e.preventDefault();
+                const form = this.closest('form');
+                Swal.fire({
+                    title: 'Bạn có chắc chắn muốn xóa?',
+                    text: "Hành động này không thể hoàn tác!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#d33',
+                    cancelButtonColor: '#6c757d',
+                    confirmButtonText: 'Xóa',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if (result.isConfirmed) {
+                        form.submit();
+                    }
+                });
+            });
+        });
+
+        $(document).ready(function () {
+            $('#myTable').DataTable({
+                responsive: true,
+                language: {
+                    url: "//cdn.datatables.net/plug-ins/1.13.6/i18n/vi.json"
+                },
+                order: [[0, 'desc']],
+                pageLength: 10,
+                lengthMenu: [[10, 25, 50, -1], [10, 25, 50, "Tất cả"]],
+                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>'
+            });
+        });
+    </script>
+}

@@ -1,0 +1,180 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.DiaChiVM
+@{
+    ViewData["Title"] = "Thêm Địa chỉ";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4">Thêm Địa chỉ Mới</h3>
+
+        <form asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="MaKh" class="form-label"></label>
+                    <select asp-for="MaKh" class="form-select" asp-items="ViewBag.KhachHangs">
+                        <option value="">-- Chọn khách hàng --</option>
+                    </select>
+                    <span asp-validation-for="MaKh" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="TenNhanHang" class="form-label"></label>
+                    <input asp-for="TenNhanHang" class="form-control" />
+                    <span asp-validation-for="TenNhanHang" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label asp-for="Sdt" class="form-label"></label>
+                    <input asp-for="Sdt" class="form-control" />
+                    <span asp-validation-for="Sdt" class="text-danger"></span>
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Tỉnh/Thành phố <span class="text-danger">*</span></label>
+                    <select id="tinhSelect" class="form-select" required>
+                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                    </select>
+                    <input type="hidden" asp-for="Tinh" id="tinhInput" />
+                    <span asp-validation-for="Tinh" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3">
+                    <label class="form-label">Quận/Huyện <span class="text-danger">*</span></label>
+                    <select id="quanHuyenSelect" class="form-select" required disabled>
+                        <option value="">-- Chọn Quận/Huyện --</option>
+                    </select>
+                    <input type="hidden" id="quanHuyenInput" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label asp-for="XaPhuong" class="form-label">Xã/Phường <span class="text-danger">*</span></label>
+                    <select id="xaPhuongSelect" class="form-select" required disabled>
+                        <option value="">-- Chọn Xã/Phường --</option>
+                    </select>
+                    <input type="hidden" asp-for="XaPhuong" id="xaPhuongInput" />
+                    <span asp-validation-for="XaPhuong" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-12 mb-3">
+                    <label asp-for="DiaChiChiTiet" class="form-label"></label>
+                    <input asp-for="DiaChiChiTiet" class="form-control" placeholder="Số nhà, tên đường" />
+                    <span asp-validation-for="DiaChiChiTiet" class="text-danger"></span>
+                </div>
+            </div>
+
+            <div class="mb-3 form-check">
+                <input asp-for="MacDinh" class="form-check-input" type="checkbox" />
+                <label asp-for="MacDinh" class="form-check-label">
+                    Đặt làm địa chỉ mặc định
+                </label>
+                <small class="form-text text-muted d-block">Nếu chọn, địa chỉ này sẽ được đặt làm mặc định và các địa chỉ khác của khách hàng sẽ bị bỏ mặc định.</small>
+            </div>
+
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-success">
+                    <i class="fa fa-save me-2"></i>Lưu
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        $(document).ready(function () {
+            let provinces = [];
+            let districts = [];
+            let wards = [];
+
+            // Load danh sách tỉnh/thành phố
+            $.getJSON('https://provinces.open-api.vn/api/?depth=1', function (data) {
+                provinces = data;
+                data.forEach(function (province) {
+                    $('#tinhSelect').append($('<option>', {
+                        value: province.name,
+                        text: province.name
+                    }));
+                });
+            });
+
+            // Khi chọn tỉnh/thành phố
+            $('#tinhSelect').on('change', function () {
+                const provinceName = $(this).val();
+                $('#tinhInput').val(provinceName);
+                
+                if (provinceName) {
+                    const province = provinces.find(p => p.name === provinceName);
+                    if (province) {
+                        // Load quận/huyện
+                        $('#quanHuyenSelect').prop('disabled', false).html('<option value="">-- Chọn Quận/Huyện --</option>');
+                        $('#xaPhuongSelect').prop('disabled', true).html('<option value="">-- Chọn Xã/Phường --</option>');
+                        
+                        $.getJSON(`https://provinces.open-api.vn/api/p/${province.code}?depth=2`, function (data) {
+                            districts = data.districts || [];
+                            districts.forEach(function (district) {
+                                $('#quanHuyenSelect').append($('<option>', {
+                                    value: district.name,
+                                    text: district.name
+                                }));
+                            });
+                        });
+                    }
+                } else {
+                    $('#quanHuyenSelect').prop('disabled', true).html('<option value="">-- Chọn Quận/Huyện --</option>');
+                    $('#xaPhuongSelect').prop('disabled', true).html('<option value="">-- Chọn Xã/Phường --</option>');
+                }
+            });
+
+            // Khi chọn quận/huyện
+            $('#quanHuyenSelect').on('change', function () {
+                const districtName = $(this).val();
+                $('#quanHuyenInput').val(districtName);
+                
+                if (districtName) {
+                    const district = districts.find(d => d.name === districtName);
+                    if (district) {
+                        // Load xã/phường
+                        $('#xaPhuongSelect').prop('disabled', false).html('<option value="">-- Chọn Xã/Phường --</option>');
+                        
+                        $.getJSON(`https://provinces.open-api.vn/api/d/${district.code}?depth=2`, function (data) {
+                            wards = data.wards || [];
+                            wards.forEach(function (ward) {
+                                $('#xaPhuongSelect').append($('<option>', {
+                                    value: ward.name,
+                                    text: ward.name
+                                }));
+                            });
+                        });
+                    }
+                } else {
+                    $('#xaPhuongSelect').prop('disabled', true).html('<option value="">-- Chọn Xã/Phường --</option>');
+                }
+            });
+
+            // Khi chọn xã/phường
+            $('#xaPhuongSelect').on('change', function () {
+                $('#xaPhuongInput').val($(this).val());
+            });
+
+            // Submit form - đảm bảo giá trị được set
+            $('form').on('submit', function () {
+                $('#tinhInput').val($('#tinhSelect').val());
+                $('#xaPhuongInput').val($('#xaPhuongSelect').val());
+            });
+        });
+    </script>
+}
+

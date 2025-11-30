@@ -1,0 +1,88 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.DiaChiVM
+@{
+    ViewData["Title"] = "Xóa Địa chỉ";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4 text-danger">Xác nhận Xóa Địa chỉ</h3>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            Bạn có chắc chắn muốn xóa địa chỉ này? Hành động này sẽ đánh dấu địa chỉ là đã xóa (soft delete).
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã ĐC:</dt>
+            <dd class="col-sm-9">#@Model.Id</dd>
+
+            <dt class="col-sm-3">Khách hàng:</dt>
+            <dd class="col-sm-9">
+                <div>
+                    <div class="fw-bold">@Model.TenKhachHang</div>
+                    <small class="text-muted">@Model.EmailKhachHang</small>
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Tên người nhận:</dt>
+            <dd class="col-sm-9">@Model.TenNhanHang</dd>
+
+            <dt class="col-sm-3">Số điện thoại:</dt>
+            <dd class="col-sm-9">@Model.Sdt</dd>
+
+            <dt class="col-sm-3">Địa chỉ đầy đủ:</dt>
+            <dd class="col-sm-9">
+                <div class="p-2 bg-dark rounded">
+                    <i class="fa fa-map-marker-alt me-2 text-primary"></i>
+                    @Model.DiaChiChiTiet, @Model.XaPhuong, @Model.Tinh
+                </div>
+            </dd>
+
+            <dt class="col-sm-3">Mặc định:</dt>
+            <dd class="col-sm-9">
+                @if (Model.MacDinh)
+                {
+                    <span class="badge bg-warning">Địa chỉ mặc định</span>
+                }
+                else
+                {
+                    <span class="text-muted">Không</span>
+                }
+            </dd>
+
+            <dt class="col-sm-3">Trạng thái:</dt>
+            <dd class="col-sm-9">
+                @if (Model.IsDelete)
+                {
+                    <span class="badge bg-danger">Đã xóa</span>
+                }
+                else
+                {
+                    <span class="badge bg-success">Còn hạn</span>
+                }
+            </dd>
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="Id" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fa-trash me-2"></i>Xác nhận Xóa
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+

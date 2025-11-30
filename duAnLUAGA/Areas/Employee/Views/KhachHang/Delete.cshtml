@@ -1,0 +1,78 @@
+@model duAnLUAGA.Areas.Admin.ViewModels.KhachHangVM
+@{
+    ViewData["Title"] = "Xóa Khách hàng";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded p-4">
+        <h3 class="mb-4 text-danger">Xác nhận Xóa Khách hàng</h3>
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                @TempData["ErrorMessage"]
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <div class="alert alert-warning">
+            <i class="fa fa-exclamation-triangle me-2"></i>
+            Bạn có chắc chắn muốn xóa khách hàng này? Hành động này không thể hoàn tác!
+        </div>
+
+        <dl class="row">
+            <dt class="col-sm-3">Mã KH:</dt>
+            <dd class="col-sm-9">@Model.MaKh</dd>
+
+            <dt class="col-sm-3">Họ và Tên:</dt>
+            <dd class="col-sm-9">@Model.HoVaTen</dd>
+
+            <dt class="col-sm-3">Email:</dt>
+            <dd class="col-sm-9">@Model.Email</dd>
+
+            <dt class="col-sm-3">Giới tính:</dt>
+            <dd class="col-sm-9">@(Model.GioiTinh ?? "-")</dd>
+
+            <dt class="col-sm-3">Ngày tạo:</dt>
+            <dd class="col-sm-9">@Model.NgayTao.ToString("dd/MM/yyyy")</dd>
+
+            <dt class="col-sm-3">Trạng thái:</dt>
+            <dd class="col-sm-9">
+                @if (Model.TrangThai)
+                {
+                    <span class="badge bg-success">Hoạt động</span>
+                }
+                else
+                {
+                    <span class="badge bg-danger">Vô hiệu hóa</span>
+                }
+            </dd>
+
+            @if (ViewBag.SoDonHang != null)
+            {
+                <dt class="col-sm-3">Số đơn hàng:</dt>
+                <dd class="col-sm-9">
+                    <span class="badge bg-info">@ViewBag.SoDonHang</span>
+                    @if ((int)ViewBag.SoDonHang > 0)
+                    {
+                        <span class="text-warning ms-2">(Không thể xóa khi có đơn hàng)</span>
+                    }
+                </dd>
+            }
+        </dl>
+
+        <form asp-action="Delete" method="post">
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="MaKh" />
+            <div class="d-flex gap-2">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa fa-trash me-2"></i>Xác nhận Xóa
+                </button>
+                <a asp-action="Index" class="btn btn-secondary">
+                    <i class="fa fa-arrow-left me-2"></i>Quay lại
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+
