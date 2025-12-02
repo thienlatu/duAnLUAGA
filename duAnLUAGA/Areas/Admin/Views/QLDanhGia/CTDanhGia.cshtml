@@ -1,0 +1,76 @@
+﻿@model duAnLUAGA.Domain.Entitie.Danhgium
+
+@{
+    ViewData["Title"] = "Phản hồi đánh giá";
+    // Nếu bạn có layout riêng cho admin thì để đúng path của layout
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card" style="background:#111827;color:white;">
+        <div class="card-header">
+            <h3>Chi tiết đánh giá & phản hồi</h3>
+        </div>
+        <div class="card-body">
+
+            <!-- Id (hidden) -->
+            <form asp-action="PhanHoi" method="post">
+                <div asp-validation-summary="All" class="text-danger"></div>
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <!-- Thông tin khách -->
+                <div class="mb-3">
+                    <label class="form-label"><b>Khách hàng: <p>@Model.MaKhNavigation?.HoVaTen</p></b></label>              
+                </div>
+
+                <!-- Thông tin sản phẩm -->
+                <div class="mb-3">
+                    <label class="form-label"><b>Sản phẩm:<p>@Model.MaSpNavigation?.TenSanPham</p></b></label>                    
+                </div>
+
+                <!-- Nội dung đánh giá -->
+                <div class="mb-3">
+                    <label class="form-label"><b>Nội dung đánh giá:</b><p>@Model.NoiDung</p></label>
+                </div>
+
+                <!-- Ảnh đánh giá (nếu có) -->
+                <div class="mb-3 text-center">
+                    @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                    {
+                        <img src="~/images/reviews/@Model.HinhAnh"
+                             alt="Ảnh đánh giá"
+                             style="max-width:100%;max-height:400px;border-radius:6px;border:1px solid #4b5563;" />
+                    }
+                    else
+                    {
+                        <p>Không có ảnh đánh giá.</p>
+                    }
+                </div>
+
+                <!-- Trạng thái -->
+                <div class="mb-3">
+                    <label class="form-label"><b>Trạng thái hiển thị:</b></label>
+                    <select asp-for="TrangThai" class="form-control text-dark">
+                        <option value="true">Hiển thị</option>
+                        <option value="false">Ẩn</option>
+                    </select>
+                </div>
+
+                <!-- Phản hồi của shop -->
+                <div class="mb-3">
+                    <label class="form-label"><b>Phản hồi của shop:</b></label>
+                    <textarea asp-for="ShopPhanHoi"
+                              rows="4"
+                              class="form-control text-white"
+                              placeholder="Nhập phản hồi tại đây..."></textarea>
+                </div>
+
+                <div class="text-end">
+                    <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+                    <button type="submit" class="btn btn-primary">Lưu phản hồi</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

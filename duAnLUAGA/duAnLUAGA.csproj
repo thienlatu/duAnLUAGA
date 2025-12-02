@@ -21,7 +21,6 @@
   <ItemGroup>
     <Folder Include="Application\Interfaces\" />
     <Folder Include="Application\Services\" />
-    <Folder Include="Areas\Admin\ViewModels\" />
     <Folder Include="Infrastructure\Interfaces\" />
     <Folder Include="Infrastructure\Repository\" />
     <Folder Include="Utils\" />

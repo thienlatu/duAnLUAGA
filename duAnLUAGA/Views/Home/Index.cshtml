@@ -1,4 +1,5 @@
-﻿@{
+﻿@model duAnLUAGA.ViewModel.HomModel
+@{
     ViewData["Title"] = "Home Page";
 }
 
@@ -73,4 +74,318 @@
 
 
 
+@await Html.PartialAsync("_DanhSachSanPham", Model)
+
+<style>
+    .text-decoration-line-through {
+        text-decoration: line-through;
+    }
+
+    .mt-n1 {
+        margin-top: -0.25rem !important;
+    }
+
+</style>
+<br />
+<hr />
+<div class="random-section-wrapper">
+    <div class="random-title-container">
+        <h2 class="random-title">Gợi Ý Cho Bạn</h2>
+    </div>
+
+    <div class="random-products-grid">
+        @if (ViewBag.sanPhamNgauNhien != null)
+        {
+            @foreach (var sanpham in ViewBag.sanPhamNgauNhien)
+            {
+                bool coGiamGia = sanpham.PhanTramGiam > 0;
+
+                <div class="random-product-item">
+                    <a href="@Url.Action("Index", "CTSP", new { id = sanpham.MaSp })"
+                       class="random-product-card-link">
+
+                        <div class="random-product-card">
+
+                            <!-- Badge -->
+                            <span class="random-badge-recommend">ĐỀ XUẤT</span>
+
+                            @if (coGiamGia)
+                            {
+                                <span class="random-badge-discount">-@sanpham.PhanTramGiam%</span>
+                            }
+
+                            <!-- Hình ảnh -->
+                            <div class="random-img-wrapper">
+                                <img src="/image/@sanpham.HinhDaiDien"
+                                     alt="@sanpham.TenSanPham"
+                                     class="random-img">
+                            </div>
+
+                            <!-- Nội dung -->
+                            <div class="random-card-body">
+                                <h5 class="random-product-name">@sanpham.TenSanPham</h5>
+
+                                <div class="random-price-section">
+                                    @if (coGiamGia)
+                                    {
+                                        <p class="random-price-old">@sanpham.Gia.ToString("#,##0")₫</p>
+                                        <p class="random-price-new">@sanpham.GiaSauGiam.ToString("#,##0")₫</p>
+                                    }
+                                    else
+                                    {
+                                        <p class="random-price-new">@sanpham.Gia.ToString("#,##0")₫</p>
+                                    }
+                                </div>
+
+                                <p class="random-author">
+                                    Tác giả: @(sanpham.TacGia ?? "Đang cập nhật")
+                                </p>
+                            </div>
+
+                        </div>
+
+                    </a>
+                </div>
+            }
+        }
+        else
+        {
+            <div class="random-empty-message">Không tìm thấy sản phẩm đề xuất nào.</div>
+        }
+    </div>
+    <div class="random-btn-more-container">
+        <a href="@Url.Action("Index", "SanPham")" class="random-btn-more">
+            Xem thêm sản phẩm
+            <i class="fa-solid fa-arrow-right"></i>
+        </a>
+    </div>
+</div>
+
+<style>
+    /* Container chính */
+    .random-section-wrapper {
+        max-width: 1200px;
+        margin: 40px auto;
+        padding: 0 15px;
+    }
+
+    .random-title {
+        font-size: 28px;
+        font-weight: 700;
+        color: #333;
+        margin: 0;
+        padding: 20px 30px;
+        border-radius: 50px;
+        text-align: center;
+        margin-left: 50px;
+    }
+
+    /* Grid sản phẩm */
+    .random-products-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+    }
+
+    .random-product-item {
+        width: 100%;
+    }
+
+    /* Card sản phẩm */
+    .random-product-card {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.08);
+        transition: all 0.3s ease;
+        height: 100%;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+    }
+
+        .random-product-card:hover {
+            box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+            transform: translateY(-5px);
+        }
+
+    /* Badge đề xuất */
+    .random-badge-recommend {
+        position: absolute;
+        top: 10px;
+        left: 10px;
+        background: #17a2b8;
+        color: white;
+        font-size: 11px;
+        font-weight: 600;
+        padding: 5px 12px;
+        border-radius: 20px;
+        z-index: 2;
+        text-transform: uppercase;
+    }
+
+    /* Badge giảm giá */
+    .random-badge-discount {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #ffc107;
+        color: #333;
+        font-size: 13px;
+        font-weight: 700;
+        padding: 5px 12px;
+        border-radius: 20px;
+        z-index: 2;
+    }
+
+    /* Hình ảnh */
+    .random-img-wrapper {
+        width: 100%;
+        height: 250px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f8f9fa;
+        padding: 15px;
+    }
+
+    .random-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        transition: transform 0.3s ease;
+    }
+
+    .random-product-card:hover .random-img {
+        transform: scale(1.05);
+    }
+
+    /* Body card */
+    .random-card-body {
+        padding: 15px;
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .random-product-name {
+        font-size: 16px;
+        font-weight: 600;
+        color: #333;
+        margin: 0 0 10px 0;
+        line-height: 1.4;
+        height: 44px;
+        overflow: hidden;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+    }
+
+    /* Giá */
+    .random-price-section {
+        margin-bottom: 10px;
+    }
+
+    .random-price-old {
+        font-size: 13px;
+        color: #999;
+        text-decoration: line-through;
+        margin: 0 0 5px 0;
+    }
+
+    .random-price-new {
+        font-size: 20px;
+        font-weight: 700;
+        color: #C92127;
+        margin: 0;
+    }
+
+    /* Tác giả */
+    .random-author {
+        font-size: 13px;
+        color: #666;
+        margin: 0 0 15px 0;
+    }
+
+    /* Nút xem chi tiết */
+    .random-btn-detail {
+        display: block;
+        width: 100%;
+        height: 50px;
+        padding: 10px;
+        background: #C92127;
+        color: white;
+        text-align: center;
+        border-radius: 6px;
+        font-weight: 600;
+        text-decoration: none;
+        margin-top: auto;
+        transition: all 0.3s ease;
+    }
+
+        .random-btn-detail:hover {
+            background: #a01a1f;
+            color: white;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(201, 33, 39, 0.3);
+        }
+
+    /* Message rỗng */
+    .random-empty-message {
+        grid-column: 1 / -1;
+        text-align: center;
+        color: #999;
+        font-size: 16px;
+        padding: 40px;
+    }
+
+    .random-btn-more-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 40px;
+        width: 100%;
+    }
+
+    .random-btn-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 40px;
+        background: #C92127;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(201, 33, 39, 0.3);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+        .random-btn-more:hover {
+            background: #a01a1f;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(201, 33, 39, 0.4);
+        }
+
+        .random-btn-more i {
+            transition: transform 0.3s ease;
+        }
+
+        .random-btn-more:hover i {
+            transform: translateX(5px);
+        }
+
+    /* Message rỗng */
+    .random-empty-message {
+        grid-column: 1 / -1;
+        text-align: center;
+        color: #999;
+        font-size: 16px;
+        padding: 40px;
+    }
+</style>
 <script src="~/assets/js/banner.js"></script>

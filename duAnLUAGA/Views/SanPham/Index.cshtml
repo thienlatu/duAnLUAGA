@@ -400,78 +400,7 @@
         gap: 5px;
     }
 
-        /* Modal Notification */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 10000;
-        display: none;
-        justify-content: center;
-        align-items: center;
-    }
-    .modal-overlay.show {
-        display: flex;
-    }
-    .modal-dialog {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        max-width: 400px;
-        width: 90%;
-        overflow: hidden;
-    }
-    .modal-header {
-        padding: 15px 20px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    .modal-title {
-        font-size: 18px;
-        font-weight: bold;
-        color: #333;
-        margin: 0;
-    }
-    .modal-body {
-        padding: 20px;
-        color: #666;
-        font-size: 14px;
-    }
-    .modal-footer {
-        padding: 15px 20px;
-        border-top: 1px solid #e0e0e0;
-        display: flex;
-        justify-content: flex-end;
-        gap: 10px;
-    }
-    .modal-btn {
-        padding: 8px 20px;
-        border-radius: 4px;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    .modal-btn-cancel {
-        background: white;
-        border: 1px solid #ddd;
-        color: #333;
-    }
-    .modal-btn-cancel:hover {
-        background: #f5f5f5;
-    }
-    .modal-btn-confirm {
-        background: #ee4d2d;
-        color: white;
-    }
-    .modal-btn-confirm:hover {
-        background: #d6301e;
-    }
-
-    .btn-cart:hover {
+        .btn-cart:hover {
             background: var(--primary-red);
             color: white;
         }
@@ -590,52 +519,103 @@
 
     <main class="main-content">
         <div class="sort-bar">
-
             <div class="sort-options">
-                <span class="sort-item">Giá thấp đến cao</span>
-                <span class="sort-item">Giá cao đến thấp</span>
+                @{
+                    string currentSort = ViewData["CurrentSort"]?.ToString();
+                }
+
+                <span class="sort-item @(currentSort == "GiaTang" ? "active" : "")"
+                      onclick="sortProducts('GiaTang')">
+                    Giá thấp đến cao
+                </span>
+
+                <span class="sort-item @(currentSort == "GiaGiam" ? "active" : "")"
+                      onclick="sortProducts('GiaGiam')">
+                    Giá cao đến thấp
+                </span>
+
+                <span class="sort-item @(string.IsNullOrEmpty(currentSort) ? "active" : "")"
+                      onclick="sortProducts('')">
+                    Mới nhất
+                </span>
             </div>
         </div>
 
         <div class="product-grid" id="productGrid">
-            @if (Model.DanhSachSanPham != null && Model.DanhSachSanPham.Any())
+            @if (ViewBag.DanhSachSanPhamHienThi != null)
             {
-                foreach (var item in Model.DanhSachSanPham)
+                @foreach (var sanpham in ViewBag.DanhSachSanPhamHienThi)
                 {
+                    bool coGiamGia = sanpham.PhanTramGiam > 0;
 
-                    string hinhAnh = !string.IsNullOrEmpty(item.HinhDaiDien)
-                    ? item.HinhDaiDien
+                    string hinhAnh = !string.IsNullOrEmpty(sanpham.HinhDaiDien)
+                    ? sanpham.HinhDaiDien
                     : "https://placehold.co/300x450/f0f0f0/333?text=No+Image";
 
-                    <div class="product-card">
-                        <div class="card-img-wrapper">
-                            <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@item.MaSp">
-                                <img src="~/image/@hinhAnh" alt="@item.TenSanPham" class="card-img">
-                            </a>
-                        </div>
-                        <div class="card-info">
-                            <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@item.MaSp">
-                                <h3 class="card-name" title="@item.TenSanPham">@item.TenSanPham</h3>
-                            </a>
-                            <div class="card-author">Tác giả: @item.TacGia</div>
+                    <div class="product-card product-item">
 
-                            <div class="card-price-group">
-                                <div class="price hhh">@item.Gia.ToString("#,##0")đ</div>
 
+                        <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@sanpham.MaSp" class="card-link">
+
+                            <div class="card-img-wrapper">
+                                <img src="~/image/@hinhAnh" alt="@sanpham.TenSanPham" class="card-img">
+
+                                @if (coGiamGia)
+                                {
+                                    <div class="badge-discount">
+                                        -@sanpham.PhanTramGiam%
+                                    </div>
+                                }
                             </div>
 
-                            <div class="card-footer">
-                                <div class="rating">
-                                    <i class="fa-solid fa-star"></i> 5
+                            <div class="card-info">
+                                <h3 class="card-name" title="@sanpham.TenSanPham">@sanpham.TenSanPham</h3>
+
+                                <div class="card-author">Tác giả: @sanpham.TacGia</div>
+
+                                <div class="card-price-group">
+                                    @if (coGiamGia)
+                                    {
+                                        <div class="price-current">
+                                            @sanpham.GiaSauGiam.ToString("#,##0")đ
+                                        </div>
+                                        <div class="price-old">
+                                            @sanpham.Gia.ToString("#,##0")đ
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="price-current">
+                                            @sanpham.Gia.ToString("#,##0")đ
+                                        </div>
+                                    }
                                 </div>
-                                <div class="sold-count">Đã bán @(item.SoLuong > 0 ? "nhiều" : "0")</div>
+
+                                <div class="card-footer">
+                                    <div class="rating">
+                                        <i class="fa-solid fa-star"></i> 5
+                                    </div>
+
+                                </div>
+
                             </div>
 
-                            <button type="button" class="btn-cart" onclick="addToCart(@item.MaSp, 1)">
+                        </a>
+
+                        @* Nút giỏ hàng để dưới, không nằm trong <a> *@
+                        @if (sanpham.SoLuong > 0)
+                        {
+                            <button class="btn-cart">
                                 <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
                             </button>
-                        </div>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Hết hàng</span>
+                        }
+
                     </div>
+
                 }
             }
             else
@@ -644,14 +624,23 @@
             }
         </div>
 
-        <div class="pagination" id="pagination">
-            <button class="page-btn active">1</button>
-            <button class="page-btn">2</button>
-            <button class="page-btn">3</button>
-            <button class="page-btn"><i class="fa-solid fa-chevron-right"></i></button>
+        <div class="flex justify-center mt-4">
+            <button id="loadMoreBtn"
+                    class="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700">
+                Xem thêm
+            </button>
         </div>
     </main>
 </div>
+<script>
+    function filterByCategory(checkbox) {
+        if (checkbox.checked) {
+            window.location.href = '/SanPham/Index?madm=' + checkbox.value;
+        } else {
+            window.location.href = '/SanPham/Index';
+        }
+    }
+</script>
 <style>
     /* 1. Tùy chỉnh thanh trượt (đường kẻ ngang) */
     .noUi-target {
@@ -691,22 +680,9 @@
         font-size: 18px;
         font-weight: 700;
     }
-}</style>
-@section Scripts {
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/noUiSlider/15.7.1/nouislider.min.js"></script>
-
-    <script>
-        function filterByCategory(checkbox) {
-            if (checkbox.checked) {
-                window.location.href = '/SanPham/Index?madm=' + checkbox.value;
-            } else {
-                window.location.href = '/SanPham/Index';
-            }
-        }
-    </script>
-    <script>
-        document.addEventListener("DOMContentLoaded", function () {
+</style>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
         var slider = document.getElementById('slider-price');
         var inputMin = document.getElementById('input-min');
         var inputMax = document.getElementById('input-max');
@@ -765,214 +741,51 @@
         window.location.search = urlParams.toString();
     }
 
-    // Thêm sản phẩm vào giỏ hàng
-    // Biến lưu timeout ID
-    var cartModalTimeout = null;
-    
-    // Hiển thị modal xác nhận thêm vào giỏ hàng
-    function showConfirmModal(maSp, soLuong) {
-        // Xóa modal cũ nếu có
-        if ($('#cartModal').length > 0) {
-            closeCartModal();
-        }
-        
-        // Clear timeout cũ nếu có
-        if (cartModalTimeout) {
-            clearTimeout(cartModalTimeout);
-            cartModalTimeout = null;
-        }
-        
-        var modalHtml = '<div class="modal-overlay" id="cartModal" data-ma-sp="' + maSp + '" data-so-luong="' + soLuong + '">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-header">' +
-            '<h3 class="modal-title">Thêm Vào Giỏ Hàng</h3>' +
-            '</div>' +
-            '<div class="modal-body">' +
-            '<p>Bạn có muốn thêm sản phẩm này vào giỏ hàng không?</p>' +
-            '</div>' +
-            '<div class="modal-footer">' +
-            '<button class="modal-btn modal-btn-cancel" id="cartModalCancelBtn">Hủy</button>' +
-            '<button class="modal-btn modal-btn-confirm" id="cartModalConfirmBtn">Xác Nhận</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-        
-        $('body').append(modalHtml);
-        
-        // Lưu giá trị vào data attribute của modal để dùng sau
-        $('#cartModal').data('maSp', maSp).data('soLuong', soLuong);
-        
-        // Dùng event delegation để gắn event listener
-        $(document).off('click', '#cartModalCancelBtn').on('click', '#cartModalCancelBtn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeCartModalWithCallback(false);
-        });
-        
-        $(document).off('click', '#cartModalConfirmBtn').on('click', '#cartModalConfirmBtn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var savedMaSp = $('#cartModal').data('maSp');
-            var savedSoLuong = $('#cartModal').data('soLuong');
-            if (savedMaSp && savedSoLuong) {
-                confirmAddToCart(savedMaSp, savedSoLuong);
-            } else {
-                console.error('Không tìm thấy maSp hoặc soLuong');
-                showModal('Thông Báo', 'Có lỗi xảy ra. Vui lòng thử lại.');
-            }
-        });
-        
-        // Gắn event listener cho overlay (click ngoài modal để đóng)
-        $('#cartModal').on('click', function(e) {
-            if ($(e.target).hasClass('modal-overlay')) {
-                closeCartModalWithCallback(false);
-            }
-        });
-        
-        setTimeout(function() {
-            $('#cartModal').addClass('show');
-        }, 10);
-    }
-    
-    // Hiển thị modal thông báo (sau khi thêm thành công)
-    function showModal(title, message) {
-        // Xóa modal cũ nếu có
-        if ($('#cartModal').length > 0) {
-            closeCartModal();
-        }
-        
-        // Clear timeout cũ nếu có
-        if (cartModalTimeout) {
-            clearTimeout(cartModalTimeout);
-            cartModalTimeout = null;
-        }
-        
-        var modalHtml = '<div class="modal-overlay" id="cartModal">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-header">' +
-            '<h3 class="modal-title">' + title + '</h3>' +
-            '</div>' +
-            '<div class="modal-body">' +
-            '<p>' + message + '</p>' +
-            '</div>' +
-            '<div class="modal-footer">' +
-            '<button class="modal-btn modal-btn-confirm" id="cartModalConfirmBtn">Xác Nhận</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-        
-        $('body').append(modalHtml);
-        
-        // Gắn event listener cho nút Xác Nhận
-        $('#cartModalConfirmBtn').on('click', function() {
-            closeCartModalWithCallback(false);
-        });
-        
-        // Gắn event listener cho overlay (click ngoài modal để đóng)
-        $('#cartModal').on('click', function(e) {
-            if ($(e.target).hasClass('modal-overlay')) {
-                closeCartModalWithCallback(false);
-            }
-        });
-        
-        setTimeout(function() {
-            $('#cartModal').addClass('show');
-        }, 10);
-        
-        // Tự động đóng sau 5 giây
-        cartModalTimeout = setTimeout(function() {
-            closeCartModalWithCallback(false);
-        }, 5000);
-    }
-    
-    function closeCartModalWithCallback(hasCallback) {
-        // Clear timeout nếu có
-        if (cartModalTimeout) {
-            clearTimeout(cartModalTimeout);
-            cartModalTimeout = null;
-        }
-        
-        var modal = $('#cartModal');
-        if (modal.length > 0) {
-            modal.removeClass('show');
-            setTimeout(function() {
-                modal.remove();
-            }, 300);
-        }
-    }
-    
-    function closeCartModal() {
-        closeCartModalWithCallback(false);
-    }
-    
-    // Cập nhật số lượng giỏ hàng
-    function updateCartCount(count) {
-        var cartBadge = $('#cart-count');
-        if (cartBadge.length > 0) {
-            cartBadge.text(count);
-            if (count > 0) {
-                cartBadge.show();
-            } else {
-                cartBadge.hide();
-            }
-        }
-        // Cập nhật badge trong header
-        if (window.updateCartBadge) {
-            window.updateCartBadge();
-        }
-    }
-    
-    // Load số lượng giỏ hàng từ server
-    function loadCartCount() {
-        $.ajax({
-            url: '@Url.Action("GetCartCount", "Cart")',
-            type: 'GET',
-            success: function(response) {
-                if (response && response.count !== undefined) {
-                    updateCartCount(response.count);
-                }
-            }
-        });
-    }
-    
-    // Load số lượng giỏ hàng khi trang load
-    $(document).ready(function() {
-        loadCartCount();
-    });
 
-    // Thêm sản phẩm vào giỏ hàng
-    function addToCart(maSp, soLuong) {
-        // Không cho phép thêm sản phẩm vào giỏ hàng nếu số lượng = 0 hoặc < 0
-        soLuong = soLuong || 1;
-        if (soLuong <= 0) {
-            showModal('Thông Báo', 'Số lượng phải lớn hơn 0. Không thể thêm sản phẩm với số lượng bằng 0.');
-            return;
-        }
 
-        $.ajax({
-            url: '@Url.Action("AddToCart", "Cart")',
-            type: 'POST',
-            data: {
-                maSp: maSp,
-                soLuong: soLuong
-            },
-            success: function (response) {
-                if (response && response.success) {
-                    // Cập nhật số lượng giỏ hàng
-                    if (response.cartCount !== undefined) {
-                        updateCartCount(response.cartCount);
-                    } else {
-                        loadCartCount();
-                    }
-                    showModal('Thêm Vào Giỏ Hàng', response.message || 'Đã thêm sản phẩm vào giỏ hàng.');
-                } else {
-                    showModal('Thông Báo', (response && response.message) || 'Không thêm được sản phẩm vào giỏ hàng.');
-                }
-            },
-            error: function () {
-                showModal('Thông Báo', 'Có lỗi xảy ra khi thêm vào giỏ hàng.');
-            }
-        });
+    function sortProducts(criteria) {
+        var urlParams = new URLSearchParams(window.location.search);
+
+        if (criteria) {
+            urlParams.set('sortOrder', criteria);
+        } else {
+            urlParams.delete('sortOrder');
+        }
+        window.location.search = urlParams.toString();
     }
 </script>
-}
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const items = Array.from(document.querySelectorAll(".product-item"));
+        const loadMoreBtn = document.getElementById("loadMoreBtn");
+
+        const pageSize = 8;      // mỗi lần hiện thêm 8 sản phẩm
+        let currentCount = 0;    // số sản phẩm đang hiển thị
+
+        function updateView() {
+            items.forEach((item, index) => {
+                if (index < currentCount) {
+                    item.style.display = "block";
+                } else {
+                    item.style.display = "none";
+                }
+            });
+
+            if (currentCount >= items.length) {
+                loadMoreBtn.style.display = "none"; // ẩn nút khi hết sản phẩm
+            } else {
+                loadMoreBtn.style.display = "inline-block";
+            }
+        }
+
+        // Lần đầu: chỉ hiện 8 sản phẩm
+        currentCount = pageSize;
+        updateView();
+
+        // Mỗi lần bấm "Xem thêm" → +8
+        loadMoreBtn.addEventListener("click", function () {
+            currentCount += pageSize;
+            updateView();
+        });
+    });
+</script>

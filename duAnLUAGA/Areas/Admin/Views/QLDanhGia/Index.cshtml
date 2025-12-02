@@ -1,0 +1,326 @@
+﻿@model duAnLUAGA.Areas.Admin.ViewModels.AdminVM
+
+<title>Quản lý bình luận</title>
+
+<style>
+    body {
+        background: #1e1e1e;
+        color: white;
+        font-family: Arial, sans-serif;
+    }
+
+    .TieuDe {
+        color: black;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+        font-size: 14px;
+        color: white;
+    }
+
+    thead {
+        background-color: #444;
+        color: #fff;
+    }
+
+    th, td {
+        border: 1px solid #555;
+        padding: 8px 10px;
+        vertical-align: top;
+    }
+
+    tr:nth-child(even) {
+        background-color: #2a2a2a;
+    }
+
+    .badge-true {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        background: #16a34a;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .badge-false {
+        display: inline-block;
+        padding: 3px 8px;
+        border-radius: 4px;
+        background: #888;
+        color: white;
+        font-size: 12px;
+        font-weight: bold;
+    }
+
+    .btn-delete {
+        padding: 6px 10px;
+        border: none;
+        border-radius: 4px;
+        background: #dc2626;
+        color: #fff;
+        cursor: pointer;
+        font-size: 13px;
+    }
+
+    .btn-reply {
+        padding: 6px 14px;
+        border: none;
+        border-radius: 4px;
+        background: #22c55e;
+        color: white;
+        cursor: pointer;
+        font-size: 13px;
+        font-weight: bold;
+    }
+
+    .thumb-img {
+        width: 50px;
+        height: 50px;
+        object-fit: cover;
+        border-radius: 4px;
+        margin-right: 4px;
+    }
+
+    /* Popup phản hồi */
+    .modal {
+        display: none;
+        position: fixed;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(0,0,0,0.6);
+        justify-content: center;
+        align-items: center;
+    }
+
+    .modal-box {
+        background: #fff;
+        color: black;
+        padding: 20px;
+        width: 400px;
+        border-radius: 8px;
+        box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+        animation: fadeIn .3s ease-out;
+    }
+
+    .modal-footer {
+        margin-top: 15px;
+        text-align: right;
+    }
+
+    .btn-save {
+        background: #16a34a;
+        color: #fff;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+
+    .btn-cancel {
+        background: #6b7280;
+        color: #fff;
+        padding: 6px 12px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        margin-right: 5px;
+    }
+</style>
+<h2>Quản lý bình luận</h2>
+
+<form asp-area="Admin"
+      asp-controller="QLDanhGia"
+      asp-action="Index"
+      method="get"
+      style="margin: 15px 0; display:flex; gap:10px; align-items:center;">
+
+    <!-- Ô tìm kiếm -->
+    <input type="text"
+           name="keyword"
+           placeholder="Tìm kiếm bình luận..."
+           value="@Model.Keyword"
+           style="padding: 8px 10px; border-radius: 5px; border:1px solid #777; background:#222; color:#fff; min-width:280px;" />
+
+    <!-- Combobox sắp xếp -->
+    <select name="sort"
+            style="padding: 8px 10px; border-radius: 5px; border:1px solid #777; background:#222; color:#fff;">
+        <option value="">-- Sắp xếp --</option>
+
+        <option value="newest"
+                selected="@(Model.Sort == "newest" || string.IsNullOrEmpty(Model.Sort) ? "selected" : null)">
+            Mới nhất
+        </option>
+
+        <option value="oldest"
+                selected="@(Model.Sort == "oldest" ? "selected" : null)">
+            Cũ nhất
+        </option>
+
+        <option value="starDesc"
+                selected="@(Model.Sort == "starDesc" ? "selected" : null)">
+            Số sao: cao → thấp
+        </option>
+
+        <option value="starAsc"
+                selected="@(Model.Sort == "starAsc" ? "selected" : null)">
+            Số sao: thấp → cao
+        </option>
+    </select>
+
+    <button type="submit"
+            style="padding: 8px 16px; border-radius:5px; border:none; background:#2563eb; color:#fff; cursor:pointer;">
+        Lọc
+    </button>
+</form>
+
+<h2>Quản lý bình luận</h2>
+
+<table>
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>Mã SP</th>
+            <th>Tên SP</th>
+            <th>Mã KH</th>
+            <th>Tên KH</th>
+            <th>Nội dung</th>
+            <th>Số sao</th>
+            <th>Ngày đánh giá</th>
+            <th>Phản hồi</th>
+            <th>Ngày phản hồi</th>
+            <th>Hình ảnh</th>
+            <th>Trạng thái</th>
+            <th>Thao tác</th>
+            <th>Chức Năng</th>
+        </tr>
+    </thead>
+
+    <tbody>
+        @foreach (var item in Model.DanhGias)
+        {
+            <tr>
+                <td>@item.Id</td>
+                <td>@item.MaSp</td>
+                <td>@item.MaSpNavigation.TenSanPham</td>
+                <td>@item.SoSao</td>
+                <td>@item.MaKhNavigation.HoVaTen</td>
+                <td>@ShortText(item.NoiDung, 20)</td>
+                <td>@item.SoSao ★</td>
+                <td>@item.NgayDanhGia.ToString("dd/MM/yyyy HH:mm")</td>
+                <td><span>@ShortText(item.ShopPhanHoi, 20)</span></td>
+                <td>@item.NgayPhanHoi</td>
+                <td>
+                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                    {
+                        <img src="/images/reviews/@item.HinhAnh" class="thumb-img" />
+                    }
+                </td>
+                <td>
+                    @if (item.TrangThai)
+                    {
+                        <span class="badge-true">Hiển thị</span>
+                    }
+                    else
+                    {
+                        <span class="badge-false">Ẩn</span>
+                    }
+                </td>
+                <td>
+                    <a asp-area="Admin"
+                       asp-controller="QLDanhGia"
+                       asp-action="PhanHoi"
+                       asp-route-id="@item.Id"
+                       class="btn-reply Sua">
+                        Phản hồi
+                    </a>
+                </td>
+                <td>
+                    <a asp-area="Admin"
+                       asp-controller="QLDanhGia"
+                       asp-action="Xoa"
+                       asp-route-id="@item.Id"
+                       class="btn btn-sm btn-danger
+                           ">
+                        Xóa
+                    </a>
+                </td>
+            </tr>
+        }
+    </tbody>
+
+</table>
+
+
+
+
+@if (Model.TotalPages > 1)
+{
+    <div style="margin-top:20px; display:flex; justify-content:center; gap:5px;">
+
+        <!-- Nút TRƯỚC -->
+        @if (Model.CurrentPage > 1)
+        {
+            <a asp-area="Admin"
+               asp-controller="QLDanhGia"
+               asp-action="Index"
+               asp-route-page="@(Model.CurrentPage - 1)"
+               style="padding:6px 12px; background:#444; color:white; border-radius:4px; text-decoration:none;">
+                « Trước
+            </a>
+        }
+
+        <!-- Các số trang -->
+        @for (var i = 1; i <= Model.TotalPages; i++)
+        {
+            if (i == Model.CurrentPage)
+            {
+                <a asp-area="Admin"
+                   asp-controller="QLDanhGia"
+                   asp-action="Index"
+                   asp-route-page="@i"
+                   style="padding:6px 12px; background:#2563eb; color:white; border-radius:4px; text-decoration:none; font-weight:bold;">
+                    @i
+                </a>
+            }
+            else
+            {
+                <a asp-area="Admin"
+                   asp-controller="QLDanhGia"
+                   asp-action="Index"
+                   asp-route-page="@i"
+                   style="padding:6px 12px; background:#333; color:white; border-radius:4px; text-decoration:none;">
+                    @i
+                </a>
+            }
+        }
+
+        <!-- Nút SAU -->
+        @if (Model.CurrentPage < Model.TotalPages)
+        {
+            <a asp-area="Admin"
+               asp-controller="QLDanhGia"
+               asp-action="Index"
+               asp-route-page="@(Model.CurrentPage + 1)"
+               style="padding:6px 12px; background:#444; color:white; border-radius:4px; text-decoration:none;">
+                Sau »
+            </a>
+        }
+    </div>
+}
+
+<script>
+        @functions {
+                public string ShortText(string text, int length = 20)
+                {
+                            if (string.IsNullOrEmpty(text)) return "";
+                            return text.Length > length ? text.Substring(0, length) + "..." : text;
+                }
+    }
+
+</script>
+

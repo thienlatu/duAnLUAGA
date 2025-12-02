@@ -1,12 +1,11 @@
-﻿@model duAnLUAGA.Domain.Entitie.Sanpham
+﻿@model duAnLUAGA.ViewModel.HomModel
 
 @{
-    ViewData["Title"] = Model.TenSanPham;
-
+    var sanpham = Model.SanPhamChiTiet;
+    ViewData["Title"] = sanpham?.TenSanPham ?? "Chi Tiết Sản Phẩm";
 }
 
 <script src="https://cdn.tailwindcss.com"></script>
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 <script>
     tailwind.config = {
@@ -17,105 +16,259 @@
 <div class="container mx-auto max-w-6xl p-2 md:p-4 my-4 font-sans">
     <div class="bg-white rounded-lg shadow-sm p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6">
 
-        <div class="lg:col-span-5 flex flex-col">
-            <div class="mb-4 relative group">
-                <img id="mainImage"
-                     src="~/image/@Model.HinhDaiDien"
-                     alt="@Model.TenSanPham"
-                     class="w-full h-auto object-contain max-h-[450px] mx-auto rounded-sm cursor-pointer border border-gray-200">
-            </div>
-
-
-
-            <div class="grid grid-cols-2 gap-3 mb-6">
-                <button onclick="addToCart(@Model.MaSp)" class="flex items-center justify-center space-x-2 border-2 border-fahasa-red text-fahasa-red font-bold py-3 rounded-lg bg-white hover:bg-red-50">
-                    <i class="fa-solid fa-cart-shopping text-xl"></i> <span>Thêm giỏ hàng</span>
-                </button>
-                <button class="bg-fahasa-red text-white font-bold py-3 rounded-lg hover:bg-red-700 shadow-md">
-                    Mua ngay
-                </button>
-            </div>
-        </div>
-
-        <div class="lg:col-span-7">
-            <h1 class="text-2xl font-medium text-gray-800 mb-2 leading-snug">@Model.TenSanPham</h1>
-            <div class="flex items-center gap-2 mb-4">
-                <div class="flex text-yellow-400 text-sm">
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
-                    <i class="fa-solid fa-star"></i>
+        @if (sanpham != null)
+        {
+            <div class="lg:col-span-5 flex flex-col">
+                <div class="mb-4 relative group">
+                    <img id="mainImage"
+                         src="/image/@sanpham.HinhDaiDien"
+                         alt="@sanpham.TenSanPham"
+                         class="w-full h-auto object-contain max-h-[450px] mx-auto rounded-sm cursor-pointer border border-gray-200"
+                         onclick="openMainImage()">
                 </div>
-                <span class="text-yellow-500 text-sm font-medium">(12 đánh giá)</span>
-                <span class="text-gray-300">|</span>
-                <span class="text-gray-500 text-sm">Đã bán 345</span>
-            </div>
-            <div class="flex flex-wrap gap-y-1 text-sm text-gray-600 mb-4">
-                <div class="mr-4">Nhà cung cấp: <span class="text-blue-600 font-medium">@(Model.MaDmNavigation?.TenDanhMuc ?? "Đang cập nhật")</span></div>
-                <div class="mr-4">Tác giả: <span class="text-blue-600 font-medium">@(Model.TacGia ?? "N/A")</span></div>
-                <div class="mr-4">NXB: <span c lass="text-gray-900">@(Model.Nxb ?? "N/A")</span></div>
+                <div class="grid grid-cols-5 gap-2 mb-6 px-2">
+                    <div class="cursor-pointer border border-fahasa-red rounded-sm p-1 active-thumb"
+                         onclick="changeImage(this, '/image/@sanpham.HinhDaiDien')">
+                        <img src="/image/@sanpham.HinhDaiDien"
+                             class="w-full h-full object-cover"
+                             alt="Ảnh đại diện @sanpham.TenSanPham">
+                    </div>
+                    @foreach (var hinh in Model.DanhSachHinhAnh)
+                    {
+                        <div class="cursor-pointer border border-transparent hover:border-gray-300 rounded-sm p-1"
+                             onclick="changeImage(this, '/image/@hinh.TenHinhAnh')">
+                            <img src="/image/@hinh.TenHinhAnh"
+                                 class="w-full h-full object-cover"
+                                 alt="">
+                        </div>
+                    }
+
+
+                </div>
+
+                @if (sanpham.SoLuong > 0)
+                {
+                    <div class="grid grid-cols-2 gap-3 mb-6">
+                        <button class="flex items-center justify-center space-x-2 border-2 border-fahasa-red text-fahasa-red font-bold py-3 rounded-lg bg-white hover:bg-red-50">
+                            <i class="fa-solid fa-cart-shopping text-xl"></i> <span>Thêm giỏ hàng</span>
+                        </button>
+                        <button class="bg-fahasa-red text-white font-bold py-3 rounded-lg hover:bg-red-700 shadow-md">
+                            Mua ngay
+                        </button>
+                    </div>
+                }
+                else
+                {
+                    <span class="text-danger">Hết hàng</span>
+                }
             </div>
 
-            <div class="flex items-end gap-3 mb-2">
-                <span class="text-3xl font-bold text-fahasa-red">@Model.Gia.ToString("#,##0") đ</span>
+            <div class="lg:col-span-7">
+                <h1 class="text-2xl font-medium text-gray-800 mb-2 leading-snug">@sanpham.TenSanPham</h1>
+                <div class="flex items-center gap-2 mb-4">
+                    <div class="flex text-yellow-400 text-sm">
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                        <i class="fa-solid fa-star"></i>
+                    </div>
+                    <span class="text-yellow-500 text-sm font-medium">(@(Model.DanhSachBinhLuan?.Count() ?? 0) đánh giá)</span>
+                    <span class="text-gray-300">|</span>
+                </div>
+                <div class="flex flex-wrap gap-y-1 text-sm text-gray-600 mb-4">
+                    <div class="mr-4">Nhà cung cấp: <span class="text-blue-600 font-medium">@(sanpham.MaDmNavigation.TenDanhMuc)</span></div>
+                    <div class="mr-4">Tác giả: <span class="text-blue-600 font-medium">@(sanpham.TacGia ?? "N/A")</span></div>
+                    <div class="mr-4">NXB: <span c lass="text-gray-900">@(sanpham.Nxb ?? "N/A")</span></div>
+                </div>
 
-            </div>
+                <div class="flex items-end gap-3 mb-2">
+                    @{
+                        decimal giaSauGiam = ViewBag.GiaSauGiam ?? Model.SanPhamChiTiet.Gia;
+                        int? phanTramGiam = Model.SanPhamChiTiet.PhanTramGiam;
+                    }
+                    @if (phanTramGiam.HasValue && phanTramGiam.Value > 0 && phanTramGiam.Value < 100)
+                    {
+                        <span class="text-3xl font-bold text-fahasa-red">
+                            @giaSauGiam.ToString("#,##0") đ
+                        </span>
 
-            <div class="flex items-center gap-4 mb-8 mt-4">
-                <span class="font-bold text-gray-800 text-sm">Số lượng:</span>
-                <div class="flex items-center border border-gray-300 rounded">
-                    <button class="px-3 py-1 font-bold hover:bg-gray-100" onclick="updateQty(-1)">-</button>
-                    <input type="number" id="qty" value="1" class="w-12 text-center font-bold border-l border-r py-1" readonly>
-                    <button class="px-3 py-1 font-bold hover:bg-gray-100" onclick="updateQty(1)">+</button>
+                        <span class="text-xl text-gray-400 line-through">
+                            @Model.SanPhamChiTiet.Gia.ToString("#,##0") đ
+                        </span>
+
+                        <span class="bg-red-100 text-red-600 text-sm font-semibold px-2 py-0.5 rounded-full">
+                            -@phanTramGiam.Value%
+                        </span>
+                    }
+                    else
+                    {
+                        <span class="text-3xl font-bold text-fahasa-red">
+                            @Model.SanPhamChiTiet.Gia.ToString("#,##0") đ
+                        </span>
+                    }
+                </div>
+
+                <div class="flex items-center gap-4 mb-8 mt-4">
+                    <span class="font-bold text-gray-800 text-sm">Số lượng:</span>
+                    <div class="flex items-center border border-gray-300 rounded">
+                        <button class="px-3 py-1 font-bold hover:bg-gray-100" onclick="updateQty(-1)">-</button>
+                        <input type="number" id="qty" value="1" class="w-12 text-center font-bold border-l border-r py-1" readonly>
+                        <button class="px-3 py-1 font-bold hover:bg-gray-100" onclick="updateQty(1)">+</button>
+                    </div>
+                </div>
+                <i class="fa-solid fa-store mr-1.5"></i>Số Lượng còn: @sanpham.SoLuong
+                <br /><br />
+                <div class="bg-white">
+                    <h3 class="font-bold text-gray-800 mb-3">Chính sách ưu đãi</h3>
+                    <ul class="space-y-3 text-sm text-gray-600">
+                        <li class="flex items-start"><i class="fa-solid fa-truck-fast text-fahasa-red mr-2 mt-1"></i><span>Giao hàng nhanh</span></li>
+                        <li class="flex items-start"><i class="fa-solid fa-rotate text-fahasa-red mr-2 mt-1"></i><span>Đổi trả miễn phí</span></li>
+                    </ul>
                 </div>
             </div>
-            <i class="fa-solid fa-store mr-1.5"></i>Số Lượng còn: @Model.SoLuong
-            <br /><br />
-            <div class="bg-white">
-                <h3 class="font-bold text-gray-800 mb-3">Chính sách ưu đãi</h3>
-                <ul class="space-y-3 text-sm text-gray-600">
-                    <li class="flex items-start"><i class="fa-solid fa-truck-fast text-fahasa-red mr-2 mt-1"></i><span>Giao hàng nhanh</span></li>
-                    <li class="flex items-start"><i class="fa-solid fa-rotate text-fahasa-red mr-2 mt-1"></i><span>Đổi trả miễn phí</span></li>
-                </ul>
-            </div>
-        </div>
+        }
     </div>
+
+    @if (sanpham != null)
+    {
+        <div class="bg-white rounded-lg shadow-sm p-6 mt-4">
+            <h2 class="text-xl font-bold text-gray-800 mb-4 border-l-4 border-fahasa-red pl-3 uppercase">Thông tin chi tiết</h2>
+            <div class="grid grid-cols-1 gap-x-4 text-sm">
+                <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Mã hàng:</div><div>@sanpham.MaSp</div></div>
+                <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Tác giả:</div><div>@(sanpham.TacGia)</div></div>
+                <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Năm XB:</div><div>@(sanpham.NamXb)</div></div>
+                <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Số Trang:</div><div>@(sanpham.SoTrang)</div></div>
+                <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Trạng Thái:</div><div>@(sanpham.TrangThai)</div></div>
+                <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Ngôn ngữ: </div><div>@(sanpham.NgonNgu)</div></div>
+            </div>
+        </div>
+    }
 
     <div class="bg-white rounded-lg shadow-sm p-6 mt-4">
-        <h2 class="text-xl font-bold text-gray-800 mb-4 border-l-4 border-fahasa-red pl-3 uppercase">Thông tin chi tiết</h2>
-        <div class="grid grid-cols-1 gap-x-4 text-sm">
-            <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Mã hàng:</div><div>@Model.MaSp</div></div>
-            <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Tác giả:</div><div>@(Model.TacGia)</div></div>
-            <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Năm XB:</div><div>@(Model.NamXb)</div></div>
-            <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Số Trang:</div><div>@(Model.SoTrang)</div></div>
-            <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Trạng Thái:</div><div>@(Model.TrangThai)</div></div>
-            <div class="grid grid-cols-3 py-2 border-b"><div class="text-gray-500">Ngôn ngữ: </div><div>@(Model.NgonNgu)</div></div>
-        </div>
+        <div class="rv-wrapper">
+            <h1 class="rv-title">Đánh giá sản phẩm</h1>
 
-    </div>
-</div>
-<div class="bg-white rounded-lg shadow-sm p-6 mt-4">
-    <div class="flex justify-between items-center mb-6 border-b pb-2">
-        <h2 class="text-xl font-bold text-gray-800 uppercase">Đánh giá khách hàng</h2>
-        <button onclick="openModal()"
-                class="bg-fahasa-red text-white px-4 py-2 rounded-lg font-bold text-sm hover:bg-red-700 transition flex items-center gap-2">
-            <i class="fa-solid fa-pen"></i> Viết đánh giá
-        </button>
-    </div>
+            <div class="rv-summary">
+                <div class="rv-row">
 
-    Nội dung bình luận
-    <div class="flex gap-4 mb-6">
-        <div class="w-12 h-12 rounded-full bg-gray-200 flex items-center justify-center font-bold text-gray-500">A</div>
-        <div class="flex-1">
-            <div class="flex justify-between">
-                <span class="font-bold">Nguyễn Văn A</span>
-                <span class="text-xs text-gray-400">20/10/2023</span>
+                    <!-- Cột điểm đánh giá -->
+                    <div class="rv-score-box">
+                        <div class="rv-score-number">
+                            <span>@(ViewBag.DiemTrungBinh ?? 0)</span>
+                            <small>/ 5</small>
+                        </div>
+                        <div class="rv-stars">★★★★★</div>
+                        <div class="rv-total-reviews">
+                            @(Model.DanhSachBinhLuan?.Count() ?? 0) đánh giá
+                        </div>
+                    </div>
+
+                    <!-- BỘ LỌC SỐ SAO -->
+                    <div class="rv-filters">
+                        <button type="button" class="rv-filter-btn rv-active" data-star="0">
+                            Tất cả (@ViewBag.TongSoDanhGia)
+                        </button>
+
+                        <button type="button" class="rv-filter-btn" data-star="5">5 ★ (@ViewBag.StarCount[5])</button>
+                        <button type="button" class="rv-filter-btn" data-star="4">4 ★ (@ViewBag.StarCount[4])</button>
+                        <button type="button" class="rv-filter-btn" data-star="3">3 ★ (@ViewBag.StarCount[3])</button>
+                        <button type="button" class="rv-filter-btn" data-star="2">2 ★ (@ViewBag.StarCount[2])</button>
+                        <button type="button" class="rv-filter-btn" data-star="1">1 ★ (@ViewBag.StarCount[1])</button>
+                    </div>
+
+                </div>
             </div>
-            <div class="text-yellow-400 text-xs my-1">
-                <i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i><i class="fa-solid fa-star"></i>
+
+            <div class="mt-4 flex justify-end">
+                @if (User.Identity.IsAuthenticated)
+                {
+                    <button onclick="openModal()"
+                            class="px-6 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition shadow-md">
+                        📝 Viết đánh giá của bạn
+                    </button>
+                }
+                else
+                {
+                    <a href="@Url.Action("Login", "Home")"
+                       class="text-blue-600 hover:underline">
+                        Đăng nhập để viết đánh giá
+                    </a>
+                }
             </div>
-            <p class="text-gray-600 text-sm">Sách rất hay, giao hàng nhanh chóng. Đóng gói cẩn thận.</p>
+
+            <!-- DANH SÁCH BÌNH LUẬN -->
+            @foreach (var binhluan in Model.DanhSachBinhLuan)
+            {
+                <div class="rv-item py-4" data-star="@binhluan.SoSao">
+                    <div class="rv-header">
+                        <div class="rv-header-left">
+                            <div class="rv-info">
+                                <div class="rv-username font-semibold text-gray-800">Đánh Giá:</div>
+                                @{
+                                    string tenKhachHang = "Khách hàng ẩn danh";
+                                    if (binhluan.MaKhNavigation != null)
+                                    {
+                                        tenKhachHang = binhluan.MaKhNavigation.HoVaTen ?? "Khách hàng";
+                                    }
+                                }
+                                <div class="rv-username font-semibold text-gray-800">
+                                    Tên Khách Hàng: @tenKhachHang
+                                </div>
+
+                                <div class="rv-item-stars text-yellow-500">
+                                    Số sao: @Html.Raw(RenderStars(binhluan.SoSao))
+                                </div>
+
+                                <div class="rv-date text-sm text-gray-500">
+                                    Ngày đánh giá: @(binhluan.NgayDanhGia.ToString("yyyy-MM-dd HH:mm"))
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="rv-content mt-2 text-gray-700">
+                        Nội dung: @binhluan.NoiDung
+                    </div>
+
+                    @* ẢNH ĐÍNH KÈM *@
+                    @{
+                        if (!string.IsNullOrEmpty(binhluan.HinhAnh))
+                        {
+                            string[] arrHinhAnh = binhluan.HinhAnh.Split(
+                            new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
+
+                            if (arrHinhAnh.Length > 0)
+                            {
+                                const string basePath = "/images/reviews/";
+
+                                foreach (var fileName in arrHinhAnh)
+                                {
+                                    string fullImageUrl = basePath + fileName.Trim();
+
+                                    <div class="rv-media-item mt-2">
+                                        Hình Ảnh:
+                                        <img src="@fullImageUrl"
+                                             alt="Ảnh đính kèm"
+                                             class="w-20 h-20 object-cover rounded-md border border-gray-200"
+                                             onclick="openLightbox('@fullImageUrl')">
+                                    </div>
+                                }
+                            }
+                        }
+                    }
+
+                    <div class="rv-username font-semibold text-gray-800 mt-2">Phản hồi:</div>
+                    <div class="rv-content mt-1 text-gray-700">
+                        Nội dung: @binhluan.ShopPhanHoi
+                    </div>
+                    <div class="rv-date text-sm text-gray-500">
+                        Ngày phản hồi: @(binhluan.NgayPhanHoi)
+                    </div>
+                </div>
+
+                <hr class="mt-3 mb-3 border-gray-100" />
+            }
         </div>
     </div>
 </div>
@@ -123,411 +276,407 @@
 <div id="reviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
     <div class="bg-white w-full max-w-lg rounded-lg p-6 relative shadow-xl">
         <button onclick="closeModal()"
+                type="button"
                 class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">
             &times;
         </button>
         <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Viết đánh giá sản phẩm</h3>
 
-        <div class="mb-4 text-center">
-            <p class="text-sm text-gray-600 mb-2">Bạn thấy sản phẩm thế nào?</p>
-            <div id="starRating" class="flex justify-center gap-2 text-3xl text-gray-300 cursor-pointer">
-                <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="1"></i>
-                <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="2"></i>
-                <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="3"></i>
-                <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="4"></i>
-                <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="5"></i>
+        <form asp-controller="ChiTSP"
+              asp-action="Them"
+              method="post"
+              enctype="multipart/form-data">
+            <input type="hidden" name="MaSp" value="@(Model.SanPhamChiTiet?.MaSp ?? 0)">
+
+            <div class="mb-4 text-center">
+                <p class="text-sm text-gray-600 mb-2">Bạn thấy sản phẩm thế nào?</p>
+                <div id="starRating" class="flex justify-center gap-2 text-3xl text-gray-300 cursor-pointer">
+                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="1"></i>
+                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="2"></i>
+                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="3"></i>
+                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="4"></i>
+                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="5"></i>
+                </div>
+                <input type="hidden" id="ratingValue" name="SoSao" value="0">
             </div>
-            <input type="hidden" id="ratingValue" value="0">
-        </div>
 
-        <div class="mb-4">
-            <textarea id="reviewText" rows="4"
-                      class="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-blue-500 resize-none"
-                      placeholder="Hãy chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
-        </div>
-
-        <div class="mb-6">
-            <label class="block text-sm font-medium text-gray-700 mb-2">Thêm hình ảnh (tối đa 3)</label>
-            <div class="flex gap-2">
-                <label class="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 cursor-pointer hover:border-blue-500 hover:text-blue-500 transition">
-                    <i class="fa-solid fa-camera"></i>
-                    <input type="file" class="hidden" id="imageUpload" accept="image/*" multiple
-                           onchange="handleImageUpload(this)">
-                </label>
-                <div id="imagePreview" class="flex gap-2"></div>
+            <div class="mb-4">
+                <textarea id="reviewText" name="NoiDung" rows="4"
+                          class="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-blue-500 resize-none"
+                          placeholder="Hãy chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
             </div>
-            <p id="uploadError" class="text-red-500 text-xs mt-1 hidden">Chỉ được chọn tối đa 3 ảnh.</p>
-        </div>
 
-        <div class="flex justify-end gap-3">
-            <button onclick="closeModal()" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50">Hủy bỏ</button>
-            <button onclick="submitReview()"
-                    class="px-6 py-2 bg-fahasa-red text-white rounded font-bold hover:bg-red-700">
-                Gửi đánh giá
-            </button>
-        </div>
+            <div class="mb-6">
+                <label class="block text-sm font-medium text-gray-700 mb-2">Thêm hình ảnh (tối đa 1)</label>
+                <div class="flex gap-2">
+                    <label class="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 cursor-pointer hover:border-blue-500 hover:text-blue-500 transition">
+                        <i class="fa-solid fa-camera"></i>
+                        <input type="file" class="hidden" id="imageUpload" accept="image/*"
+                               name="HinhAnhFiles" onchange="handleImageUpload(this)">
+                    </label>
+                    <div id="imagePreview" class="flex gap-2"></div>
+                </div>
+                <p id="uploadError" class="text-red-500 text-xs mt-1 hidden">Chỉ được chọn tối đa 1 ảnh.</p>
+            </div>
+
+            <div class="flex justify-end gap-3">
+                <button onclick="closeModal()" type="button" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50">Hủy bỏ</button>
+
+                <button type="submit"
+                        class="px-6 py-2 bg-fahasa-red text-white rounded font-bold hover:bg-red-700">
+                    Gửi đánh giá
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 
+<div id="imageLightbox"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300"
+     onclick="closeLightbox()">
 
-<script>
-    function changeImage(el, src) {
-        document.getElementById('mainImage').src = src;
-    }
-    function updateQty(n) {
-        var input = document.getElementById('qty');
-        var val = parseInt(input.value) + n;
-        if (val < 1) val = 1;
-        input.value = val;
-    }
-    function updateQty(change) {
-      const input = document.getElementById('qty');
-      let val = parseInt(input.value);
-      val += change;
-      if (val < 1) val = 1;
-      input.value = val;
-    }
+    <div class="max-w-4xl max-h-full p-4 relative">
+        <button class="absolute top-0 right-0 text-white text-3xl font-bold p-4 opacity-75 hover:opacity-100 transition"
+                onclick="closeLightbox()">
+            &times;
+        </button>
+        <img id="lightboxImage"
+             src=""
+             alt="Ảnh phóng to"
+             class="max-w-full max-h-[90vh] object-contain cursor-pointer"
+             onclick="event.stopPropagation()">
+    </div>
+</div>
+@section Scripts {
+    <script>
+        // JS cho tăng giảm số lượng
+        function updateQty(change) {
+            const qtyInput = document.getElementById('qty');
+            let currentQty = parseInt(qtyInput.value);
+            // Đã sử dụng Optional Chaining (?) để tránh lỗi nếu sanpham là null
+            let maxQty = @(sanpham?.SoLuong > 0 ? sanpham.SoLuong : 1);
 
-    // Logic Modal
-    const modal = document.getElementById('reviewModal');
-    const stars = document.querySelectorAll('#starRating i');
-    const ratingInput = document.getElementById('ratingValue');
+            let newQty = currentQty + change;
 
-    function openModal() { modal.classList.remove('hidden'); }
-    function closeModal() { modal.classList.add('hidden'); resetModal(); }
-
-    // Xử lý click sao
-    stars.forEach(star => {
-      star.addEventListener('click', function () {
-        const val = this.dataset.value;
-        ratingInput.value = val;
-        stars.forEach(s => {
-          s.classList.remove('text-yellow-400', 'text-gray-300');
-          if (s.dataset.value <= val) s.classList.add('text-yellow-400');
-          else s.classList.add('text-gray-300');
-        });
-      });
-    });
-
-    // Upload ảnh
-    function handleImageUpload(input) {
-      const files = input.files;
-      const preview = document.getElementById('imagePreview');
-      const error = document.getElementById('uploadError');
-
-      if (files.length > 3) {
-        error.classList.remove('hidden');
-        input.value = '';
-        preview.innerHTML = '';
-        return;
-      }
-      error.classList.add('hidden');
-      preview.innerHTML = '';
-
-      Array.from(files).forEach(file => {
-        const reader = new FileReader();
-        reader.onload = function (e) {
-          const img = document.createElement('img');
-          img.src = e.target.result;
-          img.className = 'w-16 h-16 object-cover rounded border border-gray-200';
-          preview.appendChild(img);
-        }
-        reader.readAsDataURL(file);
-      });
-    }
-
-    function submitReview() {
-      alert("Đánh giá của bạn đã được gửi!");
-      closeModal();
-    }
-
-    // Thêm sản phẩm vào giỏ hàng
-    // Biến lưu timeout ID
-    var cartModalTimeout = null;
-    
-    // Hiển thị modal xác nhận thêm vào giỏ hàng
-    function showConfirmModal(maSp, soLuong) {
-        // Xóa modal cũ nếu có
-        if ($('#cartModal').length > 0) {
-            closeCartModal();
-        }
-        
-        // Clear timeout cũ nếu có
-        if (cartModalTimeout) {
-            clearTimeout(cartModalTimeout);
-            cartModalTimeout = null;
-        }
-        
-        var modalHtml = '<div class="modal-overlay" id="cartModal" data-ma-sp="' + maSp + '" data-so-luong="' + soLuong + '">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-header">' +
-            '<h3 class="modal-title">Thêm Vào Giỏ Hàng</h3>' +
-            '</div>' +
-            '<div class="modal-body">' +
-            '<p>Bạn có muốn thêm sản phẩm này vào giỏ hàng không?</p>' +
-            '</div>' +
-            '<div class="modal-footer">' +
-            '<button class="modal-btn modal-btn-cancel" id="cartModalCancelBtn">Hủy</button>' +
-            '<button class="modal-btn modal-btn-confirm" id="cartModalConfirmBtn">Xác Nhận</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-        
-        $('body').append(modalHtml);
-        
-        // Lưu giá trị vào data attribute của modal để dùng sau
-        $('#cartModal').data('maSp', maSp).data('soLuong', soLuong);
-        
-        // Dùng event delegation để gắn event listener
-        $(document).off('click', '#cartModalCancelBtn').on('click', '#cartModalCancelBtn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            closeCartModalWithCallback(false);
-        });
-        
-        $(document).off('click', '#cartModalConfirmBtn').on('click', '#cartModalConfirmBtn', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var savedMaSp = $('#cartModal').data('maSp');
-            var savedSoLuong = $('#cartModal').data('soLuong');
-            if (savedMaSp && savedSoLuong) {
-                confirmAddToCart(savedMaSp, savedSoLuong);
-            } else {
-                console.error('Không tìm thấy maSp hoặc soLuong');
-                showModal('Thông Báo', 'Có lỗi xảy ra. Vui lòng thử lại.');
+            if (newQty < 1) {
+                newQty = 1;
+            } else if (newQty > maxQty) {
+                newQty = maxQty;
             }
-        });
-        
-        // Gắn event listener cho overlay (click ngoài modal để đóng)
-        $('#cartModal').on('click', function(e) {
-            if ($(e.target).hasClass('modal-overlay')) {
-                closeCartModalWithCallback(false);
-            }
-        });
-        
-        setTimeout(function() {
-            $('#cartModal').addClass('show');
-        }, 10);
-    }
-    
-    // Hiển thị modal thông báo (sau khi thêm thành công)
-    function showModal(title, message) {
-        // Xóa modal cũ nếu có
-        if ($('#cartModal').length > 0) {
-            closeCartModal();
-        }
-        
-        // Clear timeout cũ nếu có
-        if (cartModalTimeout) {
-            clearTimeout(cartModalTimeout);
-            cartModalTimeout = null;
-        }
-        
-        var modalHtml = '<div class="modal-overlay" id="cartModal">' +
-            '<div class="modal-dialog">' +
-            '<div class="modal-header">' +
-            '<h3 class="modal-title">' + title + '</h3>' +
-            '</div>' +
-            '<div class="modal-body">' +
-            '<p>' + message + '</p>' +
-            '</div>' +
-            '<div class="modal-footer">' +
-            '<button class="modal-btn modal-btn-confirm" id="cartModalConfirmBtn">Xác Nhận</button>' +
-            '</div>' +
-            '</div>' +
-            '</div>';
-        
-        $('body').append(modalHtml);
-        
-        // Gắn event listener cho nút Xác Nhận
-        $('#cartModalConfirmBtn').on('click', function() {
-            closeCartModalWithCallback(false);
-        });
-        
-        // Gắn event listener cho overlay (click ngoài modal để đóng)
-        $('#cartModal').on('click', function(e) {
-            if ($(e.target).hasClass('modal-overlay')) {
-                closeCartModalWithCallback(false);
-            }
-        });
-        
-        setTimeout(function() {
-            $('#cartModal').addClass('show');
-        }, 10);
-        
-        // Tự động đóng sau 5 giây
-        cartModalTimeout = setTimeout(function() {
-            closeCartModalWithCallback(false);
-        }, 5000);
-    }
-    
-    function closeCartModalWithCallback(hasCallback) {
-        // Clear timeout nếu có
-        if (cartModalTimeout) {
-            clearTimeout(cartModalTimeout);
-            cartModalTimeout = null;
-        }
-        
-        var modal = $('#cartModal');
-        if (modal.length > 0) {
-            modal.removeClass('show');
-            setTimeout(function() {
-                modal.remove();
-            }, 300);
-        }
-    }
-    
-    function closeCartModal() {
-        closeCartModalWithCallback(false);
-    }
-    
-    // Cập nhật số lượng giỏ hàng
-    function updateCartCount(count) {
-        var cartBadge = $('#cart-count');
-        if (cartBadge.length > 0) {
-            cartBadge.text(count);
-            if (count > 0) {
-                cartBadge.show();
-            } else {
-                cartBadge.hide();
-            }
-        }
-        // Cập nhật badge trong header
-        if (window.updateCartBadge) {
-            window.updateCartBadge();
-        }
-    }
-    
-    // Load số lượng giỏ hàng từ server
-    function loadCartCount() {
-        $.ajax({
-            url: '@Url.Action("GetCartCount", "Cart")',
-            type: 'GET',
-            success: function(response) {
-                if (response && response.count !== undefined) {
-                    updateCartCount(response.count);
-                }
-            }
-        });
-    }
-    
-    // Load số lượng giỏ hàng khi trang load
-    $(document).ready(function() {
-        loadCartCount();
-    });
 
-    // Thêm sản phẩm vào giỏ hàng
-    function addToCart(maSp) {
-        // Lấy số lượng từ input
-        const qtyInput = document.getElementById('qty');
-        const soLuong = parseInt(qtyInput ? qtyInput.value : 1);
-        
-        // Không cho phép thêm sản phẩm vào giỏ hàng nếu số lượng = 0 hoặc < 0
-        if (soLuong <= 0) {
-            showModal('Thông Báo', 'Số lượng phải lớn hơn 0. Không thể thêm sản phẩm với số lượng bằng 0.');
-            return;
+            qtyInput.value = newQty;
         }
 
-        $.ajax({
-            url: '@Url.Action("AddToCart", "Cart")',
-            type: 'POST',
-            data: {
-                maSp: maSp,
-                soLuong: soLuong
-            },
-            success: function (response) {
-                if (response && response.success) {
-                    // Cập nhật số lượng giỏ hàng
-                    if (response.cartCount !== undefined) {
-                        updateCartCount(response.cartCount);
+        // JS cho Modal (Giữ nguyên)
+        function openModal() {
+            document.getElementById('reviewModal').classList.remove('hidden');
+        }
+
+        function closeModal() {
+            document.getElementById('reviewModal').classList.add('hidden');
+        }
+
+        // Logic cho Đánh giá sao trong Modal (Giữ nguyên)
+        document.getElementById('starRating').addEventListener('click', function(e) {
+            if (e.target.tagName === 'I') {
+                const rating = parseInt(e.target.dataset.value);
+                document.getElementById('ratingValue').value = rating;
+
+                this.querySelectorAll('i').forEach(star => {
+                    if (parseInt(star.dataset.value) <= rating) {
+                        star.classList.remove('text-gray-300');
+                        star.classList.add('text-yellow-400');
                     } else {
-                        loadCartCount();
+                        star.classList.remove('text-yellow-400');
+                        star.classList.add('text-gray-300');
                     }
-                    showModal('Thêm Vào Giỏ Hàng', response.message || 'Đã thêm sản phẩm vào giỏ hàng.');
-                } else {
-                    showModal('Thông Báo', (response && response.message) || 'Không thêm được sản phẩm vào giỏ hàng.');
-                }
-            },
-            error: function () {
-                showModal('Thông Báo', 'Có lỗi xảy ra khi thêm vào giỏ hàng.');
+                });
             }
         });
-    }
 
-</script>
+        // Logic xử lý upload ảnh (Giữ nguyên)
+        function handleImageUpload(input) {
+            const files = input.files;
+            const preview = document.getElementById('imagePreview');
+            const error = document.getElementById('uploadError');
+
+            if (files.length > 3) {
+                error.classList.remove('hidden');
+                input.value = '';
+                preview.innerHTML = '';
+                return;
+            }
+            error.classList.add('hidden');
+            preview.innerHTML = '';
+
+            Array.from(files).forEach(file => {
+                const reader = new FileReader();
+                reader.onload = function (e) {
+                    const img = document.createElement('img');
+                    img.src = e.target.result;
+                    img.className = 'w-16 h-16 object-cover rounded border border-gray-200';
+                    preview.appendChild(img);
+                }
+                reader.readAsDataURL(file);
+            });
+        }
+        // Hàm mở Lightbox
+        function openLightbox(imageUrl) {
+            const lightbox = document.getElementById('imageLightbox');
+            const lightboxImage = document.getElementById('lightboxImage');
+
+            lightboxImage.src = imageUrl; // Đặt nguồn ảnh cho modal
+            lightbox.classList.remove('hidden'); // Hiển thị modal
+            document.body.style.overflow = 'hidden'; // Ngăn cuộn nền
+        }
+
+        // Hàm đóng Lightbox
+        function closeLightbox() {
+            const lightbox = document.getElementById('imageLightbox');
+            lightbox.classList.add('hidden'); // Ẩn modal
+            document.body.style.overflow = ''; // Cho phép cuộn lại
+        }
+    </script>
+}
+
+@functions {
+    // Hàm Helper C# để chuyển đổi số sao thành chuỗi ký tự sao (★)
+    public string RenderStars(int? soSao)
+    {
+        if (soSao == null) return string.Empty;
+
+        int stars = Math.Min(5, Math.Max(0, soSao.Value));
+        return new string('★', stars);
+    }
+}
+
 <style>
     .grid-cols-3 {
         font-weight: 900;
     }
-    
-    /* Modal Notification */
-    .modal-overlay {
-        position: fixed;
-        top: 0;
-        left: 0;
-        width: 100%;
-        height: 100%;
-        background: rgba(0, 0, 0, 0.5);
-        z-index: 10000;
-        display: none;
-        justify-content: center;
-        align-items: center;
+</style>
+<style>
+
+    .rv-wrapper {
+        font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     }
-    .modal-overlay.show {
-        display: flex;
-    }
-    .modal-dialog {
-        background: white;
-        border-radius: 8px;
-        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
-        max-width: 400px;
-        width: 90%;
-        overflow: hidden;
-    }
-    .modal-header {
-        padding: 15px 20px;
-        border-bottom: 1px solid #e0e0e0;
-    }
-    .modal-title {
-        font-size: 18px;
-        font-weight: bold;
+
+    .rv-title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 30px;
+        text-transform: uppercase;
         color: #333;
-        margin: 0;
     }
-    .modal-body {
-        padding: 20px;
-        color: #666;
-        font-size: 14px;
+
+    .rv-summary {
+        padding-bottom: 30px;
+        border-bottom: 1px solid #e5e5e5;
+        margin-bottom: 30px;
     }
-    .modal-footer {
-        padding: 15px 20px;
-        border-top: 1px solid #e0e0e0;
+
+    .rv-row {
         display: flex;
-        justify-content: flex-end;
+        align-items: center;
+        gap: 20px;
+        flex-wrap: wrap;
+    }
+
+    .rv-item-stars {
+        color: #ee4d2d;
+        font-size: 16px;
+        letter-spacing: 1px;
+        margin-bottom: 5px;
+    }
+</style>
+
+<script>
+    document.querySelectorAll('.rv-filter-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            document.querySelectorAll('.rv-filter-btn').forEach(b => b.classList.remove('rv-active'));
+            this.classList.add('rv-active');
+        });
+    });
+
+    const rvHelpfulBtn = document.querySelector('.rv-helpful-btn');
+    if (rvHelpfulBtn) {
+        rvHelpfulBtn.addEventListener('click', function() {
+            this.style.color = '#ee4d2d';
+            this.innerHTML = '👍 Đã hữu ích';
+        });
+    }
+    function openMainImage() {
+        const mainImage = document.getElementById('mainImage');
+        const currentSrc = mainImage.src;
+        window.open(currentSrc, '_blank');
+    }
+
+    function changeImage(thumbnailElement, newImageSrc) {
+        // 1. Cập nhật ảnh chính
+        const mainImage = document.getElementById('mainImage');
+        mainImage.src = newImageSrc;
+        mainImage.alt = thumbnailElement.querySelector('img').alt || "Ảnh sản phẩm";
+
+        // 2. Xóa viền/lớp 'active-thumb' khỏi tất cả các thumbnails
+        const thumbnails = document.querySelectorAll('.grid-cols-5 > div');
+        thumbnails.forEach(thumb => {
+            thumb.classList.remove('active-thumb');
+            // Cập nhật lại viền mặc định/hover
+            thumb.classList.remove('border-fahasa-red');
+            thumb.classList.add('border-transparent', 'hover:border-gray-300');
+        });
+
+        // 3. Thêm viền/lớp 'active-thumb' cho thumbnail được click
+        thumbnailElement.classList.add('active-thumb');
+        // Thêm viền màu đỏ
+        thumbnailElement.classList.remove('border-transparent', 'hover:border-gray-300');
+        thumbnailElement.classList.add('border-fahasa-red');
+    }
+
+    // Khởi tạo: Đảm bảo chỉ 1 thumbnail có viền đỏ khi tải trang
+    document.addEventListener('DOMContentLoaded', () => {
+        const activeThumb = document.querySelector('.active-thumb');
+        if (activeThumb) {
+            // Áp dụng lớp viền đỏ cho thumbnail được đánh dấu là active ngay từ đầu
+            activeThumb.classList.remove('border-transparent', 'hover:border-gray-300');
+            activeThumb.classList.add('border-fahasa-red');
+        }
+
+        // Cập nhật ảnh chính ban đầu dựa trên thumbnail active (để đồng bộ)
+        if (activeThumb && activeThumb.querySelector('img')) {
+             const initialMainImage = document.getElementById('mainImage');
+             const initialSrc = activeThumb.querySelector('img').src;
+             initialMainImage.src = initialSrc;
+             initialMainImage.alt = activeThumb.querySelector('img').alt || initialMainImage.alt;
+        }
+    });
+     document.addEventListener("DOMContentLoaded", function () {
+            const buttons = document.querySelectorAll(".rv-filter-btn");
+            const items = document.querySelectorAll(".rv-item");
+
+            buttons.forEach(btn => {
+                btn.addEventListener("click", function () {
+                    const star = this.getAttribute("data-star");
+
+                    // Đổi nút active
+                    buttons.forEach(b => b.classList.remove("rv-active"));
+                    this.classList.add("rv-active");
+
+                    // Lọc bình luận theo số sao
+                    items.forEach(item => {
+                        const itemStar = item.getAttribute("data-star");
+
+                        if (star === "0" || itemStar === star) {
+                            item.style.display = "block";   // hoặc "flex" nếu bạn style dạng flex
+                        } else {
+                            item.style.display = "none";
+                        }
+                    });
+                });
+            });
+        });
+</script>
+<style>
+    .rv-stars {
+        color: #facc15;
+        font-size: 2px;
+    }
+
+    .rv-summary {
+        padding: 20px;
+        border-radius: 10px;
+        background: #fff;
+        border: 1px solid #eee;
+        margin-bottom: 20px;
+    }
+
+    .rv-row {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        flex-wrap: wrap;
+        gap: 20px;
+    }
+
+    /* Box điểm */
+    .rv-score-box {
+        text-align: center;
+        min-width: 180px;
+    }
+
+    .rv-score-number {
+        font-size: 40px;
+        font-weight: bold;
+        color: #C92127;
+        line-height: 1;
+    }
+
+        .rv-score-number small {
+            font-size: 18px;
+            color: #555;
+            font-weight: 500;
+        }
+
+    .rv-stars {
+        font-size: 22px;
+        color: #ffc107;
+        margin: 5px 0;
+    }
+
+    .rv-total-reviews {
+        font-size: 14px;
+        color: #666;
+    }
+
+    /* Bộ lọc */
+    .rv-filters {
+        display: flex;
+        flex-wrap: wrap;
         gap: 10px;
     }
-    .modal-btn {
-        padding: 8px 20px;
-        border-radius: 4px;
-        border: none;
-        cursor: pointer;
-        font-size: 14px;
-        font-weight: 500;
-        transition: all 0.3s;
-    }
-    .modal-btn-cancel {
-        background: white;
+
+    .rv-filter-btn {
+        padding: 7px 14px;
         border: 1px solid #ddd;
-        color: #333;
+        background: #fafafa;
+        font-size: 14px;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: 0.2s;
     }
-    .modal-btn-cancel:hover {
-        background: #f5f5f5;
+
+        .rv-filter-btn:hover {
+            background: #eee;
+        }
+
+        .rv-filter-btn.rv-active {
+            background: #C92127;
+            color: #fff;
+            border-color: #C92127;
+        }
+
+    .rv-filters {
+        display: flex;
+        gap: 8px;
     }
-    .modal-btn-confirm {
-        background: #ee4d2d;
-        color: white;
+
+    .rv-filter-btn {
+        padding: 6px 14px;
+        background: #fff;
+        border: 1px solid #ddd;
+        border-radius: 20px;
+        cursor: pointer;
+        transition: 0.2s;
     }
-    .modal-btn-confirm:hover {
-        background: #d6301e;
-    }
+
+        .rv-filter-btn:hover {
+            background: #eee;
+        }
+
+        .rv-filter-btn.rv-active {
+            background: #C92127;
+            color: #fff;
+            border-color: #C92127;
+        }
+
 </style>

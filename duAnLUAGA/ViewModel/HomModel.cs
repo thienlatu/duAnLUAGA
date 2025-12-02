@@ -9,7 +9,15 @@ namespace duAnLUAGA.ViewModel
 
         public IEnumerable<duAnLUAGA.ViewModel.DanhMucVM> DanhSachDanhMuc { get; set; }
 
-        public IEnumerable<BinhluanVM> DanhSachBinhLuan { get; set; }
+        public IEnumerable<Danhgium> DanhSachBinhLuan { get; set; }
         public IEnumerable<AnhVM> DanhSachAnh { get; set; }
+
+        public Sanpham SanPhamChiTiet { get; set; }
+
+        public IEnumerable<Hinhanh> DanhSachHinhAnh { get; set; }
+
+        public IEnumerable<Sanpham> SanPhamHotNhat { get; set; }
+        public IEnumerable<Sanpham> SanPhamDeXuatNgauNhien { get; set; }
+        public decimal GiaSauGiam { get; set; }
     }
 }

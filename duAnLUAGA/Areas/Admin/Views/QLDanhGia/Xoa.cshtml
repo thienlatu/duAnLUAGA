@@ -1,0 +1,46 @@
+﻿@model duAnLUAGA.Domain.Entitie.Danhgium
+
+@{
+    ViewData["Title"] = "Xóa đánh giá";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mt-4">
+    <div class="card" style="background:#111827;color:white;">
+        <div class="card-header">
+            <h3>Bạn có chắc muốn xóa đánh giá này?</h3>
+        </div>
+        <div class="card-body">
+
+            <dl class="row">
+                <dt class="col-sm-3">Khách hàng</dt>
+                <dd class="col-sm-9">@Model.MaKhNavigation?.HoVaTen</dd>
+
+                <dt class="col-sm-3">Sản phẩm</dt>
+                <dd class="col-sm-9">@Model.MaSpNavigation?.TenSanPham</dd>
+
+                <dt class="col-sm-3">Nội dung</dt>
+                <dd class="col-sm-9">@Model.NoiDung</dd>
+
+                <dt class="col-sm-3">Số sao</dt>
+                <dd class="col-sm-9">@Model.SoSao</dd>
+
+                <dt class="col-sm-3">Ngày đánh giá</dt>
+                <dd class="col-sm-9">@Model.NgayDanhGia.ToString("dd/MM/yyyy HH:mm")</dd>
+            </dl>
+
+            <form asp-area="Admin"
+                  asp-controller="QLDanhGia"
+                  asp-action="Xoa"
+                  method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="Id" />
+
+                <div class="text-end">
+                    <a asp-action="Index" class="btn btn-secondary">Hủy</a>
+                    <button type="submit" class="btn btn-danger">Xóa</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>

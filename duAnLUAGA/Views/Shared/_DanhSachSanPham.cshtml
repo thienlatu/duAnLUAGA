@@ -1,0 +1,790 @@
+﻿@{
+    var list = ViewBag.DanhSachSanPhamHienThi as IEnumerable<dynamic>;
+}
+
+@{
+    ViewData["Title"] = "Nhà Sách Online";
+}
+
+<style>
+    /* === GIỮ NGUYÊN CSS CŨ CỦA BẠN === */
+    * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+    }
+
+    body {
+        font-family: 'Roboto', sans-serif;
+        background-color: #f3f4f6;
+        color: #444;
+        font-size: 25px;
+    }
+
+    a {
+        text-decoration: none;
+        color: inherit;
+    }
+
+    ul {
+        list-style: none;
+    }
+
+    img {
+        max-width: 100%;
+        display: block;
+    }
+
+    :root {
+        --primary-red: #C92127;
+        --text-dark: #212529;
+        --text-gray: #6c757d;
+        --bg-white: #ffffff;
+        --border-color: #e0e0e0;
+    }
+
+    /* ... (Copy toàn bộ phần CSS Style từ file cũ vào đây để đảm bảo giao diện giống hệt) ... */
+    /* Để tiết kiệm không gian tôi rút gọn phần CSS, bạn hãy paste lại đoạn CSS từ file gốc vào đây nhé */
+
+    .container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px 10px;
+        display: flex;
+        gap: 20px;
+        align-items: flex-start;
+    }
+
+    .sidebar {
+        width: 270px;
+        flex-shrink: 0;
+        background: var(--bg-white);
+        border-radius: 8px;
+        padding: 15px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .filter-header {
+        font-weight: bold;
+        font-size: 16px;
+        margin-bottom: 15px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        text-transform: uppercase;
+    }
+
+    .filter-group {
+        margin-bottom: 20px;
+        border-bottom: 1px solid #eee;
+        padding-bottom: 20px;
+    }
+
+        .filter-group:last-child {
+            border-bottom: none;
+        }
+
+    .filter-title {
+        font-weight: 700;
+        font-size: 14px;
+        margin-bottom: 12px;
+        display: flex;
+        justify-content: space-between;
+        cursor: pointer;
+    }
+
+    .filter-list li {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        cursor: pointer;
+    }
+
+    .filter-list input[type="checkbox"] {
+        width: 18px;
+        height: 18px;
+        accent-color: var(--primary-red);
+        cursor: pointer;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    .filter-list label {
+        cursor: pointer;
+        font-size: 14px;
+        color: #444;
+        flex: 1;
+    }
+
+    .count {
+        font-size: 12px;
+        color: #999;
+    }
+
+    .price-inputs {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+        margin-top: 10px;
+        background: #f8f9fa;
+        padding: 8px;
+        border-radius: 4px;
+    }
+
+        .price-inputs input {
+            width: 100%;
+            padding: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            text-align: center;
+            font-size: 13px;
+            outline: none;
+            color: var(--primary-red);
+            font-weight: 500;
+        }
+
+    .price-slider-bar {
+        height: 4px;
+        background: #ddd;
+        margin-top: 15px;
+        position: relative;
+        border-radius: 2px;
+    }
+
+    .price-slider-active {
+        position: absolute;
+        left: 0;
+        right: 50%;
+        height: 100%;
+        background: var(--primary-red);
+    }
+
+    .slider-knob {
+        width: 14px;
+        height: 14px;
+        background: var(--primary-red);
+        border-radius: 50%;
+        position: absolute;
+        top: -5px;
+        cursor: pointer;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+    }
+
+        .slider-knob.left {
+            left: 0;
+        }
+
+        .slider-knob.right {
+            right: 50%;
+        }
+
+    .main-content {
+        flex: 1;
+    }
+
+    .sort-bar {
+        background: var(--bg-white);
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 14px;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+    }
+
+    .result-text b {
+        color: var(--text-dark);
+    }
+
+    .sort-options {
+        display: flex;
+        gap: 15px;
+        align-items: center;
+    }
+
+    .sort-item {
+        cursor: pointer;
+        color: #666;
+        position: relative;
+        padding: 5px 0;
+    }
+
+        .sort-item:hover, .sort-item.active {
+            color: var(--primary-red);
+            font-weight: 500;
+            border-bottom: 2px solid var(--primary-red);
+        }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+    }
+
+    .product-card {
+        background: var(--bg-white);
+        border-radius: 8px;
+        padding: 12px;
+        position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid transparent;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+        .product-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            z-index: 10;
+            border-color: #eee;
+        }
+
+    .badge-discount {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: var(--primary-red);
+        color: white;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-bottom-right-radius: 8px;
+        font-weight: bold;
+        z-index: 2;
+    }
+
+    .badge-installment {
+        position: absolute;
+        top: 10px;
+        right: 10px;
+        background: #f1f1f1;
+        color: #333;
+        font-size: 10px;
+        padding: 2px 6px;
+        border-radius: 4px;
+        z-index: 2;
+    }
+
+    .card-img-wrapper {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 10px;
+        padding: 10px;
+    }
+
+    .card-img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s;
+        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+    }
+
+    .product-card:hover .card-img {
+        transform: scale(1.05);
+    }
+
+    .card-info {
+        flex: 1;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .card-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: #333;
+        margin-bottom: 5px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 40px;
+        transition: color 0.2s;
+    }
+
+    .product-card:hover .card-name {
+        color: var(--primary-red);
+    }
+
+    .card-author {
+        font-size: 12px;
+        color: #777;
+        margin-bottom: 8px;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .card-price-group {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .price-current {
+        color: var(--primary-red);
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .price-old {
+        font-size: 12px;
+        color: #999;
+        text-decoration: line-through;
+    }
+
+    .promo-box {
+        background: #f8f9fa;
+        border: 1px solid #eee;
+        border-radius: 4px;
+        padding: 5px;
+        font-size: 11px;
+        color: #555;
+        margin-bottom: 10px;
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+        .promo-box i {
+            color: var(--primary-red);
+        }
+
+    .card-footer {
+        margin-top: auto;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding-top: 8px;
+        border-top: 1px solid #f5f5f5;
+    }
+
+    .rating {
+        font-size: 11px;
+        color: #ffc107;
+    }
+
+    .sold-count {
+        font-size: 11px;
+        color: #888;
+    }
+
+    .btn-cart {
+        width: 100%;
+        background: white;
+        border: 1px solid var(--primary-red);
+        color: var(--primary-red);
+        padding: 6px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+        .btn-cart:hover {
+            background: var(--primary-red);
+            color: white;
+        }
+
+    .pagination {
+        margin-top: 30px;
+        display: flex;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .page-btn {
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        background: white;
+        cursor: pointer;
+        color: #555;
+    }
+
+        .page-btn.active {
+            background: var(--primary-red);
+            color: white;
+            border-color: var(--primary-red);
+        }
+
+    @@media (max-width: 992px) {
+        .sidebar {
+            display: none;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .sort-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .sort-options {
+            flex-wrap: wrap;
+            width: 100%;
+            justify-content: space-between;
+        }
+    }
+</style>
+<div class="container">
+    <aside class="sidebar">
+        <div class="filter-header">
+            <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm
+        </div>
+        <div class="filter-group mb-4">
+            <div class="filter-title font-bold mb-2 flex justify-between items-center">
+                Mức giá <i class="fa-solid fa-chevron-up"></i>
+            </div>
+
+            <p style="margin-top: 10px; font-size: 12px; color: #666;">Nhập khoảng giá:</p>
+
+            <div class="price-inputs flex items-center gap-2 mb-4">
+                <input type="number" id="input-min" class="border rounded px-2 py-1 w-full text-sm" placeholder="Thấp nhất">
+                <span>-</span>
+                <input type="number" id="input-max" class="border rounded px-2 py-1 w-full text-sm" placeholder="Cao nhất">
+            </div>
+
+            <div id="slider-price" class="mb-4 mx-2"></div>
+
+            <button onclick="applyFilter()"
+                    class="w-full bg-[#C92127] text-white py-1.5 rounded text-sm font-bold hover:bg-red-700 transition">
+                Áp dụng
+            </button>
+        </div>
+
+
+
+        <!-- Danh mục (Đã thay thế cho Nhà xuất bản) -->
+        <div class="filter-group">
+            <div class="filter-title">
+                Danh mục <i class="fa-solid fa-chevron-up"></i>
+            </div>
+
+            <ul class="filter-list">
+                @if (ViewBag.DanhSachDanhMuc != null)
+                {
+                    foreach (var item in ViewBag.DanhSachDanhMuc)
+                    {
+                        bool isChecked = (ViewData["CurrentDm"] as int?) == item.MaDm;
+
+                        <li>
+                            <input type="checkbox"
+                                   id="dm-@item.MaDm"
+                                   value="@item.MaDm"
+                                   @(isChecked ? "checked" : "")
+                                   onchange="filterByCategory(this)">
+
+                            <label for="dm-@item.MaDm" style="cursor: pointer;">@item.TenDanhMuc</label>
+
+                            <span class="count">(@item.Sanphams.Count)</span>
+                        </li>
+                    }
+                }
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="sort-bar">
+            <div class="sort-options">
+                @{
+                    string currentSort = ViewData["CurrentSort"]?.ToString();
+                }
+
+                <span class="sort-item @(currentSort == "GiaTang" ? "active" : "")"
+                      onclick="sortProducts('GiaTang')">
+                    Giá thấp đến cao
+                </span>
+
+                <span class="sort-item @(currentSort == "GiaGiam" ? "active" : "")"
+                      onclick="sortProducts('GiaGiam')">
+                    Giá cao đến thấp
+                </span>
+
+                <span class="sort-item @(string.IsNullOrEmpty(currentSort) ? "active" : "")"
+                      onclick="sortProducts('')">
+                    Mới nhất
+                </span>
+            </div>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            @if (ViewBag.DanhSachSanPhamHienThi != null)
+            {
+                @foreach (var sanpham in ViewBag.DanhSachSanPhamHienThi)
+                {
+                    bool coGiamGia = sanpham.PhanTramGiam > 0;
+
+                    string hinhAnh = !string.IsNullOrEmpty(sanpham.HinhDaiDien)
+                    ? sanpham.HinhDaiDien
+                    : "https://placehold.co/300x450/f0f0f0/333?text=No+Image";
+
+                    <div class="product-card">
+
+                        <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@sanpham.MaSp" class="card-link">
+
+                            <div class="card-img-wrapper">
+                                <img src="~/image/@hinhAnh" alt="@sanpham.TenSanPham" class="card-img">
+
+                                @if (coGiamGia)
+                                {
+                                    <div class="badge-discount">
+                                        -@sanpham.PhanTramGiam%
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="card-info">
+                                <h3 class="card-name" title="@sanpham.TenSanPham">@sanpham.TenSanPham</h3>
+
+                                <div class="card-author">Tác giả: @sanpham.TacGia</div>
+
+                                <div class="card-price-group">
+                                    @if (coGiamGia)
+                                    {
+                                        <div class="price-current">
+                                            @sanpham.GiaSauGiam.ToString("#,##0")đ
+                                        </div>
+                                        <div class="price-old">
+                                            @sanpham.Gia.ToString("#,##0")đ
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="price-current">
+                                            @sanpham.Gia.ToString("#,##0")đ
+                                        </div>
+                                    }
+                                </div>
+
+                                <div class="card-footer">
+                                    <div class="rating">
+                                        <i class="fa-solid fa-star"></i> 5
+                                    </div>  
+                                </div>
+
+                            </div>
+
+                        </a>
+
+                        @* Nút giỏ hàng để dưới, không nằm trong <a> *@
+                        @if (sanpham.SoLuong > 0)
+                        {
+                            <button class="btn-cart">
+                                <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
+                            </button>
+                        }
+                        else
+                        {
+                            <span class="text-danger">Hết hàng</span>
+                        }
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Không tìm thấy sản phẩm nào.</p>
+            }
+        </div>
+
+        <div class="random-btn-more-container">
+            <a href="@Url.Action("Index", "SanPham")" class="random-btn-more">
+                Xem thêm sản phẩm
+                <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </main>
+</div>
+<script>
+    function filterByCategory(checkbox) {
+        // URL base do server sinh ra, đảm bảo đúng route
+        var baseUrl = '@Url.Action("Index", "Home")';
+
+        if (checkbox.checked) {
+            window.location.href = baseUrl + '?madm=' + checkbox.value;
+        } else {
+            window.location.href = baseUrl; // quay lại trang chủ không lọc
+        }
+    }
+</script>
+<style>
+    /* 1. Tùy chỉnh thanh trượt (đường kẻ ngang) */
+    .noUi-target {
+        height: 6px !important; /* Độ dày thanh ngang */
+        border: none !important; /* Bỏ viền mặc định */
+        background: #E5E7EB !important; /* Màu nền xám nhạt */
+        box-shadow: none !important; /* Bỏ bóng đổ */
+        margin-top: 10px; /* Khoảng cách so với ô nhập liệu */
+    }
+
+    /* 2. Màu của đoạn đã chọn (Màu đỏ Fahasa) */
+    .noUi-connect {
+        background: #C92127 !important;
+    }
+
+    /* 3. Tùy chỉnh nút kéo (Hình tròn) */
+    .noUi-horizontal .noUi-handle {
+        width: 20px !important; /* Chiều rộng cố định */
+        height: 20px !important; /* Chiều cao cố định (bằng chiều rộng để tròn) */
+        right: -10px !important; /* Căn giữa tâm nút (bằng 1/2 chiều rộng) */
+        top: -7px !important; /* Căn chỉnh chiều dọc cho cân đối với thanh ngang */
+
+        background: #C92127 !important; /* Nền đỏ */
+        border: 2px solid white !important; /* Viền trắng bao quanh */
+        border-radius: 50% !important; /* Bo tròn 100% */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important; /* Bóng đổ nhẹ cho đẹp */
+        cursor: pointer;
+    }
+
+    /* 4. Ẩn 2 vạch kẻ sọc mặc định xấu xí trên nút kéo */
+    .noUi-handle:before, .noUi-handle:after {
+        display: none !important;
+    }
+
+    .hhh {
+        color: var(--primary-red);
+        font-size: 18px;
+        font-weight: 700;
+    }
+
+    .random-btn-more-container {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        margin-top: 40px;
+        width: 100%;
+    }
+
+    .random-btn-more {
+        display: inline-flex;
+        align-items: center;
+        gap: 10px;
+        padding: 15px 40px;
+        background: #C92127;
+        color: white;
+        font-size: 16px;
+        font-weight: 700;
+        text-decoration: none;
+        border-radius: 50px;
+        box-shadow: 0 4px 15px rgba(201, 33, 39, 0.3);
+        transition: all 0.3s ease;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+        .random-btn-more:hover {
+            background: #a01a1f;
+            color: white;
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(201, 33, 39, 0.4);
+        }
+
+        .random-btn-more i {
+            transition: transform 0.3s ease;
+        }
+
+        .random-btn-more:hover i {
+            transform: translateX(5px);
+        }
+
+    /* Message rỗng */
+    .random-empty-message {
+        grid-column: 1 / -1;
+        text-align: center;
+        color: #999;
+        font-size: 16px;
+        padding: 40px;
+    }
+</style>
+<script>
+        document.addEventListener("DOMContentLoaded", function () {
+        var slider = document.getElementById('slider-price');
+        var inputMin = document.getElementById('input-min');
+        var inputMax = document.getElementById('input-max');
+
+        // Lấy giá hiện tại từ ViewBag (controller gửi về)
+        var currentMin = @((ViewBag.MinPrice ?? 0));
+        var currentMax = @((ViewBag.MaxPrice ?? 1000000));
+
+        noUiSlider.create(slider, {
+            start: [currentMin, currentMax],
+            connect: true,
+            range: {
+                'min': 0,
+                'max': 1000000
+            },
+            step: 10000,
+            format: {
+                to: v => Math.round(v),
+                from: v => Number(v)
+            }
+        });
+
+        slider.noUiSlider.on('update', function (values, handle) {
+            if (handle === 0) inputMin.value = values[0];
+            else inputMax.value = values[1];
+        });
+
+        inputMin.addEventListener('change', function () {
+            slider.noUiSlider.set([this.value, null]);
+        });
+
+        inputMax.addEventListener('change', function () {
+            slider.noUiSlider.set([null, this.value]);
+        });
+    });
+
+    function applyFilter() {
+        var min = document.getElementById('input-min').value;
+        var max = document.getElementById('input-max').value;
+
+        var urlParams = new URLSearchParams(window.location.search);
+        urlParams.set('min', min);
+        urlParams.set('max', max);
+
+        window.location.search = urlParams.toString();
+    }
+
+
+
+
+    function sortProducts(criteria) {
+        var urlParams = new URLSearchParams(window.location.search);
+
+        if (criteria) {
+            urlParams.set('sortOrder', criteria);
+        } else {
+            urlParams.delete('sortOrder');
+        }
+        window.location.search = urlParams.toString();
+    }
+</script>

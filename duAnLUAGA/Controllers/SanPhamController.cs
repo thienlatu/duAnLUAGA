@@ -4,6 +4,7 @@ using duAnLUAGA.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
+using System.Linq;
 
 namespace duAnLUAGA.Controllers
 {
@@ -14,9 +15,22 @@ namespace duAnLUAGA.Controllers
         {
             _context = context;
         }
-        public async Task<IActionResult> Index(string searchString, int? madm, decimal? min, decimal? max)
+
+        private static decimal GiamGia(decimal giaBanGoc, int? phanTramGiam)
+        {
+            if (!phanTramGiam.HasValue || phanTramGiam.Value <= 0 || phanTramGiam.Value >= 100)
+            {
+                return giaBanGoc;
+            }
+            decimal tylegiam = (decimal)phanTramGiam.Value / 100m;
+            return giaBanGoc * (1m - tylegiam);
+        }
+        public async Task<IActionResult> Index(string searchString, int? madm, decimal? min, decimal? max, string sortOrder)
         {
             var sanPhamsQuery = _context.Sanphams.AsQueryable();
+            sanPhamsQuery = sanPhamsQuery.Where(s => s.TrangThai == "Còn hàng");
+
+
             if (!string.IsNullOrEmpty(searchString))
             {
                 sanPhamsQuery = sanPhamsQuery.Where(s => s.TenSanPham.Contains(searchString));
@@ -34,7 +48,38 @@ namespace duAnLUAGA.Controllers
             {
                 sanPhamsQuery = sanPhamsQuery.Where(s => s.Gia <= max.Value);
             }
-            var sanPhams = await sanPhamsQuery.ToListAsync();
+
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["PriceSortParm"] = sortOrder == "GiaTang" ? "GiaGiam" : "GiaTang";
+            switch (sortOrder)
+            {
+                case "GiaGiam": // Giá giảm dần (Cao nhất -> Thấp nhất)
+                    sanPhamsQuery = sanPhamsQuery.OrderByDescending(s => s.Gia);
+                    break;
+                case "GiaTang": // Giá tăng dần (Thấp nhất -> Cao nhất)
+                    sanPhamsQuery = sanPhamsQuery.OrderBy(s => s.Gia);
+                    break;
+                default: // Mặc định sắp xếp theo Mã Sản phẩm (hoặc giá)
+                    sanPhamsQuery = sanPhamsQuery.OrderByDescending(s => s.MaSp);
+                    break;
+            }
+
+            var sanPhamsViewModelQuery = sanPhamsQuery
+                .Select(s => new
+                {
+                    s.MaSp,
+                    s.TenSanPham,
+                    s.HinhDaiDien,
+                    s.Gia,
+                    s.PhanTramGiam,
+                    s.TacGia,
+                    s.MaDm,
+                    s.SoLuong,
+                    GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam)
+                });
+            var sanPhamsViewModel = await sanPhamsViewModelQuery.ToListAsync();
+            ViewBag.DanhSachSanPhamHienThi = sanPhamsViewModel;
+            // Phần Danh Mục giữ nguyên
             var danhMucs = await _context.Danhmucs
                 .Select(d => new duAnLUAGA.ViewModel.DanhMucVM
                 {
@@ -45,9 +90,9 @@ namespace duAnLUAGA.Controllers
 
             var viewModel = new HomModel
             {
-                DanhSachSanPham = sanPhams,
                 DanhSachDanhMuc = danhMucs
             };
+
             ViewData["CurrentDm"] = madm;
             ViewData["CurrentSearch"] = searchString;
             ViewBag.MinPrice = min;

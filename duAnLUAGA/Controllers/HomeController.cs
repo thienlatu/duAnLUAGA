@@ -24,8 +24,107 @@ namespace duAnLUAGA.Controllers
             _logger = logger;
             _context = context;
         }
-        public IActionResult Index()
+        private static decimal GiamGia(decimal giaBanGoc, int? phanTramGiam)
         {
+            if (!phanTramGiam.HasValue || phanTramGiam.Value <= 0 || phanTramGiam.Value >= 100)
+            {
+                return giaBanGoc;
+            }
+            decimal tylegiam = (decimal)phanTramGiam.Value / 100m;
+            return giaBanGoc * (1m - tylegiam);
+        }
+
+        public async Task<IActionResult> Index(int? madm, decimal? min, decimal? max, string sortOrder)
+        {
+            // 1. Query cơ bản
+            var sanPhamsQuery = _context.Sanphams
+                .Where(s => s.TrangThai == "Còn hàng");
+
+            // ========== LỌC THEO DANH MỤC ==========
+            if (madm.HasValue)
+            {
+                sanPhamsQuery = sanPhamsQuery.Where(s => s.MaDm == madm.Value);
+                ViewData["CurrentDm"] = madm.Value;   // để checkbox biết cái nào đang được chọn
+            }
+            else
+            {
+                ViewData["CurrentDm"] = null;
+            }
+
+            // ========== LỌC THEO GIÁ (min, max) ==========
+            if (min.HasValue)
+            {
+                sanPhamsQuery = sanPhamsQuery.Where(s => s.Gia >= min.Value);
+            }
+            if (max.HasValue)
+            {
+                sanPhamsQuery = sanPhamsQuery.Where(s => s.Gia <= max.Value);
+            }
+
+            // GIỮ LẠI GIÁ TRỊ TRONG VIEW
+            ViewBag.MinPrice = min;
+            ViewBag.MaxPrice = max;
+
+            // ========== SẮP XẾP ==========
+            ViewData["CurrentSort"] = sortOrder;
+            ViewData["PriceSortParm"] = sortOrder == "GiaTang" ? "GiaGiam" : "GiaTang";
+
+            switch (sortOrder)
+            {
+                case "GiaGiam": // Giá giảm dần (cao -> thấp)
+                    sanPhamsQuery = sanPhamsQuery.OrderByDescending(s => s.Gia);
+                    break;
+
+                case "GiaTang": // Giá tăng dần (thấp -> cao)
+                    sanPhamsQuery = sanPhamsQuery.OrderBy(s => s.Gia);
+                    break;
+
+                default: // mặc định theo mã sp
+                    sanPhamsQuery = sanPhamsQuery.OrderBy(s => s.MaSp);
+                    break;
+            }
+
+            sanPhamsQuery = sanPhamsQuery.Take(8);
+            var sanPhamsViewModelQuery = sanPhamsQuery
+                .Select(s => new
+                {
+                    s.MaSp,
+                    s.TenSanPham,
+                    s.HinhDaiDien,
+                    s.Gia,
+                    s.PhanTramGiam,
+                    s.TacGia,
+                    s.MaDm,
+                    s.SoLuong,
+                    GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam)
+                });
+
+            var sanPhamsViewModel = await sanPhamsViewModelQuery.ToListAsync();
+            var danhMucs = await _context.Danhmucs
+                            .Include(d => d.Sanphams)
+                            .ToListAsync();
+
+            var sanPhamNgauNhien = await _context.Sanphams
+                .Where(s => s.TrangThai.ToLower().Equals("còn hàng"))
+                .OrderBy(s => Guid.NewGuid())
+                .Take(4)
+                .ToListAsync();
+
+            var sanPhamNgauNhientViewModel = sanPhamNgauNhien.Select(s => new
+            {
+                s.MaSp,
+                s.TenSanPham,
+                s.HinhDaiDien,
+                s.Gia,
+                s.PhanTramGiam,
+                s.TacGia,
+                GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam)
+            }).ToArray();
+
+            ViewBag.DanhSachDanhMuc = danhMucs;
+            ViewBag.DanhSachSanPhamHienThi = sanPhamsViewModel;
+            ViewBag.sanPhamNgauNhien = sanPhamNgauNhientViewModel;
+
             return View();
         }
 
@@ -81,8 +180,8 @@ namespace duAnLUAGA.Controllers
                     x.Email.Trim().ToLower() == email &&
                     x.MatKhau == model.MatKhau
                 );
-           
-        
+
+
             if (user == null)
             {
                 ModelState.AddModelError("", "Email hoặc mật khẩu không đúng.");
@@ -128,7 +227,7 @@ namespace duAnLUAGA.Controllers
         [HttpPost]
         public IActionResult Register(RegisterVM model)
         {
-           
+
             if (!ModelState.IsValid)
             {
                 return View(model);
@@ -144,7 +243,7 @@ namespace duAnLUAGA.Controllers
             {
                 HoVaTen = model.HoVaTen,
                 Email = model.Email,
-                MatKhau = model.MatKhau, 
+                MatKhau = model.MatKhau,
                 NgayTao = DateTime.Now,
                 TrangThai = false
             };
@@ -236,7 +335,7 @@ namespace duAnLUAGA.Controllers
                 //  Tạo user 
                 user = new Khachhang
                 {
-                    HoVaTen = googleName ?? "user" + user.MaKh,         
+                    HoVaTen = googleName ?? "user" + user.MaKh,
                     Email = email,
                     MatKhau = randomPassword,
                     NgayTao = DateTime.Now,
