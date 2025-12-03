@@ -388,10 +388,12 @@
                 <ul>
                     <li><a asp-controller="Home" asp-action="Index" class="active">Trang Chủ</a></li>
                     <li><a asp-controller="SanPham" asp-action="Index">Sản Phẩm</a></li>
-                    <li><a asp-controller="Cart" asp-action="Index" style="position: relative;">
-                        <i class="fa-solid fa-cart-shopping"></i>
-                        <span id="cart-badge" class="cart-badge" style="display: none;">0</span>
-                    </a></li>
+                    <li>
+                        <a asp-controller="Cart" asp-action="Index" style="position: relative;">
+                            <i class="fa-solid fa-cart-shopping"></i>
+                            <span id="cart-badge" class="cart-badge" style="display: none;">0</span>
+                        </a>
+                    </li>
                 </ul>
                 <i class="mobile-nav-toggle d-xl-none bi bi-list"></i>
             </nav>
@@ -506,8 +508,233 @@
     <script src="~/js/site.js"></script>
     <script src="~/assets/js/main.js"></script>
 
+    <!-- Modal xác nhận Thêm vào giỏ hàng -->
+    <style>
+        .addcart-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,.4);
+            z-index: 9999;
+            align-items: center;
+            justify-content: center;
+        }
+
+            .addcart-modal-overlay.active {
+                display: flex;
+            }
+
+        .addcart-modal-box {
+            background: #fff;
+            border-radius: 4px;
+            width: 400px;
+            box-shadow: 0 2px 8px rgba(0,0,0,.15);
+            overflow: hidden;
+        }
+
+        .addcart-modal-header {
+            padding: 20px 24px;
+            font-size: 18px;
+            font-weight: 600;
+            border-bottom: 1px solid #eee;
+        }
+
+        .addcart-modal-body {
+            padding: 16px 24px;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .addcart-modal-footer {
+            padding: 12px 24px 16px;
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            border-top: 1px solid #f3f3f3;
+        }
+
+        .addcart-modal-btn {
+            min-width: 96px;
+            padding: 8px 16px;
+            border-radius: 2px;
+            border: 1px solid #ddd;
+            background: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .addcart-modal-btn-cancel {
+            color: #333;
+        }
+
+        .addcart-modal-btn-confirm {
+            background: #ee4d2d;
+            border-color: #ee4d2d;
+            color: #fff;
+        }
+
+            .addcart-modal-btn-confirm:hover {
+                background: #d73211;
+            }
+    </style>
+
+    <div class="addcart-modal-overlay" id="addToCartModal">
+        <div class="addcart-modal-box">
+            <div class="addcart-modal-header">Thêm Sản Phẩm</div>
+            <div class="addcart-modal-body" id="addToCartMessage">
+                Bạn có chắc chắn muốn thêm sản phẩm này vào giỏ hàng?
+            </div>
+            <div class="addcart-modal-footer">
+                <button class="addcart-modal-btn addcart-modal-btn-cancel" id="addToCartCancel">Hủy</button>
+                <button class="addcart-modal-btn addcart-modal-btn-confirm" id="addToCartOk">Xác Nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal thông báo thêm giỏ hàng thành công -->
+    <div class="addcart-modal-overlay" id="addToCartSuccessModal">
+        <div class="addcart-modal-box">
+            <div class="addcart-modal-header">Thêm Sản Phẩm</div>
+            <div class="addcart-modal-body">
+                Sản phẩm đã được thêm vào giỏ hàng thành công.
+            </div>
+            <div class="addcart-modal-footer">
+                <button class="addcart-modal-btn addcart-modal-btn-confirm" id="addToCartSuccessOk">Đóng</button>
+            </div>
+        </div>
+    </div>
+
     <script>
-        // Hàm cập nhật số sản phẩm trong giỏ hàng
+        let __pendingAddToCart = null;
+        let __addToCartSuccessTimer = null;
+
+        function openAddToCartModal(masp, qty) {
+            const overlay = document.getElementById('addToCartModal');
+            const msg = document.getElementById('addToCartMessage');
+            const btnOk = document.getElementById('addToCartOk');
+            const btnCancel = document.getElementById('addToCartCancel');
+
+            if (!overlay || !btnOk || !btnCancel) return;
+
+            __pendingAddToCart = { masp, qty };
+
+            // reset listeners bằng cách clone nút (tránh chồng nhiều lần)
+            const newOk = btnOk.cloneNode(true);
+            const newCancel = btnCancel.cloneNode(true);
+            btnOk.parentNode.replaceChild(newOk, btnOk);
+            btnCancel.parentNode.replaceChild(newCancel, btnCancel);
+
+            newOk.addEventListener('click', function () {
+                closeAddToCartModal();
+                if (__pendingAddToCart) {
+                    doAddToCartRequest(__pendingAddToCart.masp, __pendingAddToCart.qty);
+                }
+            });
+
+            newCancel.addEventListener('click', function () {
+                closeAddToCartModal();
+                __pendingAddToCart = null;
+            });
+
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) {
+                    closeAddToCartModal();
+                    __pendingAddToCart = null;
+                }
+            });
+
+            overlay.classList.add('active');
+        }
+
+        function closeAddToCartModal() {
+            const overlay = document.getElementById('addToCartModal');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+        }
+
+        // Mở modal thông báo "thêm giỏ hàng thành công"
+        function openAddToCartSuccessModal() {
+            const overlay = document.getElementById('addToCartSuccessModal');
+            const btnOk = document.getElementById('addToCartSuccessOk');
+            if (!overlay || !btnOk) return;
+
+            const newOk = btnOk.cloneNode(true);
+            btnOk.parentNode.replaceChild(newOk, btnOk);
+
+            newOk.addEventListener('click', function () {
+                closeAddToCartSuccessModal();
+            });
+
+            overlay.addEventListener('click', function (e) {
+                if (e.target === overlay) {
+                    closeAddToCartSuccessModal();
+                }
+            });
+
+            overlay.classList.add('active');
+
+            // Tự động ẩn sau 5 giây nếu người dùng không bấm
+            clearTimeout(__addToCartSuccessTimer);
+            __addToCartSuccessTimer = setTimeout(() => {
+                closeAddToCartSuccessModal();
+            }, 5000);
+        }
+
+        function closeAddToCartSuccessModal() {
+            const overlay = document.getElementById('addToCartSuccessModal');
+            if (overlay) {
+                overlay.classList.remove('active');
+            }
+            clearTimeout(__addToCartSuccessTimer);
+        }
+
+        // Thực hiện gọi API AddToCart
+        function doAddToCartRequest(masp, qty) {
+            fetch('/Cart/AddToCart', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+                },
+                body: new URLSearchParams({
+                    maSp: masp,
+                    soLuong: qty
+                })
+            })
+                .then(response => response.json())
+                .then(data => {
+                    if (data && data.success) {
+                        // Cập nhật badge nếu server trả về cartCount
+                        if (typeof data.cartCount !== 'undefined') {
+                            const badge = document.getElementById('cart-badge');
+                            if (badge) {
+                                if (data.cartCount > 0) {
+                                    badge.textContent = data.cartCount > 99 ? '99+' : data.cartCount;
+                                    badge.style.display = 'flex';
+                                } else {
+                                    badge.style.display = 'none';
+                                }
+                            }
+                        } else if (window.updateCartBadge) {
+                            // fallback: gọi lại API đếm
+                            window.updateCartBadge();
+                        }
+
+                        // Hiển thị modal thông báo thêm sản phẩm thành công
+                        openAddToCartSuccessModal();
+                    } else {
+                        alert((data && data.message) || 'Không thể thêm sản phẩm vào giỏ hàng.');
+                    }
+                })
+                .catch(error => {
+                    console.error('Lỗi khi thêm vào giỏ hàng:', error);
+                    alert('Đã xảy ra lỗi khi thêm vào giỏ hàng. Vui lòng thử lại.');
+                });
+        }
+        // Hàm cập nhật số sản phẩm trong giỏ hàng (badge trên icon)
         function updateCartBadge() {
             fetch('/Cart/GetCartCount')
                 .then(response => response.json())
@@ -527,13 +754,51 @@
                 });
         }
 
-        // Cập nhật badge khi trang được tải
-        document.addEventListener('DOMContentLoaded', function() {
+        // Hàm thêm vào giỏ hàng (dùng chung cho toàn site) - có popup xác nhận custom
+        function addToCart(masp, soLuong) {
+            if (!masp) return;
+            const qty = soLuong && soLuong > 0 ? soLuong : 1;
+            openAddToCartModal(masp, qty);
+        }
+
+        // Gán sự kiện click cho các nút "Thêm giỏ hàng" ở danh sách sản phẩm
+        document.addEventListener('DOMContentLoaded', function () {
+            // Cập nhật badge khi trang được tải
             updateCartBadge();
+
+            // Lắng nghe click trên các nút có class .btn-cart và data-masp
+            document.body.addEventListener('click', function (e) {
+                const btn = e.target.closest('.btn-cart[data-masp]');
+                if (!btn) return;
+
+                const masp = parseInt(btn.getAttribute('data-masp'));
+                if (!masp) return;
+
+                addToCart(masp, 1);
+            });
+
+            // Nút "Thêm giỏ hàng" ở trang chi tiết sản phẩm (nếu có)
+            const btnDetail = document.getElementById('btnAddToCartDetail');
+            if (btnDetail) {
+                btnDetail.addEventListener('click', function () {
+                    const masp = parseInt(btnDetail.getAttribute('data-masp'));
+                    const qtyInput = document.getElementById('qty');
+                    let soLuong = 1;
+                    if (qtyInput) {
+                        const val = parseInt(qtyInput.value);
+                        if (!isNaN(val) && val > 0) {
+                            soLuong = val;
+                        }
+                    }
+
+                    addToCart(masp, soLuong);
+                });
+            }
         });
 
         // Tạo hàm global để các trang khác có thể gọi
         window.updateCartBadge = updateCartBadge;
+        window.addToCart = addToCart;
     </script>
 
     @await RenderSectionAsync("Scripts", required: false)

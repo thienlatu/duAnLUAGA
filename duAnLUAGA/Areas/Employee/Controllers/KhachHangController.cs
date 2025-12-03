@@ -101,6 +101,12 @@ namespace duAnLUAGA.Areas.Employee.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(KhachHangVM viewModel)
         {
+            // Validate file ảnh (định dạng + dung lượng)
+            if (!viewModel.IsValidImage())
+            {
+                ModelState.AddModelError("HinhAnhFile", "Chỉ được chọn ảnh JPG, JPEG, PNG, GIF và dung lượng tối đa 5MB.");
+            }
+
             if (ModelState.IsValid)
             {
                 if (_context.Khachhangs.Any(kh => kh.Email == viewModel.Email))
@@ -194,6 +200,12 @@ namespace duAnLUAGA.Areas.Employee.Controllers
                 {
                     ModelState.AddModelError("MatKhau", "Mật khẩu phải từ 8 đến 11 ký tự.");
                 }
+            }
+
+            // Validate file ảnh (định dạng + dung lượng)
+            if (!viewModel.IsValidImage())
+            {
+                ModelState.AddModelError("HinhAnhFile", "Chỉ được chọn ảnh JPG, JPEG, PNG, GIF và dung lượng tối đa 5MB.");
             }
 
             if (ModelState.IsValid)

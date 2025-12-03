@@ -598,7 +598,9 @@
                         @* Nút giỏ hàng để dưới, không nằm trong <a> *@
                         @if (sanpham.SoLuong > 0)
                         {
-                            <button class="btn-cart">
+                            <button class="btn-cart"
+                                    type="button"
+                                    data-masp="@sanpham.MaSp">
                                 <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
                             </button>
                         }
