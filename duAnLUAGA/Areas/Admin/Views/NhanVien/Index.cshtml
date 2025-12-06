@@ -53,7 +53,7 @@
 
         @if (TempData["SuccessMessage"] != null)
         {
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <div class="alert alert-success alert-dismissible fade show auto-hide-alert" role="alert">
                 <i class="fa fa-check-circle me-2"></i>@TempData["SuccessMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -61,7 +61,7 @@
 
         @if (TempData["ErrorMessage"] != null)
         {
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <div class="alert alert-danger alert-dismissible fade show auto-hide-alert" role="alert">
                 <i class="fa fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
                 <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
             </div>
@@ -205,6 +205,16 @@
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function () {
+            // Ẩn tự động các alert sau 5 giây
+            setTimeout(function () {
+                document.querySelectorAll('.auto-hide-alert').forEach(function (el) {
+                    if (el && el.classList.contains('show')) {
+                        el.classList.remove('show');
+                        el.style.display = 'none';
+                    }
+                });
+            }, 5000);
+
             $('#myTable').DataTable({
                 responsive: true,
                 language: {

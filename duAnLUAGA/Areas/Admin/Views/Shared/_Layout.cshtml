@@ -56,7 +56,7 @@
                     <a asp-area="Admin" asp-controller="SanPham" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "SanPham" ? "active" : "")">
                         <i class="fa fa-box me-2"></i>Sản Phẩm
                     </a>
-
+                   
                     <a asp-area="Admin" asp-controller="DanhMuc" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "DanhMuc" ? "active" : "")">
                         <i class="fa fa-table me-2"></i>Danh Mục
                     </a>
@@ -73,7 +73,10 @@
                         <i class="fa fa-ticket-alt me-2"></i>Mã Giảm Giá
                     </a>
 
-                    <a href="#" class="nav-item nav-link"><i class="fa fa-id-card me-2"></i>Nhân Viên</a>
+                    <a asp-area="Admin"asp-controller="NhanVien" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "NhanVien" ? "active" : "")"> 
+                       <i class="fa fa-chart-bar me-2"></i>Nhân Viên
+                    </a>
+
                     <a href="#" class="nav-item nav-link"><i class="fa fa-bolt me-2"></i>Flash Sale</a>
                     <a href="#" class="nav-item nav-link"><i class="fa fa-star me-2"></i>Đánh Giá</a>
                 </div>

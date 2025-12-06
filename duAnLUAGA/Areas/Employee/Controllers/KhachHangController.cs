@@ -292,14 +292,24 @@ namespace duAnLUAGA.Areas.Employee.Controllers
         {
             var khachHang = _context.Khachhangs
                 .Include(kh => kh.Hoadons)
+                .Include(kh => kh.Diachis)
+                .Include(kh => kh.Danhgia)
+                .Include(kh => kh.Magiamgia)
                 .FirstOrDefault(kh => kh.MaKh == id);
 
             if (khachHang == null) return NotFound();
 
-            if (khachHang.Hoadons.Any())
+            // Không cho xóa nếu đã có ĐƠN HÀNG, ĐÁNH GIÁ hoặc MÃ GIẢM GIÁ liên quan
+            if (khachHang.Hoadons.Any() || khachHang.Danhgia.Any() || khachHang.Magiamgia.Any())
             {
-                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì đã có đơn hàng liên quan.";
+                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì đã có đơn hàng / đánh giá / mã giảm giá liên quan.";
                 return RedirectToAction(nameof(Index));
+            }
+
+            // Cho phép xóa toàn bộ địa chỉ gắn với khách hàng
+            if (khachHang.Diachis.Any())
+            {
+                _context.Diachis.RemoveRange(khachHang.Diachis);
             }
 
             _context.Khachhangs.Remove(khachHang);
@@ -310,7 +320,6 @@ namespace duAnLUAGA.Areas.Employee.Controllers
 
         // POST: Employee/KhachHang/ToggleStatus/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult ToggleStatus(int id)
         {
             var khachHang = _context.Khachhangs.FirstOrDefault(kh => kh.MaKh == id);

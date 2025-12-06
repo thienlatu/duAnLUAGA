@@ -801,6 +801,66 @@
         window.addToCart = addToCart;
     </script>
 
+    <!-- Script kiểm tra trạng thái tài khoản định kỳ (polling) -->
+    <script>
+        (function() {
+            // Chỉ chạy nếu user đã đăng nhập
+            var isLoggedIn = @(User?.Identity?.IsAuthenticated == true ? "true" : "false");
+
+            if (!isLoggedIn) {
+                return; // Không cần check nếu chưa đăng nhập
+            }
+
+            var checkInterval = 3000; // Check mỗi 3 giây
+            var isChecking = false; // Tránh check đồng thời
+
+            function checkAccountStatus() {
+                if (isChecking) return;
+                isChecking = true;
+
+                fetch('/api/AccountStatus/check', {
+                    method: 'GET',
+                    credentials: 'include', // Gửi cookie
+                    headers: {
+                        'Content-Type': 'application/json'
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    isChecking = false;
+
+                    // Nếu tài khoản bị khóa
+                    if (data.isLocked === true) {
+                        // Dừng polling
+                        clearInterval(intervalId);
+
+                        // Hiển thị thông báo
+                        var message = data.message || 'Tài khoản của bạn đã bị khóa. Bạn sẽ được đăng xuất.';
+                        alert(message);
+
+                        // Đăng xuất và redirect về login
+                        window.location.href = '/Home/Logout?returnUrl=' + encodeURIComponent('/Home/Login?message=' + encodeURIComponent(message));
+                    }
+                })
+                .catch(error => {
+                    isChecking = false;
+                    console.error('Lỗi khi kiểm tra trạng thái tài khoản:', error);
+                });
+            }
+
+            // Bắt đầu polling ngay lập tức
+            checkAccountStatus();
+
+            // Tiếp tục polling định kỳ
+            var intervalId = setInterval(checkAccountStatus, checkInterval);
+
+            // Dừng polling khi user rời trang
+            window.addEventListener('beforeunload', function() {
+                clearInterval(intervalId);
+            });
+        })();
+    </script>
+
     @await RenderSectionAsync("Scripts", required: false)
     @section Scripts {
         <partial name="_ValidationScriptsPartial" />

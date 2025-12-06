@@ -41,18 +41,22 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                 }
             }
 
-            var khachHangs = query.OrderByDescending(kh => kh.MaKh).ToList();
-            var viewModels = khachHangs.Select(kh => new KhachHangVM
-            {
-                MaKh = kh.MaKh,
-                HoVaTen = kh.HoVaTen,
-                GioiTinh = kh.GioiTinh,
-                Email = kh.Email,
-                MatKhau = kh.MatKhau,
-                HinhAnh = kh.HinhAnh,
-                NgayTao = kh.NgayTao,
-                TrangThai = kh.TrangThai
-            }).ToList();
+            // Tối ưu: Chỉ select các field cần thiết và dùng AsNoTracking
+            var viewModels = query
+                .AsNoTracking()
+                .OrderByDescending(kh => kh.MaKh)
+                .Select(kh => new KhachHangVM
+                {
+                    MaKh = kh.MaKh,
+                    HoVaTen = kh.HoVaTen,
+                    GioiTinh = kh.GioiTinh,
+                    Email = kh.Email,
+                    MatKhau = kh.MatKhau,
+                    HinhAnh = kh.HinhAnh,
+                    NgayTao = kh.NgayTao,
+                    TrangThai = kh.TrangThai
+                })
+                .ToList();
 
             ViewBag.TrangThaiFilter = trangThai;
             return View(viewModels);
@@ -292,25 +296,34 @@ namespace duAnLUAGA.Areas.Admin.Controllers
         {
             var khachHang = _context.Khachhangs
                 .Include(kh => kh.Hoadons)
+                .Include(kh => kh.Danhgia)
+                .Include(kh => kh.Magiamgia)
                 .FirstOrDefault(kh => kh.MaKh == id);
 
             if (khachHang == null) return NotFound();
 
-            if (khachHang.Hoadons.Any())
+            // Không cho xóa nếu đã có ĐƠN HÀNG, ĐÁNH GIÁ hoặc MÃ GIẢM GIÁ liên quan
+            if (khachHang.Hoadons.Any() || khachHang.Danhgia.Any() || khachHang.Magiamgia.Any())
             {
-                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì đã có đơn hàng liên quan.";
+                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì có liên quan đến cơ sở dữ liệu";
                 return RedirectToAction(nameof(Index));
+            }
+
+            // Cho phép xóa toàn bộ địa chỉ gắn với khách hàng
+            if (khachHang.Diachis.Any())
+            {
+                _context.Diachis.RemoveRange(khachHang.Diachis);
             }
 
             _context.Khachhangs.Remove(khachHang);
             _context.SaveChanges();
+
             TempData["SuccessMessage"] = "Xóa khách hàng thành công.";
             return RedirectToAction(nameof(Index));
         }
 
         // POST: Admin/KhachHang/ToggleStatus/5
         [HttpPost]
-        [ValidateAntiForgeryToken]
         public IActionResult ToggleStatus(int id)
         {
             var khachHang = _context.Khachhangs.FirstOrDefault(kh => kh.MaKh == id);

@@ -38,8 +38,8 @@
                     <label asp-for="MatKhau" class="form-label">Mật khẩu mới (để trống nếu không đổi)</label>
                     <div class="input-group">
                         <input asp-for="MatKhau" class="form-control" type="password" id="matKhauEdit" placeholder="Để trống nếu không đổi mật khẩu" data-val="false" />
-                        <button class="btn btn-outline-secondary" type="button" id="togglePasswordEdit">
-                            <i class="fa fa-eye" id="eyeIconEdit"></i>
+                        <button class="btn btn-outline-secondary" type="button" id="togglePasswordEdit" style="border-left: 0; min-width: 45px;">
+                            <i class="fas fa-eye" id="eyeIconEdit"></i>
                         </button>
                     </div>
                     <span asp-validation-for="MatKhau" class="text-danger"></span>
@@ -48,6 +48,15 @@
             </div>
 
             <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label asp-for="Role" class="form-label"></label>
+                    <select asp-for="Role" class="form-select" required>
+                        <option value="Employee">Nhân viên</option>
+                        <option value="Admin">Quản trị viên</option>
+                    </select>
+                    <span asp-validation-for="Role" class="text-danger"></span>
+                </div>
+
                 <div class="col-md-4 mb-3">
                     <label asp-for="GioiTinh" class="form-label"></label>
                     <select asp-for="GioiTinh" class="form-select">
@@ -156,6 +165,25 @@
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <style>
+        #togglePasswordCreate, #togglePasswordEdit {
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        #togglePasswordCreate:hover, #togglePasswordEdit:hover {
+            background-color: rgba(255, 255, 255, 0.1);
+        }
+        #togglePasswordCreate i, #togglePasswordEdit i {
+            font-size: 16px;
+            color: #fff;
+        }
+        .input-group .form-control:focus {
+            z-index: 3;
+        }
+    </style>
     <script>
         $(document).ready(function () {
             // Tạo dropdown ngày (1-31)
@@ -345,17 +373,25 @@
             });
 
             // Toggle password visibility - Edit
-            $('#togglePasswordEdit').on('click', function () {
+            $('#togglePasswordEdit').on('click', function (e) {
+                e.preventDefault();
                 const passwordField = $('#matKhauEdit');
                 const eyeIcon = $('#eyeIconEdit');
                 if (passwordField.attr('type') === 'password') {
                     passwordField.attr('type', 'text');
                     eyeIcon.removeClass('fa-eye').addClass('fa-eye-slash');
+                    $(this).attr('title', 'Ẩn mật khẩu');
                 } else {
                     passwordField.attr('type', 'password');
                     eyeIcon.removeClass('fa-eye-slash').addClass('fa-eye');
+                    $(this).attr('title', 'Hiển thị mật khẩu');
                 }
             });
+            
+            // Đảm bảo icon hiển thị
+            if ($('#eyeIconEdit').length && !$('#eyeIconEdit').hasClass('fa-eye') && !$('#eyeIconEdit').hasClass('fa-eye-slash')) {
+                $('#eyeIconEdit').addClass('fa-eye');
+            }
 
             // Disable client-side validation cho mật khẩu khi để trống
             $('#matKhauEdit').on('input blur', function () {
