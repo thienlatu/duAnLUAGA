@@ -1,0 +1,107 @@
+﻿@model duAnLUAGA.Domain.Entitie.Magiamgium
+@{
+    ViewData["Title"] = Model == null ? "Tạo Voucher Mới" : "Sửa Voucher";
+}
+
+<div class="container-fluid pt-4 px-4">
+    <div class="bg-secondary rounded h-100 p-4" style="max-width: 800px; margin: 0 auto;">
+        <h4 class="mb-4 text-white">@ViewData["Title"]</h4>
+        <form asp-action="@(Model == null ? "Create" : "Edit")" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+            <div class="mb-3">
+                <label class="form-label text-white">Mã Voucher (Code)</label>
+                @if (Model == null)
+                {
+                    <input asp-for="MaCode" class="form-control bg-dark text-white" placeholder="VD: TET2025" required />
+                }
+                else
+                {
+                    <input asp-for="MaCode" class="form-control bg-dark text-white" readonly />
+                }
+                <span asp-validation-for="MaCode" class="text-danger"></span>
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-white">Mô tả ngắn</label>
+                <input asp-for="MoTa" class="form-control bg-dark text-white" placeholder="VD: Giảm 50k cho đơn từ 200k" />
+            </div>
+
+            <div class="mb-3">
+                <label class="form-label text-white d-block">Loại giảm giá</label>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="discountType" id="typeMoney" value="money" checked onchange="toggleType()">
+                    <label class="form-check-label text-muted" for="typeMoney">Giảm tiền mặt (VNĐ)</label>
+                </div>
+                <div class="form-check form-check-inline">
+                    <input class="form-check-input" type="radio" name="discountType" id="typePercent" value="percent" onchange="toggleType()">
+                    <label class="form-check-label text-muted" for="typePercent">Giảm theo phần trăm (%)</label>
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-6 mb-3" id="moneyInput">
+                    <label class="form-label text-white">Số tiền giảm (VNĐ)</label>
+                    <input asp-for="SoTienGiam" class="form-control bg-dark text-white" type="number" />
+                </div>
+                <div class="col-md-6 mb-3" id="percentInput" style="display:none;">
+                    <label class="form-label text-white">Phần trăm giảm (%)</label>
+                    <input asp-for="PhanTramGiam" class="form-control bg-dark text-white" type="number" max="100" />
+                </div>
+
+                <div class="col-md-6 mb-3">
+                    <label class="form-label text-white">Đơn tối thiểu</label>
+                    <input asp-for="DonHangToiThieu" class="form-control bg-dark text-white" type="number" value="0" />
+                </div>
+            </div>
+
+            <div class="row">
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Số lượng phát hành</label>
+                    <input asp-for="SoLuong" class="form-control bg-dark text-white" type="number" value="100" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Ngày bắt đầu</label>
+                    <input asp-for="NgayBatDau" class="form-control bg-dark text-white" type="datetime-local" />
+                </div>
+                <div class="col-md-4 mb-3">
+                    <label class="form-label text-white">Ngày kết thúc</label>
+                    <input asp-for="NgayKetThuc" class="form-control bg-dark text-white" type="datetime-local" />
+                </div>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" asp-for="TrangThai" type="checkbox" checked />
+                <label class="form-check-label text-white">Kích hoạt ngay</label>
+            </div>
+
+            <button type="submit" class="btn btn-primary w-100">Lưu Voucher</button>
+            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Quay lại</a>
+        </form>
+    </div>
+</div>
+
+<script>
+    function toggleType() {
+        var isMoney = document.getElementById("typeMoney").checked;
+        if (isMoney) {
+            document.getElementById("moneyInput").style.display = "block";
+            document.getElementById("percentInput").style.display = "none";
+            document.getElementById("PhanTramGiam").value = ""; // Reset
+        } else {
+            document.getElementById("moneyInput").style.display = "none";
+            document.getElementById("percentInput").style.display = "block";
+            document.getElementById("SoTienGiam").value = ""; // Reset
+        }
+    }
+
+    // Logic để check đúng radio khi vào trang Edit
+    window.onload = function() {
+        var money = document.getElementById("SoTienGiam").value;
+        var percent = document.getElementById("PhanTramGiam").value;
+        if(percent && percent > 0) {
+            document.getElementById("typePercent").checked = true;
+            toggleType();
+        }
+    };
+</script>

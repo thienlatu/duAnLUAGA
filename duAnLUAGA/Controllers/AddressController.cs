@@ -31,12 +31,16 @@ namespace duAnLUAGA.Controllers
 
         private int? GetCurrentUserId()
         {
-            var userIdClaim = User.FindFirst("UserId");
-            if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var id))
+            if (!User.Identity.IsAuthenticated) return null;
+
+            var claim = User.FindFirst("UserId")
+                     ?? User.FindFirst("MaKh")
+                     ?? User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier);
+
+            if (claim != null && int.TryParse(claim.Value, out int id))
             {
                 return id;
             }
-
             return null;
         }
 
@@ -484,28 +488,28 @@ namespace duAnLUAGA.Controllers
 
         public IActionResult Vouchers(int? maKh)
         {
-            int currentUserId = 1;
+            // [QUAN TRỌNG] Lấy ID động
+            var userId = GetCurrentUserId();
 
-            var myVouchers = _context.Magiamgia
-            .Where(v => v.MaKh == currentUserId && v.TrangThai == true)
-            .OrderByDescending(v => v.NgayKetThuc)
-            .ToList();
-            var resolvedMaKh = maKh ?? GetCurrentUserId();
-            if (resolvedMaKh == null || resolvedMaKh <= 0)
+            if (userId == null)
             {
-                TempData["ProfileMessage"] = "Vui lòng đăng nhập để xem voucher.";
+                TempData["ProfileMessage"] = "Vui lòng đăng nhập.";
                 return RedirectToAction("Index");
             }
 
-            var khach = _context.Khachhangs.FirstOrDefault(k => k.MaKh == resolvedMaKh);
-            if (khach == null)
-            {
-                return NotFound();
-            }
+            // Lấy voucher của chính user đó
+            var myVouchers = _context.Magiamgia
+                .Where(v => v.MaKh == userId.Value
+                 && v.TrangThai == true
+                 && v.SoLuong > 0)
+                .OrderByDescending(v => v.NgayKetThuc)
+                .ToList();
+
+            var khach = _context.Khachhangs.FirstOrDefault(k => k.MaKh == userId.Value);
 
             var vm = new AddressVM
             {
-                MaKh = resolvedMaKh.Value,
+                MaKh = userId.Value,
                 VoucherList = myVouchers,
                 ProfileFullName = khach.HoVaTen,
                 ProfileEmail = khach.Email,

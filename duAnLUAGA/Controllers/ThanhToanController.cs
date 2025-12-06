@@ -36,17 +36,54 @@ namespace duAnLUAGA.Controllers
             return null;
         }
 
+        // 1. Hàm xóa dấu tiếng Việt (Copy hàm này vào Controller)
+        private static string RemoveSign4VietnameseString(string str)
+        {
+            if (string.IsNullOrEmpty(str)) return "";
+
+            for (int i = 1; i < VietnameseSigns.Length; i++)
+            {
+                for (int j = 0; j < VietnameseSigns[i].Length; j++)
+                    str = str.Replace(VietnameseSigns[i][j], VietnameseSigns[0][i - 1]);
+            }
+            return str;
+        }
+
+        private static readonly string[] VietnameseSigns = new string[]
+        {
+            "aAeEoOuUiIdDyY",
+            "áàạảãâấầậẩẫăắằặẳẵ",
+            "ÁÀẠẢÃÂẤẦẬẨẪĂẮẰẶẲẴ",
+            "éèẹẻẽêếềệểễ",
+            "ÉÈẸẺẼÊẾỀỆỂỄ",
+            "óòọỏõôốồộổỗơớờợởỡ",
+            "ÓÒỌỎÕÔỐỒỘỔỖƠỚỜỢỞỠ",
+            "úùụủũưứừựửữ",
+            "ÚÙỤỦŨƯỨỪỰỬỮ",
+            "íìịỉĩ",
+            "ÍÌỊỈĨ",
+            "đ",
+            "Đ",
+            "ýỳỵỷỹ",
+            "ÝỲỴỶỸ"
+        };
+
         // --- HÀM TÍNH PHÍ VẬN CHUYỂN ---
         private decimal TinhPhiShip(string tinhThanh)
         {
             if (string.IsNullOrEmpty(tinhThanh)) return 37700;
 
+            // 1. Chuyển hết về chữ thường
             string lower = tinhThanh.ToLower();
-            // Kiểm tra miễn phí ship cho Đắk Lắk
-            if (lower.Contains("đắk lắk") || lower.Contains("dak lak") || lower.Contains("đắc lắc"))
+
+            // 2. Kiểm tra kiểu "cục súc" (bao gồm mọi trường hợp có thể xảy ra của bộ gõ)
+            // Đắk Lắk, Dak Lak, Dac Lac, Daklak, Buon Ma Thuot...
+            if (lower.Contains("dak") || lower.Contains("đắk") || lower.Contains("đắc") ||
+                lower.Contains("buon ma") || lower.Contains("buôn ma"))
             {
                 return 0;
             }
+
             return 37700;
         }
 
@@ -63,15 +100,19 @@ namespace duAnLUAGA.Controllers
                 .Include(k => k.Diachis)
                 .FirstOrDefaultAsync(k => k.MaKh == currentUserId);
 
-            if (user == null) return RedirectToAction("Login", "Account");
-
             // 2. XÁC ĐỊNH ĐỊA CHỈ GIAO HÀNG
             Diachi currentAddress = null;
 
-            // Nếu người dùng chọn từ Modal (có ID gửi lên)
+            // 1. Ưu tiên: Nếu URL có selectedAddressId (do người dùng vừa chọn xong) -> Lấy địa chỉ đó
             if (selectedAddressId != null)
             {
                 currentAddress = user.Diachis.FirstOrDefault(d => d.Id == selectedAddressId && !d.IsDelete);
+            }
+
+            // 2. Dự phòng: Nếu không có (lần đầu vào), mới lấy địa chỉ Mặc định
+            if (currentAddress == null)
+            {
+                currentAddress = user.Diachis.Where(d => !d.IsDelete).OrderByDescending(d => d.MacDinh).FirstOrDefault();
             }
 
             // Nếu chưa chọn, lấy mặc định
@@ -121,12 +162,12 @@ namespace duAnLUAGA.Controllers
             // 5. XỬ LÝ VOUCHER (CHỈ HIỆN VOUCHER CỦA TÔI)
             var myVouchers = await _context.Magiamgia
                 .Where(v => v.MaKh == currentUserId
-                         && v.TrangThai == true
-                         && v.SoLuong > v.SoLuongDaDung
-                         && v.NgayKetThuc >= DateTime.Now)
+                 && v.TrangThai == true
+                 && v.SoLuong > 0 // [THÊM DÒNG NÀY]: Chỉ lấy cái còn lượt
+                 && v.NgayKetThuc >= DateTime.Now)
                 .ToListAsync();
 
-            var validVouchers = myVouchers.Where(v => (v.DonHangToiThieu ?? 0) <= tongTienHang).ToList();
+            var validVouchers = myVouchers;
 
             decimal tienGiam = 0;
             string selectedCode = null;
@@ -165,6 +206,8 @@ namespace duAnLUAGA.Controllers
 
             // Truyền selectedIds sang View để dùng cho form POST
             ViewBag.SelectedIds = selectedIds;
+            ViewBag.SelectedAddressId = currentAddress?.Id;
+            ViewBag.DebugTinh = currentAddress?.Tinh + " (Phí: " + phiVanChuyen + ")";
 
             return View(model);
         }
@@ -224,7 +267,9 @@ namespace duAnLUAGA.Controllers
                     model.MaVoucher = maGoc;
 
                     // Xóa Voucher Clone khỏi kho
-                    _context.Magiamgia.Remove(voucherClone);
+                    voucherClone.SoLuong = 0;         // Số lượng còn lại = 0
+                    voucherClone.SoLuongDaDung = 1;
+                    _context.Update(voucherClone);
                 }
             }
 
@@ -276,18 +321,18 @@ namespace duAnLUAGA.Controllers
                     transaction.Commit();
 
                     // D. Chuyển hướng thanh toán
-                    if (model.PhuongThucThanhToan == "VNPAY")
-                    {
-                        var vnPayModel = new VnPayRequestModel
-                        {
-                            Amount = (double)hoadon.ThanhTien,
-                            CreatedDate = DateTime.Now,
-                            Description = "Thanh toan don hang " + hoadon.MaHd,
-                            FullName = model.TenNguoiNhan,
-                            OrderId = hoadon.MaHd
-                        };
-                        //return Redirect(_configuration["VnPay:BaseUrl"] + "?" + CreateVnPayUrl(vnPayModel));
-                    }
+                    //if (model.PhuongThucThanhToan == "VNPAY")
+                    //{
+                    //    var vnPayModel = new VnPayRequestModel
+                    //    {
+                    //        Amount = (double)hoadon.ThanhTien,
+                    //        CreatedDate = DateTime.Now,
+                    //        Description = "Thanh toan don hang " + hoadon.MaHd,
+                    //        FullName = model.TenNguoiNhan,
+                    //        OrderId = hoadon.MaHd
+                    //    };
+                    //    return Redirect(_configuration["VnPay:BaseUrl"] + "?" + CreateVnPayUrl(vnPayModel));
+                    //}
 
                     return Redirect("/Address/Index#orders");
                 }
@@ -300,70 +345,70 @@ namespace duAnLUAGA.Controllers
         }
 
         // HÀM TẠO URL VNPAY
-        //private string CreateVnPayUrl(VnPayRequestModel model)
-        //{
-        //    string vnp_TmnCode = _configuration["VnPay:TmnCode"];
-        //    string vnp_HashSecret = _configuration["VnPay:HashSecret"];
-        //    string vnp_Url = _configuration["VnPay:BaseUrl"];
-        //    string vnp_ReturnUrl = _configuration["VnPay:ReturnUrl"];
+    //    private string CreateVnPayUrl(VnPayRequestModel model)
+    //    {
+    //        string vnp_TmnCode = _configuration["VnPay:TmnCode"];
+    //        string vnp_HashSecret = _configuration["VnPay:HashSecret"];
+    //        string vnp_Url = _configuration["VnPay:BaseUrl"];
+    //        string vnp_ReturnUrl = _configuration["VnPay:ReturnUrl"];
 
-        //    VnPayLibrary vnpay = new VnPayLibrary();
-        //    vnpay.AddRequestData("vnp_Version", "2.1.0");
-        //    vnpay.AddRequestData("vnp_Command", "pay");
-        //    vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
-        //    vnpay.AddRequestData("vnp_Amount", (model.Amount * 100).ToString());
-        //    vnpay.AddRequestData("vnp_CreateDate", model.CreatedDate.ToString("yyyyMMddHHmmss"));
-        //    vnpay.AddRequestData("vnp_CurrCode", "VND");
-        //    vnpay.AddRequestData("vnp_IpAddr", "127.0.0.1");
-        //    vnpay.AddRequestData("vnp_Locale", "vn");
-        //    vnpay.AddRequestData("vnp_OrderInfo", model.Description);
-        //    vnpay.AddRequestData("vnp_OrderType", "other");
-        //    vnpay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl);
-        //    vnpay.AddRequestData("vnp_TxnRef", model.OrderId.ToString());
+    //        VnPayLibrary vnpay = new VnPayLibrary();
+    //        vnpay.AddRequestData("vnp_Version", "2.1.0");
+    //        vnpay.AddRequestData("vnp_Command", "pay");
+    //        vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
+    //        vnpay.AddRequestData("vnp_Amount", (model.Amount * 100).ToString());
+    //        vnpay.AddRequestData("vnp_CreateDate", model.CreatedDate.ToString("yyyyMMddHHmmss"));
+    //        vnpay.AddRequestData("vnp_CurrCode", "VND");
+    //        vnpay.AddRequestData("vnp_IpAddr", "127.0.0.1");
+    //        vnpay.AddRequestData("vnp_Locale", "vn");
+    //        vnpay.AddRequestData("vnp_OrderInfo", model.Description);
+    //        vnpay.AddRequestData("vnp_OrderType", "other");
+    //        vnpay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl);
+    //        vnpay.AddRequestData("vnp_TxnRef", model.OrderId.ToString());
 
-        //    string requestUrl = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
-        //    return requestUrl.Substring(vnp_Url.Length + 1);
-        //}
+    //        string requestUrl = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
+    //        return requestUrl.Substring(vnp_Url.Length + 1);
+    //    }
 
-        // CALLBACK VNPAY
-        //[HttpGet]
-        //public IActionResult PaymentCallback()
-        //{
-        //    var response = Request.Query;
-        //    if (response.Count > 0)
-        //    {
-        //        string vnp_HashSecret = _configuration["VnPay:HashSecret"];
-        //        var vnpayData = response;
-        //        VnPayLibrary vnpay = new VnPayLibrary();
+    //    // CALLBACK VNPAY
+    //    [HttpGet]
+    //    public IActionResult PaymentCallback()
+    //    {
+    //        var response = Request.Query;
+    //        if (response.Count > 0)
+    //        {
+    //            string vnp_HashSecret = _configuration["VnPay:HashSecret"];
+    //            var vnpayData = response;
+    //            VnPayLibrary vnpay = new VnPayLibrary();
 
-        //        foreach (var s in vnpayData)
-        //        {
-        //            if (!string.IsNullOrEmpty(s.Key) && s.Key.StartsWith("vnp_"))
-        //            {
-        //                vnpay.AddResponseData(s.Key, s.Value);
-        //            }
-        //        }
+    //            foreach (var s in vnpayData)
+    //            {
+    //                if (!string.IsNullOrEmpty(s.Key) && s.Key.StartsWith("vnp_"))
+    //                {
+    //                    vnpay.AddResponseData(s.Key, s.Value);
+    //                }
+    //            }
 
-        //        long orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
-        //        string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
-        //        string vnp_SecureHash = response["vnp_SecureHash"];
+    //            long orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
+    //            string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
+    //            string vnp_SecureHash = response["vnp_SecureHash"];
 
-        //        if (vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret))
-        //        {
-        //            if (vnp_ResponseCode == "00")
-        //            {
-        //                var order = _context.Hoadons.FirstOrDefault(x => x.MaHd == orderId);
-        //                if (order != null)
-        //                {
-        //                    order.TrangThai = "DaThanhToan";
-        //                    _context.SaveChanges();
-        //                }
-        //                return Redirect("/Address/Index#orders");
-        //            }
-        //        }
-        //    }
-        //    return Redirect("/Address/Index#orders");
-        //}
+    //            if (vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret))
+    //            {
+    //                if (vnp_ResponseCode == "00")
+    //                {
+    //                    var order = _context.Hoadons.FirstOrDefault(x => x.MaHd == orderId);
+    //                    if (order != null)
+    //                    {
+    //                        order.TrangThai = "DaThanhToan";
+    //                        _context.SaveChanges();
+    //                    }
+    //                    return Redirect("/Address/Index#orders");
+    //                }
+    //            }
+    //        }
+    //        return Redirect("/Address/Index#orders");
+    //    }
     }
 
     public class VnPayRequestModel

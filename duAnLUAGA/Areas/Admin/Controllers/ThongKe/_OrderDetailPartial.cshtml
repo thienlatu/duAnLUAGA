@@ -1,0 +1,135 @@
+﻿@model duAnLUAGA.Domain.Entitie.Hoadon
+@{
+    // Helper hiển thị trạng thái có màu sắc
+    string GetStatusBadge(string status)
+    {
+        return status switch
+        {
+            "ChoXacNhan" => "<span class='badge bg-warning text-dark'>Chờ xác nhận</span>",
+            "DaThanhToan" => "<span class='badge bg-success'>Đã thanh toán</span>",
+            "DaGiao" => "<span class='badge bg-success'>Đã giao hàng</span>",
+            "DaHuy" => "<span class='badge bg-danger'>Đã hủy</span>",
+            _ => $"<span class='badge bg-info'>{status}</span>"
+        };
+    }
+}
+
+<div class="modal-content" style="background-color: #262b36; color: #a0a0a0;">
+    <div class="modal-header border-secondary py-3">
+        <h4 class="modal-title text-white">Chi Tiết Đơn Hàng <span class="text-danger">#@Model.MaHd</span></h4>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+    </div>
+
+    <div class="modal-body p-4">
+        <div class="row mb-4">
+            <div class="col-md-4 border-end border-secondary">
+                <h6 class="text-primary text-uppercase fw-bold mb-3"><i class="fa fa-file-invoice"></i> Thông tin đơn</h6>
+                <p class="mb-2">Ngày đặt: <span class="text-white">@Model.NgayXuatHoaDon.ToString("dd/MM/yyyy HH:mm")</span></p>
+                <p class="mb-2">Trạng thái: @Html.Raw(GetStatusBadge(Model.TrangThai))</p>
+                <p class="mb-2">
+                    Hình thức thanh toán:
+                    <span class="badge bg-primary text-white text-uppercase" style="font-size:12px;">@Model.Httt</span>
+                </p>
+                @if (!string.IsNullOrEmpty(Model.LyDoHuy))
+                {
+                    <p class="text-danger small mt-2">Lý do hủy: @Model.LyDoHuy</p>
+                }
+            </div>
+
+            <div class="col-md-4 border-end border-secondary">
+                <h6 class="text-primary text-uppercase fw-bold mb-3"><i class="fa fa-user"></i> Người đặt hàng</h6>
+                <p class="mb-2">Họ tên: <strong class="text-white">@Model.MaKhNavigation.HoVaTen</strong></p>
+                <p class="mb-2">Email: <span class="text-white">@Model.MaKhNavigation.Email</span></p>
+                <p class="mb-0">ID Tài khoản: @Model.MaKh</p>
+            </div>
+
+            <div class="col-md-4">
+                <h6 class="text-primary text-uppercase fw-bold mb-3"><i class="fa fa-truck"></i> Người nhận</h6>
+                @if (Model.IdNavigation != null)
+                {
+                    <p class="mb-2">Họ tên: <strong class="text-white">@Model.IdNavigation.TenNhanHang</strong></p>
+                    <p class="mb-2">SĐT: <span class="text-warning fw-bold">@Model.IdNavigation.Sdt</span></p>
+                }
+                else
+                {
+                    <span class="text-warning">Không có thông tin người nhận.</span>
+                }
+            </div>
+        </div>
+
+        <div class="alert alert-dark border-secondary mb-4" style="background-color: #191C24;">
+            <h6 class="text-white mb-1"><i class="fa fa-map-marker-alt text-danger me-2"></i>Địa chỉ giao hàng:</h6>
+            @if (Model.IdNavigation != null)
+            {
+                <span class="text-white fs-6">
+                    @Model.IdNavigation.DiaChiChiTiet, @Model.IdNavigation.XaPhuong, @Model.IdNavigation.Tinh
+                </span>
+            }
+            else
+            {
+                <span class="text-white">Khách hàng đã xóa địa chỉ này hoặc dữ liệu cũ.</span>
+            }
+        </div>
+
+        <h6 class="text-white mb-3">Danh sách sản phẩm</h6>
+        <div class="table-responsive">
+            <table class="table table-dark table-bordered mb-0" style="--bs-table-bg: #191C24; border-color: #444;">
+                <thead class="bg-secondary">
+                    <tr class="text-white text-uppercase small">
+                        <th style="width: 50%">Sản phẩm</th>
+                        <th class="text-center">Đơn giá</th>
+                        <th class="text-center">Số lượng</th>
+                        <th class="text-end">Thành tiền</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.Chitiethoadons)
+                    {
+                        <tr>
+                            <td>
+                                <div class="d-flex align-items-center">
+                                    <img src="@(item.MaSpNavigation.HinhDaiDien ?? "https://via.placeholder.com/50")"
+                                         style="width: 50px; height: 50px; object-fit: cover; border-radius: 4px; margin-right: 15px; border: 1px solid #555;">
+                                    <div>
+                                        <div class="text-white fw-bold">@item.MaSpNavigation.TenSanPham</div>
+                                        <div class="small text-muted">Mã SP: @item.MaSp</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td class="text-center align-middle">@item.DonGia.ToString("N0")₫</td>
+                            <td class="text-center align-middle">x @item.SoLuong</td>
+                            <td class="text-end align-middle text-white fw-bold">@((item.DonGia * item.SoLuong).ToString("N0"))₫</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-4">
+            <div class="col-md-5 offset-md-7">
+                <div class="bg-dark p-3 rounded border border-secondary">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Tổng tiền hàng:</span>
+                        <span class="text-white">@Model.TongTien.ToString("N0")₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span>Phí vận chuyển:</span>
+                        <span class="text-white">@Model.PhiVanChuyen.ToString("N0")₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-3">
+                        <span>Voucher giảm giá:</span>
+                        <span class="text-danger">-@Model.TienGiamGia.ToString("N0")₫</span>
+                    </div>
+                    <div class="d-flex justify-content-between border-top border-secondary pt-3">
+                        <strong class="text-white fs-5">THỰC THU:</strong>
+                        <strong class="text-danger fs-4">@Model.ThanhTien.ToString("N0")₫</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="modal-footer border-secondary">
+        <button type="button" class="btn btn-secondary px-4" data-bs-dismiss="modal">Đóng</button>
+    </div>
+</div>

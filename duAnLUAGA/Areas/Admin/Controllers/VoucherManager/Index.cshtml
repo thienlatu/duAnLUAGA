@@ -1,0 +1,198 @@
+﻿@model IEnumerable<duAnLUAGA.Domain.Entitie.Magiamgium>
+@{
+    ViewData["Title"] = "Quản Lý Voucher";
+    var formatMoney = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+}
+
+<style>
+    .bg-dark-custom {
+        background-color: #191C24;
+        color: #a0a0a0;
+        min-height: 100vh;
+        padding: 20px;
+    }
+
+    .table-custom th {
+        border-bottom: 1px solid #444;
+        color: #fff;
+        padding: 15px;
+    }
+
+    .table-custom td {
+        border-bottom: 1px solid #333;
+        padding: 12px 15px;
+        vertical-align: middle;
+    }
+
+    .search-box {
+        background: #000;
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 4px;
+        padding: 6px 12px;
+    }
+
+    /* Badge trạng thái */
+    .v-badge {
+        padding: 5px 10px;
+        border-radius: 4px;
+        font-size: 11px;
+        font-weight: bold;
+    }
+
+    .v-active {
+        background: rgba(25, 135, 84, 0.2);
+        color: #198754;
+        border: 1px solid #198754;
+    }
+
+    .v-expired {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+        border: 1px solid #dc3545;
+    }
+
+    .v-locked {
+        background: rgba(108, 117, 125, 0.2);
+        color: #adb5bd;
+        border: 1px solid #6c757d;
+    }
+</style>
+
+<div class="container-fluid bg-dark-custom">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-white m-0">Quản Lý Mã Giảm Giá</h3>
+        <a asp-action="Create" class="btn btn-primary"><i class="fa fa-plus"></i> Tạo Mã Mới</a>
+    </div>
+
+    <div class="bg-secondary rounded p-3 mb-4 d-flex justify-content-between align-items-center">
+        <form method="get" class="d-flex gap-2">
+            <select name="statusFilter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:150px;" onchange="this.form.submit()">
+                <option value="">-- Tất cả --</option>
+                <!option value="active" @(ViewBag.StatusFilter == "active" ? "selected" : "")>Đang chạy</!option>
+                <!option value="expired" @(ViewBag.StatusFilter == "expired" ? "selected" : "")>Hết hạn</!option>
+                <!option value="locked" @(ViewBag.StatusFilter == "locked" ? "selected" : "")>Đang khóa</!option>
+            </select>
+            <input type="text" name="searchString" class="search-box" placeholder="Tìm mã voucher..." value="@ViewBag.SearchString">
+            <button type="submit" class="btn btn-sm btn-danger"><i class="fa fa-search"></i></button>
+        </form>
+    </div>
+
+    <div class="bg-secondary rounded p-4">
+        <div class="table-responsive">
+            <table class="table table-dark-custom w-100">
+                <thead>
+                    <tr>
+                        <th>Mã Code</th>
+                        <th>Giảm giá</th>
+                        <th>Đơn tối thiểu</th>
+                        <th>SL (Tổng/Đã dùng)</th>
+                        <th>Hạn sử dụng</th>
+                        <th>Trạng thái</th>
+                        <th class="text-end">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        var isExpired = item.NgayKetThuc < DateTime.Now;
+                        var badgeClass = item.TrangThai ? (isExpired ? "v-expired" : "v-active") : "v-locked";
+                        var statusText = item.TrangThai ? (isExpired ? "Hết hạn" : "Đang chạy") : "Đang khóa";
+
+                        <tr>
+                            <td><strong class="text-white">@item.MaCode</strong><br><small>@item.MoTa</small></td>
+                            <td class="text-danger fw-bold">
+                                @(item.SoTienGiam > 0 ? item.SoTienGiam?.ToString("N0") + "đ" : item.PhanTramGiam + "%")
+                            </td>
+                            <td>@(item.DonHangToiThieu?.ToString("N0") ?? "0")đ</td>
+                            <td>
+                                <span class="text-white">@item.SoLuong</span> / <span class="text-muted">@item.SoLuongDaDung</span>
+                            </td>
+                            <td>
+                                @item.NgayBatDau.ToString("dd/MM") - @item.NgayKetThuc.ToString("dd/MM/yyyy")
+                            </td>
+                            <td><span class="v-badge @badgeClass">@statusText</span></td>
+                            <td class="text-end">
+                                <a asp-action="Edit" asp-route-id="@item.MaCode" class="btn btn-sm btn-outline-info me-1"><i class="fa fa-edit"></i></a>
+                                <button class="btn btn-sm btn-outline-warning me-1" onclick="toggleStatus('@item.MaCode')" title="Khóa/Mở"><i class="fa fa-lock"></i></button>
+                                <button class="btn btn-sm btn-outline-danger" onclick="deleteVoucher('@item.MaCode')"><i class="fa fa-trash"></i></button>
+                            </td>
+                            <td class="text-end">
+                                <button class="btn btn-sm btn-outline-light me-1" onclick="viewHistory('@item.MaCode')" title="Xem ai đã dùng">
+                                    <i class="fa fa-history"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        function deleteVoucher(id) {
+            Swal.fire({
+                title: 'Xóa voucher này?',
+                text: "Hành động này không thể hoàn tác!",
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#d33',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: 'Xóa luôn!',
+                background: '#262b36', color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/VoucherManager/Delete', { id: id }, function(res) {
+                        if(res.success) { location.reload(); }
+                        else { Swal.fire({ icon: 'error', title: 'Lỗi', text: res.message, background: '#262b36', color: '#fff' }); }
+                    });
+                }
+            })
+        }
+
+        function toggleStatus(id) {
+            $.post('/Admin/VoucherManager/ToggleStatus', { id: id }, function(res) {
+                if(res.success) location.reload();
+            });
+        }
+
+                function viewHistory(code) {
+            // Hiện popup loading
+            Swal.fire({ title: 'Đang tải...', didOpen: () => Swal.showLoading(), background: '#262b36', color: '#fff' });
+
+            $.get('/Admin/VoucherManager/GetUsageHistory?code=' + code, function(res) {
+                Swal.close(); // Tắt loading
+
+                // Tạo HTML danh sách
+                let html = `<table class="table table-dark table-bordered table-sm text-start">
+                                <thead><tr><th>Khách hàng</th><th>Ngày dùng</th><th>Đơn hàng</th></tr></thead>
+                                <tbody>`;
+
+                if (res.length > 0) {
+                    res.forEach(item => {
+                        html += `<tr>
+                                    <td>${item.tenKhach}</td>
+                                    <td>${item.ngayDung}</td>
+                                    <td><a href="/Admin/Order/Details/${item.maHd}" target="_blank">#${item.maHd}</a></td>
+                                 </tr>`;
+                    });
+                } else {
+                    html += `<tr><td colspan="3" class="text-center">Chưa có ai sử dụng mã này.</td></tr>`;
+                }
+                html += `</tbody></table>`;
+
+                // Hiện Popup kết quả
+                Swal.fire({
+                    title: `Lịch sử dùng mã ${code}`,
+                    html: html,
+                    width: '600px',
+                    background: '#262b36', color: '#fff',
+                    confirmButtonColor: '#EB1616'
+                });
+            });
+        }
+    </script>
+}
