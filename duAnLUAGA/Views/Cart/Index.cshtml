@@ -624,7 +624,7 @@
         <div class="cart-item" id="cart-item-@item.MaSp">
           <div class="item-left">
             <input type="checkbox" class="item-check" id="product-@item.MaSp" onchange="updateTotal()">
-            <img src="@(string.IsNullOrEmpty(item.HinhDaiDien) ? "~/img/no-image.png" : $"~/img/{item.HinhDaiDien}")" class="item-img" alt="@item.TenSanPham" asp-append-version="true">
+            <img src="@(string.IsNullOrEmpty(item.HinhDaiDien) ? "~/img/no-image.png" : $"~/image/{item.HinhDaiDien}")" class="item-img" alt="@item.TenSanPham" asp-append-version="true">
             <div class="item-info">
               <div class="item-name">@item.TenSanPham</div>
               <div class="item-variant">Phân Loại Hàng: @item.Variant</div>

@@ -28,7 +28,7 @@ namespace duAnLUAGA.Controllers
         public async Task<IActionResult> Index(string searchString, int? madm, decimal? min, decimal? max, string sortOrder)
         {
             var sanPhamsQuery = _context.Sanphams.AsQueryable();
-            sanPhamsQuery = sanPhamsQuery.Where(s => s.TrangThai == "Còn hàng");
+            sanPhamsQuery = sanPhamsQuery.Where(s => s.TrangThai == "Còn hàng" || s.TrangThai == "Hết Hàng");
 
 
             if (!string.IsNullOrEmpty(searchString))
@@ -75,6 +75,7 @@ namespace duAnLUAGA.Controllers
                     s.TacGia,
                     s.MaDm,
                     s.SoLuong,
+                    s.TrangThai,
                     GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam)
                 });
             var sanPhamsViewModel = await sanPhamsViewModelQuery.ToListAsync();

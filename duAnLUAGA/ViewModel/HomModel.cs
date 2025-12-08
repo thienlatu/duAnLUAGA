@@ -18,6 +18,7 @@ namespace duAnLUAGA.ViewModel
 
         public IEnumerable<Sanpham> SanPhamHotNhat { get; set; }
         public IEnumerable<Sanpham> SanPhamDeXuatNgauNhien { get; set; }
+        public BinhluanVM BinhLuan { get; set; } = new BinhluanVM();
         public decimal GiaSauGiam { get; set; }
     }
 }

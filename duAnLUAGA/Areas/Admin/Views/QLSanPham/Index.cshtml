@@ -1,0 +1,728 @@
+﻿@using System.Text.Json
+@using duAnLUAGA.ViewModel
+@model List<SanPham>
+
+@{
+    var totalProductsForDisplay = ViewBag.TotalFilteredItems ?? 0;
+    var stockProductsCount = ViewBag.StockProductsCount ?? 0;
+    var lowStockProductsCount = ViewBag.LowStockProductsCount ?? 0;
+    var stockRatioValue = ViewBag.StockRatio ?? 0m;
+}
+@{
+    var successMessage = TempData["SuccessMessage"] as string;
+    var errorMessage = TempData["ErrorMessage"] as string;
+}
+
+@if (!string.IsNullOrEmpty(successMessage))
+{
+    <div class="alert alert-success" style="padding: 15px; background: #28a745; color: white; border-radius: 8px; margin-bottom: 20px;">
+        @successMessage
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(errorMessage))
+{
+    <div class="alert alert-danger" style="padding: 15px; background: #dc3545; color: white; border-radius: 8px; margin-bottom: 20px;">
+        @errorMessage
+    </div>
+}
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0a0e1a;
+        color: #fff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .wrapper {
+        padding: 30px;
+        max-width: 1600px;
+        margin: 0 auto;
+    }
+
+    /* === STATISTICS CARDS === */
+    .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 20px;
+        margin-bottom: 40px;
+    }
+
+    .stat-card {
+        background: #1a1f2e;
+        border-radius: 12px;
+        padding: 24px;
+        display: flex;
+        align-items: center;
+        gap: 20px;
+        border: 1px solid #2a3142;
+    }
+
+    .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+    }
+
+        .stat-icon.red {
+            background: #dc3545;
+        }
+
+        .stat-icon.green {
+            background: #28a745;
+        }
+
+        .stat-icon.orange {
+            background: #fd7e14;
+        }
+
+        .stat-icon.blue {
+            background: #17a2b8;
+        }
+
+    .stat-info h3 {
+        color: #8b92a7;
+        font-size: 14px;
+        font-weight: 500;
+        margin-bottom: 8px;
+    }
+
+    .stat-info .number {
+        font-size: 28px;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    /* === HEADER SECTION === */
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+            .page-header h1::before {
+                content: "📦";
+                font-size: 32px;
+            }
+
+    .page-subtitle {
+        color: #8b92a7;
+        font-size: 14px;
+    }
+
+    /* === TOOLBAR === */
+    .toolbar {
+        background: #1a1f2e;
+        border-radius: 12px;
+        padding: 20px 24px;
+        margin-bottom: 24px;
+        border: 1px solid #2a3142;
+    }
+
+    .toolbar-top {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .toolbar-left {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+    }
+
+    .btn-add {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 14px;
+    }
+
+        .btn-add:hover {
+            background: #c82333;
+        }
+
+    .filter-section {
+        display: flex;
+        gap: 16px;
+        align-items: center;
+    }
+
+    .filter-label {
+        color: #8b92a7;
+        font-size: 14px;
+    }
+
+    .dropdown, .entries-dropdown {
+        background: #0a0e1a;
+        border: 1px solid #2a3142;
+        color: #fff;
+        padding: 8px 36px 8px 16px;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        appearance: none;
+        background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%238b92a7' d='M6 9L1 4h10z'/%3E%3C/svg%3E");
+        background-repeat: no-repeat;
+        background-position: right 12px center;
+    }
+
+    .entries-dropdown {
+        width: 80px;
+        padding-right: 28px;
+    }
+
+    .search-box {
+        display: flex;
+        align-items: center;
+        background: #0a0e1a;
+        border: 1px solid #2a3142;
+        border-radius: 8px;
+        padding: 8px 16px;
+        gap: 8px;
+        flex: 1;
+        max-width: 400px;
+    }
+
+        .search-box input {
+            background: none;
+            border: none;
+            color: #fff;
+            outline: none;
+            flex: 1;
+            font-size: 14px;
+        }
+
+            .search-box input::placeholder {
+                color: #5a6172;
+            }
+
+    /* === TABLE === */
+    .table-container {
+        background: #1a1f2e;
+        border-radius: 12px;
+        overflow: hidden;
+        border: 1px solid #2a3142;
+    }
+
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+
+    thead {
+        background: #0a0e1a;
+    }
+
+        thead th {
+            padding: 16px;
+            text-align: left;
+            font-weight: 600;
+            color: #8b92a7;
+            font-size: 13px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-bottom: 1px solid #2a3142;
+        }
+
+    tbody tr {
+        border-bottom: 1px solid #2a3142;
+        transition: background 0.2s;
+    }
+
+        tbody tr:hover {
+            background: #232838;
+        }
+
+    tbody td {
+        padding: 16px;
+        color: #fff;
+        font-size: 14px;
+        vertical-align: middle;
+    }
+
+    .product-info {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .product-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 8px;
+        background: #dc3545;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        flex-shrink: 0;
+    }
+
+    .product-img {
+        width: 70px;
+        height: 95px;
+        border-radius: 8px;
+        overflow: hidden;
+        flex-shrink: 0;
+    }
+
+        .product-img img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+    .badge {
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 12px;
+        font-weight: 600;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+    }
+
+        .badge::before {
+            content: "✓";
+            font-size: 14px;
+        }
+
+    .badge-stock {
+        background: rgba(40, 167, 69, 0.2);
+        color: #28a745;
+    }
+
+    .badge-low {
+        background: rgba(255, 193, 7, 0.2);
+        color: #ffc107;
+    }
+
+    .badge-danger {
+        background: rgba(220, 53, 69, 0.2);
+        color: #dc3545;
+    }
+
+        .badge-danger::before {
+            content: "⊗";
+        }
+
+    /* === ACTION BUTTONS === */
+    .actions {
+        display: flex;
+        gap: 8px;
+    }
+
+    .btn-action {
+        width: 36px;
+        height: 36px;
+        border-radius: 6px;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 16px;
+        transition: all 0.2s;
+    }
+
+    .btn-view {
+        background: #17a2b8;
+        color: white;
+    }
+
+        .btn-view:hover {
+            background: #138496;
+        }
+
+    .btn-edit {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-edit:hover {
+            background: #c82333;
+        }
+
+    .btn-disable {
+        background: #ffc107;
+        color: #000;
+    }
+
+        .btn-disable:hover {
+            background: #e0a800;
+        }
+
+    .btn-delete {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-delete:hover {
+            background: #c82333;
+        }
+
+        .btn-delete:disabled {
+            background: #555;
+            color: #aaa;
+            cursor: not-allowed;
+        }
+
+    /* === PAGINATION === */
+    .pagination {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 20px 24px;
+        background: #1a1f2e;
+        border-radius: 0 0 12px 12px;
+        border-top: 1px solid #2a3142;
+    }
+
+    .pagination-info {
+        color: #8b92a7;
+        font-size: 14px;
+    }
+
+    .pagination-buttons {
+        display: flex;
+        gap: 8px;
+    }
+
+    .page-btn {
+        padding: 8px 16px;
+        background: #0a0e1a;
+        border: 1px solid #2a3142;
+        color: #fff;
+        border-radius: 6px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: all 0.2s;
+    }
+
+        .page-btn:hover {
+            background: #2a3142;
+        }
+
+        .page-btn.active {
+            background: #dc3545;
+            border-color: #dc3545;
+        }
+
+        .page-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+</style>
+
+<div class="wrapper">
+
+    <!-- PAGE HEADER -->
+    <div class="page-header">
+        <h1>Danh sách Sản phẩm</h1>
+        <div class="page-subtitle">Quản lý thông tin sản phẩm của hệ thống</div>
+    </div>
+
+    <!-- STATISTICS CARDS -->
+    <div class="stats-grid">
+        <div class="stat-card">
+            <div class="stat-icon red">📦</div>
+            <div class="stat-info">
+                <h3>Tổng SP (Đã lọc)</h3>
+                <div class="number">@totalProductsForDisplay</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon green">✓</div>
+            <div class="stat-info">
+                <h3>Còn hàng</h3>
+                <div class="number">@stockProductsCount</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon orange">⊗</div>
+            <div class="stat-info">
+                <h3>Sắp hết/Ngừng bán</h3>
+                <div class="number">@lowStockProductsCount</div>
+            </div>
+        </div>
+
+        <div class="stat-card">
+            <div class="stat-icon blue">📊</div>
+            <div class="stat-info">
+                <h3>Tỷ lệ Còn hàng</h3>
+                <div class="number">@Math.Round(stockRatioValue, 0)%</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- TOOLBAR -->
+    <form asp-action="Index" method="get" id="searchForm">
+        <input type="hidden" name="page" value="@(ViewBag.CurrentPage ?? 1)" />
+        <div class="toolbar">
+            <div class="toolbar-top">
+                <div class="toolbar-left">
+                    <a asp-controller="QlSanPham" asp-action="Them" class="btn-add">＋ Thêm Sản phẩm</a>
+                </div>
+                <div class="search-box">
+                    <span>🔍</span>
+                    <input type="text" name="search" placeholder="Nhập tìm kiếm..." value="@ViewBag.CurrentSearch">
+                </div>
+            </div>
+
+            <div class="filter-section">
+                <span class="filter-label">Lọc theo trạng thái:</span>
+                <select class="dropdown" name="filter" id="filterOption">
+                    <option value="" selected="@(string.IsNullOrEmpty(ViewBag.CurrentFilter) ? "selected" : null)">Tất cả</option>
+                    <option value="Còn hàng" selected="@(ViewBag.CurrentFilter == "Còn hàng" ? "selected" : null)">Còn hàng</option>
+                    <option value="Sắp hết" selected="@(ViewBag.CurrentFilter == "Ngừng Bán" ? "selected" : null)">Ngừng Bán</option>
+                    <option value="Hết hàng" selected="@(ViewBag.CurrentFilter == "Hết hàng" ? "selected" : null)">Hết hàng</option>
+                </select>
+                <span class="filter-label">Sắp xếp:</span>
+                <select class="dropdown" name="sort" id="sortOption">
+
+                    <option value="MaSp_desc">Làm mới</option>
+
+                    <option value="TenSanPham_asc">Tên (A-Z)</option>
+
+                    <option value="Gia_desc">Giá (Cao đến Thấp)</option>
+
+                    <option value="Gia_asc">Giá (Thấp đến Cao)</option>
+
+                </select>
+            </div>
+        </div>
+    </form>
+
+    <!-- TABLE -->
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>Mã SP</th>
+                    <th>Hình ảnh</th>
+                    <th>Tên sản phẩm</th>
+                    <th>Tác giả</th>
+                    <th>NXB</th>
+                    <th>Năm XB</th>
+                    <th>Giá</th>
+                    <th>Giảm giá</th>
+                    <th>Số lượng</th>
+                    <th>Trạng thái</th>
+                    <th>Thao tác</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    var canDeleteStatus = ViewBag.CanDeleteStatus as Dictionary<int, bool>;
+
+                    foreach (var sanPham in Model)
+                    {
+                        var trangThaiClass = sanPham.TrangThai == "Còn hàng" ? "badge-stock" :
+                        (sanPham.TrangThai == "Sắp hết" ? "badge-low" : "badge-danger");
+
+                        bool allowDelete = false;
+                        if (canDeleteStatus != null && canDeleteStatus.ContainsKey(sanPham.MaSp))
+                        {
+                            allowDelete = canDeleteStatus[sanPham.MaSp];
+                        }
+
+                        <tr>
+                            <td><strong>#@sanPham.MaSp</strong></td>
+                            <td>
+                                <div class="product-img">
+                                    <img src="~/image/@sanPham.HinhDaiDien" alt="@sanPham.TenSanPham">
+                                </div>
+                            </td>
+                            <td>@sanPham.TenSanPham</td>
+                            <td>@(sanPham.TacGia ?? "-")</td>
+                            <td>@(sanPham.Nxb ?? "-")</td>
+                            <td>@(sanPham.NamXb?.ToString() ?? "-")</td>
+                            <td>@sanPham.Gia.ToString("N0") đ</td>
+                            <td>@sanPham.PhanTramGiam%</td>
+                            <td>@sanPham.SoLuong</td>
+                            <td>
+                                <span class="badge @trangThaiClass">@sanPham.TrangThai</span>
+                            </td>
+                            <td>
+                                <div class="actions">
+                                    <a asp-controller="QlSanPham" asp-action="XemCTSP" asp-route-id="@sanPham.MaSp"
+                                       class="btn-action btn-view" title="Xem">👁</a>
+
+                                    <a asp-controller="QlSanPham" asp-action="Sua" asp-route-id="@sanPham.MaSp"
+                                       class="btn-action btn-edit" title="Sửa">✎</a>
+
+                                    @if (allowDelete)
+                                    {
+                                        <form asp-controller="QlSanPham" asp-action="XacNhanXoa" asp-route-id="@sanPham.MaSp"
+                                              method="post" style="display: inline;"
+                                              onsubmit="return confirm('Bạn có chắc chắn muốn xóa sản phẩm \'@sanPham.TenSanPham\' không?');">
+                                            <button type="submit" class="btn-action btn-delete" title="Xóa">🗑</button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <button type="button" class="btn-action btn-delete" style="background: #555; color: #aaa; cursor: not-allowed;"
+                                                title="Không thể xóa"
+                                                onclick="alert('Sản phẩm này đã có giao dịch hoặc bình luận, không thể xóa!');">
+                                            🗑
+                                        </button>
+                                    }
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="11" style="text-align: center; padding: 40px; color: #8b92a7;">
+                            Không có sản phẩm nào được tìm thấy
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        @{
+
+            int totalFilteredItems = ViewBag.TotalFilteredItems ?? 0;
+            int currentPage = ViewBag.CurrentPage ?? 1;
+            int totalPages = ViewBag.TotalPages ?? 1;
+            int pageSize = ViewBag.PageSize ?? 5;
+            string currentSort = ViewBag.CurrentSort;
+            string currentSearch = ViewBag.CurrentSearch;
+
+            string currentFilter = Context.Request.Query["filter"].ToString();
+
+            int startItem = totalFilteredItems > 0 ? ((currentPage - 1) * pageSize) + 1 : 0;
+            int endItem = Math.Min(currentPage * pageSize, totalFilteredItems);
+        }
+        <div class="pagination">
+            <div class="pagination-info">
+                Hiển thị @startItem tới @endItem của @totalFilteredItems dữ liệu @* <-- Sửa phần hiển thị *@
+            </div>
+            <div class="pagination-buttons">
+
+                <a asp-action="Index"
+                   asp-route-page="@(currentPage - 1)"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-sort="@currentSort"
+                   asp-route-search="@currentSearch"
+                   asp-route-filter="@currentFilter"
+                   class="page-btn @(currentPage <= 1 ? "disabled" : "")"
+                   style="@(currentPage <= 1 ? "pointer-events: none; opacity: 0.5;" : "")">Trước</a>
+
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <a asp-action="Index"
+                       asp-route-page="@i"
+                       asp-route-pageSize="@pageSize"
+                       asp-route-sort="@currentSort"
+                       asp-route-search="@currentSearch"
+                       asp-route-filter="@currentFilter"
+                       class="page-btn @(i == currentPage ? "active" : "")">@i</a>
+                }
+
+                <a asp-action="Index"
+                   asp-route-page="@(currentPage + 1)"
+                   asp-route-pageSize="@pageSize"
+                   asp-route-sort="@currentSort"
+                   asp-route-search="@currentSearch"
+                   asp-route-filter="@currentFilter"
+                   class="page-btn @(currentPage >= totalPages ? "disabled" : "")"
+                   style="@(currentPage >= totalPages ? "pointer-events: none; opacity: 0.5;" : "")">Sau</a>
+
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const selectSortElement = document.getElementById('sortOption');
+        const filterElement = document.getElementById('filterOption'); // Đã thêm ID cho filter
+        const pageSizeElement = document.getElementById('pageSizeOption');
+        const searchForm = document.getElementById('searchForm');
+        const urlParams = new URLSearchParams(window.location.search);
+
+        const resetPageToFirst = () => {
+            const pageInput = searchForm.querySelector('input[name="page"]');
+            if(pageInput) pageInput.value = '1';
+        };
+
+        if (searchForm) {
+            const currentSort = urlParams.get('sort');
+            if (currentSort && selectSortElement) {
+                selectSortElement.value = currentSort;
+            }
+            if (selectSortElement) {
+                selectSortElement.addEventListener('change', function () {
+                    if (searchForm) {
+                        searchForm.submit();
+                    }
+                });
+            }
+
+            const currentFilter = urlParams.get('filter');
+            if (currentFilter && filterElement) {
+                filterElement.value = currentFilter;
+            }
+            if (filterElement) {
+                filterElement.addEventListener('change', function () {
+                    if (searchForm) {
+                        searchForm.submit();
+                    }
+                });
+            }
+            const currentPageSize = urlParams.get('pageSize');
+            if (currentPageSize && pageSizeElement) {
+                pageSizeElement.value = currentPageSize;
+            }
+            if (pageSizeElement) {
+                pageSizeElement.addEventListener('change', function () {
+                    const currentSort = selectSortElement ? selectSortElement.value : '';
+                    const currentFilter = filterElement ? filterElement.value : '';
+                    const currentSearch = document.querySelector('input[name="search"]').value;
+                    const newUrlParams = new URLSearchParams();
+
+                    if (currentSort) newUrlParams.set('sort', currentSort);
+                    if (currentSearch) newUrlParams.set('search', currentSearch);
+                    if (currentFilter) newUrlParams.set('filter', currentFilter);
+                    newUrlParams.set('pageSize', pageSizeElement.value);
+                    newUrlParams.set('page', '1');
+                    window.location.href = '@Url.Action("Index", "QLSanPham")' + '?' + newUrlParams.toString();
+                });
+            }
+            searchForm.addEventListener('submit', function (e) {
+                resetPageToFirst();
+            });
+        }
+    });
+</script>

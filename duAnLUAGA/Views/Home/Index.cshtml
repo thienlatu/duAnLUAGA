@@ -100,51 +100,65 @@
             {
                 bool coGiamGia = sanpham.PhanTramGiam > 0;
 
-                <div class="random-product-item">
-                    <a href="@Url.Action("Index", "ChiTSP", new { id = sanpham.MaSp })"
-                       class="random-product-card-link">
+                string hinhAnh = !string.IsNullOrEmpty(sanpham.HinhDaiDien)
+                ? sanpham.HinhDaiDien
+                : "https://placehold.co/300x450/f0f0f0/333?text=No+Image";
 
-                        <div class="random-product-card">
+                <div class="product-card">
+                    <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@sanpham.MaSp"
+                       class="card-link">
 
-                            <!-- Badge -->
-                            <span class="random-badge-recommend">ĐỀ XUẤT</span>
+                        <div class="card-img-wrapper">
+                            <img src="~/image/@hinhAnh"
+                                 alt="@ShortText(@sanpham.TenSanPham, 20)"
+                                 class="card-img" />
 
                             @if (coGiamGia)
                             {
-                                <span class="random-badge-discount">-@sanpham.PhanTramGiam%</span>
-                            }
-
-                            <!-- Hình ảnh -->
-                            <div class="random-img-wrapper">
-                                <img src="/image/@sanpham.HinhDaiDien"
-                                     alt="@sanpham.TenSanPham"
-                                     class="random-img">
-                            </div>
-
-                            <!-- Nội dung -->
-                            <div class="random-card-body">
-                                <h5 class="random-product-name">@sanpham.TenSanPham</h5>
-
-                                <div class="random-price-section">
-                                    @if (coGiamGia)
-                                    {
-                                        <p class="random-price-old">@sanpham.Gia.ToString("#,##0")₫</p>
-                                        <p class="random-price-new">@sanpham.GiaSauGiam.ToString("#,##0")₫</p>
-                                    }
-                                    else
-                                    {
-                                        <p class="random-price-new">@sanpham.Gia.ToString("#,##0")₫</p>
-                                    }
+                                <div class="badge-discount">
+                                    -@sanpham.PhanTramGiam%
                                 </div>
-
-                                <p class="random-author">
-                                    Tác giả: @(sanpham.TacGia ?? "Đang cập nhật")
-                                </p>
-                            </div>
-
+                            }
                         </div>
 
+                        <div class="card-info">
+                            <h3 class="card-name" title="@sanpham.TenSanPham">
+                                <span>@ShortText(@sanpham.TenSanPham, 20)</span>
+                            </h3>
+
+                            <div class="card-author">
+                                Tác giả: @(sanpham.TacGia ?? "Đang cập nhật")
+                            </div>
+
+                            <div class="card-price-group">
+                                @if (coGiamGia)
+                                {
+                                    <div class="price-current">
+                                        @sanpham.GiaSauGiam.ToString("#,##0")đ
+                                    </div>
+                                    <div class="price-old">
+                                        @sanpham.Gia.ToString("#,##0")đ
+                                    </div>
+                                }
+                                else
+                                {
+                                    <div class="price-current">
+                                        @sanpham.Gia.ToString("#,##0")đ
+                                    </div>
+                                }
+                            </div>
+
+                            
+                        </div>
                     </a>
+                    <div class="card-footer">
+                        <button class="btn-cart"
+                                type="button"
+                                data-masp="@sanpham.MaSp">
+                            <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
+                        </button>
+
+                    </div>
                 </div>
             }
         }
@@ -153,14 +167,16 @@
             <div class="random-empty-message">Không tìm thấy sản phẩm đề xuất nào.</div>
         }
     </div>
-    <div class="random-btn-more-container">
-        <a href="@Url.Action("Index", "SanPham")" class="random-btn-more">
-            Xem thêm sản phẩm
-            <i class="fa-solid fa-arrow-right"></i>
-        </a>
-    </div>
 </div>
 
+<div class="random-btn-more-container ">
+    <a href="@Url.Action("Index", "SanPham")" class="random-btn-more">
+        Xem thêm sản phẩm
+        <i class="fa-solid fa-arrow-right"></i>
+    </a>
+</div>
+<div style="margin-top: 50px;">
+</div>
 <style>
     /* Container chính */
     .random-section-wrapper {
@@ -191,6 +207,28 @@
         width: 100%;
     }
 
+    btn-cart {
+        width: 100%;
+        background: white;
+        border: 1px solid var(--primary-red);
+        color: var(--primary-red);
+        padding: 6px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: 8px;
+        transition: all 0.2s;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+    }
+
+    .btn-cart:hover {
+        background: var(--primary-red);
+        color: white;
+    }
     /* Card sản phẩm */
     .random-product-card {
         background: white;
@@ -350,25 +388,25 @@
     .random-btn-more {
         display: inline-flex;
         align-items: center;
+        border: 2px solid red;
         gap: 10px;
         padding: 15px 40px;
-        background: #C92127;
-        color: white;
+        background-color: white;
+        color: red;
         font-size: 16px;
         font-weight: 700;
         text-decoration: none;
-        border-radius: 50px;
-        box-shadow: 0 4px 15px rgba(201, 33, 39, 0.3);
-        transition: all 0.3s ease;
+        border-radius: 15px;
         text-transform: uppercase;
         letter-spacing: 0.5px;
+        box-shadow: none !important; /* ✔ XÓA BÓNG */
     }
 
         .random-btn-more:hover {
-            background: #a01a1f;
+            background: var(--primary-red);
             color: white;
             transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(201, 33, 39, 0.4);
+            box-shadow: none !important; /* ✔ XÓA BÓNG */
         }
 
         .random-btn-more i {
@@ -379,6 +417,7 @@
             transform: translateX(5px);
         }
 
+
     /* Message rỗng */
     .random-empty-message {
         grid-column: 1 / -1;
@@ -388,4 +427,13 @@
         padding: 40px;
     }
 </style>
+<script>
+    @functions {
+                            public string ShortText(string text, int length = 20)
+                            {
+                                                    if (string.IsNullOrEmpty(text)) return "";
+                                                    return text.Length > length ? text.Substring(0, length) + "..." : text;
+                            }
+    }
+</script>
 <script src="~/assets/js/banner.js"></script>

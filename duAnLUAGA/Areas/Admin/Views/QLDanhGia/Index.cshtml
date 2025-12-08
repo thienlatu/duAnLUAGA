@@ -1,5 +1,16 @@
-﻿@model duAnLUAGA.Areas.Admin.ViewModels.AdminVM
-
+﻿@using System.Text.Json
+@model duAnLUAGA.Areas.Admin.ViewModels.AdminVM
+@if (TempData["SuccessMessage"] != null)
+{
+    string message = TempData["SuccessMessage"].ToString();
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            // Sử dụng Json.Serialize để chuẩn hóa ký tự tiếng Việt
+            var successMessage = @Html.Raw(System.Text.Json.JsonSerializer.Serialize(message));
+            alert(successMessage);
+        });
+    </script>
+}
 <title>Quản lý bình luận</title>
 
 <style>
@@ -69,13 +80,18 @@
         padding: 6px 14px;
         border: none;
         border-radius: 4px;
-        background: #22c55e;
+        /* Đổi màu nền từ #22c55e (xanh lá) sang #007bff (xanh dương) */
+        background: #007bff;
         color: white;
         cursor: pointer;
         font-size: 13px;
         font-weight: bold;
     }
 
+        .btn-reply:hover {
+            background: #1d4ed8;
+            color: white;
+        }
     .thumb-img {
         width: 50px;
         height: 50px;
@@ -236,7 +252,7 @@
                        asp-action="PhanHoi"
                        asp-route-id="@item.Id"
                        class="btn-reply Sua">
-                        Phản hồi
+                        Viết
                     </a>
                 </td>
                 <td>
@@ -245,7 +261,7 @@
                        asp-action="Xoa"
                        asp-route-id="@item.Id"
                        class="btn btn-sm btn-danger
-                           ">
+                               ">
                         Xóa
                     </a>
                 </td>
@@ -315,11 +331,11 @@
 
 <script>
         @functions {
-                public string ShortText(string text, int length = 20)
-                {
-                            if (string.IsNullOrEmpty(text)) return "";
-                            return text.Length > length ? text.Substring(0, length) + "..." : text;
-                }
+                    public string ShortText(string text, int length = 20)
+                    {
+                                    if (string.IsNullOrEmpty(text)) return "";
+                                    return text.Length > length ? text.Substring(0, length) + "..." : text;
+                    }
     }
 
 </script>

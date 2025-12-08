@@ -85,6 +85,10 @@ namespace duAnLUAGA.Controllers
                 SanPhamChiTiet = sanpham,
                 DanhSachBinhLuan = danhSachBinhLuan,
                 DanhSachHinhAnh = DanhSachHinhAnh,
+                BinhLuan = new BinhluanVM
+                {
+                    MaSp = sanpham.MaSp
+                }
             };
             return View(viewModel);
         }
@@ -95,22 +99,54 @@ namespace duAnLUAGA.Controllers
         }
         [Authorize]
         [HttpPost]
-        public async Task<IActionResult> Them(BinhluanVM binhLuan, List<IFormFile>? HinhAnhFiles)
+        public async Task<IActionResult> Them([Bind(Prefix = "BinhLuan")] BinhluanVM binhLuan)
         {
             var userIdStr = User.FindFirst("UserId")?.Value;
             if (string.IsNullOrEmpty(userIdStr))
             {
                 TempData["ErrorMessage"] = "Bạn cần đăng nhập để gửi đánh giá.";
-                return RedirectToAction("Login", "TaiKhoan"); // đổi controller theo project của bạn
+                return RedirectToAction("Login", "TaiKhoan");
             }
 
             int makhachhang = int.Parse(userIdStr);
-            if (binhLuan.MaSp <= 0 || binhLuan.SoSao < 1 || binhLuan.SoSao > 5 || string.IsNullOrWhiteSpace(binhLuan.NoiDung))
+
+            // Validate đơn giản
+            bool hasError = false;
+
+            // lỗi số sao
+            if (binhLuan.SoSao < 1 || binhLuan.SoSao > 5)
+            {
+                TempData["ErrorSoSao"] = "Vui lòng chọn số sao từ 1 đến 5.";
+                hasError = true;
+            }
+
+            // lỗi nội dung
+            if (string.IsNullOrWhiteSpace(binhLuan.NoiDung))
+            {
+                TempData["ErrorNoiDung"] = "Nội dung đánh giá không được để trống.";
+                hasError = true;
+            }
+            else if (binhLuan.NoiDung.Length > 150)
+            {
+                TempData["ErrorNoiDung"] = "Nội dung đánh giá tối đa 150 ký tự.";
+                hasError = true;
+            }
+
+            // nếu có bất kỳ lỗi nào → quay lại trang
+            if (binhLuan.MaSp <= 0)
+            {
+                TempData["ErrorChung"] = "Sản phẩm không hợp lệ.";
+                hasError = true;
+            }
+
+            if (hasError)
             {
                 return RedirectToAction("Index", new { id = binhLuan.MaSp });
             }
+
+            // Xử lý ảnh (nếu có)
             string hinhAnhPaths = "null";
-            if (HinhAnhFiles != null && HinhAnhFiles.Count > 0)
+            if (binhLuan.HinhAnhFiles != null && binhLuan.HinhAnhFiles.Count > 0)
             {
                 var uploadPath = Path.Combine(_environment.WebRootPath, "images", "reviews");
 
@@ -121,25 +157,26 @@ namespace duAnLUAGA.Controllers
 
                 var uploadedPaths = new List<string>();
 
-                foreach (var file in HinhAnhFiles)
+                foreach (var file in binhLuan.HinhAnhFiles)
                 {
                     if (file.Length > 0)
                     {
-                        // Tạo tên file duy nhất
                         var fileName = Guid.NewGuid().ToString() + Path.GetExtension(file.FileName);
                         var filePath = Path.Combine(uploadPath, fileName);
 
-                        // Lưu file vật lý
                         using (var stream = new FileStream(filePath, FileMode.Create))
                         {
                             await file.CopyToAsync(stream);
                         }
 
-                        uploadedPaths.Add($"{fileName}");
+                        uploadedPaths.Add(fileName);
                     }
                 }
+
                 hinhAnhPaths = string.Join(",", uploadedPaths);
             }
+
+            // Tạo entity để lưu DB
             var danhGiaMoi = new Danhgium
             {
                 MaSp = binhLuan.MaSp,
@@ -155,13 +192,13 @@ namespace duAnLUAGA.Controllers
             {
                 _context.Add(danhGiaMoi);
                 await _context.SaveChangesAsync();
-
                 TempData["SuccessMessage"] = "Đánh giá của bạn đã được gửi thành công và đang chờ xét duyệt!";
             }
             catch (Exception)
             {
                 TempData["ErrorMessage"] = "Đã xảy ra lỗi khi gửi đánh giá. Vui lòng thử lại.";
             }
+
             return RedirectToAction("Index", new { id = binhLuan.MaSp });
         }
     }

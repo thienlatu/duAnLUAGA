@@ -15,18 +15,17 @@
 
             <!-- Id (hidden) -->
             <form asp-action="PhanHoi" method="post">
-                <div asp-validation-summary="All" class="text-danger"></div>
                 @Html.AntiForgeryToken()
                 <input type="hidden" asp-for="Id" />
 
                 <!-- Thông tin khách -->
                 <div class="mb-3">
-                    <label class="form-label"><b>Khách hàng: <p>@Model.MaKhNavigation?.HoVaTen</p></b></label>              
+                    <label class="form-label"><b>Khách hàng: <p>@Model.MaKhNavigation?.HoVaTen</p></b></label>
                 </div>
 
                 <!-- Thông tin sản phẩm -->
                 <div class="mb-3">
-                    <label class="form-label"><b>Sản phẩm:<p>@Model.MaSpNavigation?.TenSanPham</p></b></label>                    
+                    <label class="form-label"><b>Sản phẩm:<p>@Model.MaSpNavigation?.TenSanPham</p></b></label>
                 </div>
 
                 <!-- Nội dung đánh giá -->
@@ -64,6 +63,9 @@
                               rows="4"
                               class="form-control text-white"
                               placeholder="Nhập phản hồi tại đây..."></textarea>
+                    <span asp-validation-for="ShopPhanHoi" class="text-danger"></span>
+
+
                 </div>
 
                 <div class="text-end">
@@ -74,3 +76,6 @@
         </div>
     </div>
 </div>
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

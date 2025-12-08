@@ -1,0 +1,397 @@
+﻿@model duAnLUAGA.Areas.Admin.ViewModels.SanPhamUploadVM
+
+<style>
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+    }
+
+    body {
+        background: #0a0e1a;
+        color: #fff;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    .wrapper {
+        padding: 30px;
+        max-width: 1400px;
+        margin: 0 auto;
+    }
+
+    /* === HEADER === */
+    .page-header {
+        margin-bottom: 30px;
+    }
+
+        .page-header h1 {
+            font-size: 28px;
+            font-weight: 600;
+            margin-bottom: 8px;
+        }
+
+    .page-subtitle {
+        color: #8b92a7;
+        font-size: 14px;
+    }
+
+    .product-name {
+        color: #dc3545;
+        font-weight: 600;
+    }
+
+    /* === DETAIL CARD === */
+    .detail-card {
+        background: #1a1f2e;
+        border-radius: 12px;
+        border: 1px solid #2a3142;
+        padding: 30px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    }
+
+    .section-header {
+        margin-bottom: 24px;
+        padding-bottom: 16px;
+        border-bottom: 1px solid #2a3142;
+    }
+
+        .section-header h2 {
+            font-size: 20px;
+            font-weight: 600;
+            margin-bottom: 6px;
+            color: #fff;
+        }
+
+        .section-header p {
+            font-size: 13px;
+            color: #8b92a7;
+        }
+
+    /* === INFO GRID === */
+    .info-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 20px;
+        margin-bottom: 24px;
+    }
+
+    .info-item {
+        background: #0f1420;
+        border-radius: 8px;
+        padding: 16px;
+        border: 1px solid #2a3142;
+    }
+
+        .info-item.full-width {
+            grid-column: 1 / -1;
+        }
+
+    .info-label {
+        font-size: 13px;
+        color: #8b92a7;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    .info-value {
+        font-size: 15px;
+        color: #fff;
+        font-weight: 500;
+    }
+
+        .info-value.highlight {
+            color: #dc3545;
+            font-size: 18px;
+        }
+
+    /* === STATUS BADGE === */
+    .status-badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 14px;
+        border-radius: 6px;
+        font-size: 14px;
+        font-weight: 600;
+    }
+
+        .status-badge.stock {
+            background: rgba(40, 167, 69, 0.2);
+            color: #28a745;
+        }
+
+        .status-badge.low {
+            background: rgba(255, 193, 7, 0.2);
+            color: #ffc107;
+        }
+
+        .status-badge.out {
+            background: rgba(220, 53, 69, 0.2);
+            color: #dc3545;
+        }
+
+    /* === IMAGE SECTION === */
+    .image-section {
+        background: #0f1420;
+        border-radius: 8px;
+        padding: 20px;
+        border: 1px solid #2a3142;
+        margin-top: 24px;
+    }
+
+        .image-section h3 {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            color: #fff;
+        }
+
+    .image-preview-grid {
+        display: grid;
+        grid-template-columns: 2fr 3fr;
+        gap: 16px;
+    }
+
+    .preview-main {
+        background: #0a0e1a;
+        border-radius: 8px;
+        padding: 12px;
+        border: 1px solid #2a3142;
+    }
+
+        .preview-main img {
+            width: 100%;
+            height: 350px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #000;
+        }
+
+    .preview-sub {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 12px;
+    }
+
+    .preview-item {
+        background: #0a0e1a;
+        border-radius: 8px;
+        padding: 10px;
+        border: 1px solid #2a3142;
+    }
+
+        .preview-item img {
+            width: 100%;
+            height: 120px;
+            object-fit: cover;
+            border-radius: 6px;
+            background: #000;
+        }
+
+    .preview-label {
+        font-size: 12px;
+        color: #8b92a7;
+        margin-bottom: 8px;
+        font-weight: 500;
+    }
+
+    /* === BUTTONS === */
+    .form-actions {
+        display: flex;
+        gap: 12px;
+        justify-content: flex-end;
+        padding-top: 24px;
+        border-top: 1px solid #2a3142;
+        margin-top: 24px;
+    }
+
+    .btn {
+        padding: 10px 24px;
+        border-radius: 8px;
+        font-size: 14px;
+        font-weight: 600;
+        cursor: pointer;
+        border: none;
+        transition: all 0.2s;
+        text-decoration: none;
+        display: inline-block;
+    }
+
+    .btn-primary {
+        background: #dc3545;
+        color: white;
+    }
+
+        .btn-primary:hover {
+            background: #c82333;
+        }
+
+    .btn-secondary {
+        background: transparent;
+        border: 1px solid #2a3142;
+        color: #8b92a7;
+    }
+
+        .btn-secondary:hover {
+            background: #2a3142;
+        }
+
+   
+</style>
+
+<div class="wrapper">
+
+    <!-- HEADER -->
+    <div class="page-header">
+        <h1>👁️ Chi tiết sản phẩm</h1>
+        <div class="page-subtitle">
+            Thông tin chi tiết của sản phẩm: <span class="product-name">@Model.TenSanPham</span>
+        </div>
+    </div>
+
+    <!-- DETAIL CARD -->
+    <div class="detail-card">
+
+        <!-- THÔNG TIN CƠ BẢN -->
+        <div class="section-header">
+            <h2>📋 Thông tin cơ bản</h2>
+            <p>Các thông tin chính về sản phẩm</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Mã sản phẩm</div>
+                <div class="info-value">#@Model.MaSp</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Danh mục</div>
+                <div class="info-value">@ViewBag.TenDanhMuc</div>
+            </div>
+
+            <div class="info-item full-width">
+                <div class="info-label">Tên sản phẩm</div>
+                <div class="info-value highlight">@Model.TenSanPham</div>
+            </div>
+
+            <div class="info-item full-width">
+                <div class="info-label">Mô tả</div>
+                <div class="info-value">@(Model.Mota ?? "Chưa có mô tả")</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Giá bán</div>
+                <div class="info-value highlight">@Model.Gia.ToString("N0") đ</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Giảm giá</div>
+                <div class="info-value">@Model.PhanTramGiam%</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Số lượng tồn kho</div>
+                <div class="info-value">@Model.SoLuong</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Trạng thái</div>
+                @{
+                    var statusClass = Model.TrangThai == "Còn hàng" ? "stock" :
+                    (Model.TrangThai == "Sắp hết" ? "low" : "out");
+                    var statusIcon = Model.TrangThai == "Còn hàng" ? "✓" :
+                    (Model.TrangThai == "Sắp hết" ? "⚠" : "✗");
+                }
+                <div class="info-value">
+                    <span class="status-badge @statusClass">@statusIcon @Model.TrangThai</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- CHI TIẾT SẢN PHẨM -->
+        <div class="section-header" style="margin-top: 20px;">
+            <h2>📚 Chi tiết sản phẩm</h2>
+            <p>Thông tin bổ sung về sản phẩm</p>
+        </div>
+
+        <div class="info-grid">
+            <div class="info-item">
+                <div class="info-label">Tác giả</div>
+                <div class="info-value">@(Model.TacGia ?? "-")</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Nhà xuất bản</div>
+                <div class="info-value">@(Model.Nxb ?? "-")</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Năm xuất bản</div>
+                <div class="info-value">@(Model.NamXb?.ToString() ?? "-")</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Ngôn ngữ</div>
+                <div class="info-value">@(Model.NgonNgu ?? "-")</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Số trang</div>
+                <div class="info-value">@(Model.SoTrang?.ToString() ?? "-") trang</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Trọng lượng</div>
+                <div class="info-value">@(Model.TrongLuong?.ToString() ?? "-") gram</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Kích thước</div>
+                <div class="info-value">@(Model.KichThuoc ?? "-")</div>
+            </div>
+
+            <div class="info-item">
+                <div class="info-label">Hình thức</div>
+                <div class="info-value">@(Model.HinhThuc ?? "-")</div>
+            </div>
+        </div>
+
+        <!-- HÌNH ẢNH -->
+        <div class="image-section">
+            <h3>📷 Hình ảnh sản phẩm</h3>
+
+            <div class="image-preview-grid">
+                <div class="preview-main">
+                    <div class="preview-label">Ảnh chính</div>
+                    <img src="@ViewBag.AnhChinhUrl" alt="@Model.TenSanPham">
+                </div>
+                <div class="preview-sub">
+                    @{
+                        var anhPhuUrls = ViewBag.AnhPhuUrls as List<string>;
+                        for (int i = 0; i < 3; i++)
+                        {
+                            string url = (anhPhuUrls != null && i < anhPhuUrls.Count)
+                            ? anhPhuUrls[i]
+                            : "/image/placeholder.jpg";
+                            <div class="preview-item">
+                                <div class="preview-label">Ảnh phụ @(i + 1)</div>
+                                <img src="@url" alt="Ảnh phụ @(i + 1)">
+                            </div>
+                        }
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- ACTIONS -->
+        <div class="form-actions">
+            <a asp-action="Index" asp-controller="QLSanPham" class="btn btn-secondary">
+                ← Quay lại danh sách
+            </a>
+            <a asp-action="Sua" asp-controller="QLSanPham" asp-route-id="@Model.MaSp" class="btn btn-primary">
+                ✎ Chỉnh sửa sản phẩm
+            </a>
+        </div>
+    </div>
+
+</div>

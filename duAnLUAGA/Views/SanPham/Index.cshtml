@@ -558,7 +558,7 @@
                         <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@sanpham.MaSp" class="card-link">
 
                             <div class="card-img-wrapper">
-                                <img src="~/image/@hinhAnh" alt="@sanpham.TenSanPham" class="card-img">
+                                <img src="~/image/@hinhAnh" alt="@ShortText(@sanpham.TenSanPham, 20)" class="card-img">
 
                                 @if (coGiamGia)
                                 {
@@ -569,7 +569,7 @@
                             </div>
 
                             <div class="card-info">
-                                <h3 class="card-name" title="@sanpham.TenSanPham">@sanpham.TenSanPham</h3>
+                                <h3 class="card-name" title="@sanpham.TenSanPham"><span>@ShortText(@sanpham.TenSanPham, 20)</span></h3>
 
                                 <div class="card-author">Tác giả: @sanpham.TacGia</div>
 
@@ -592,10 +592,6 @@
                                 </div>
 
                                 <div class="card-footer">
-                                    <div class="rating">
-                                        <i class="fa-solid fa-star"></i> 5
-                                    </div>
-
                                 </div>
 
                             </div>
@@ -603,17 +599,17 @@
                         </a>
 
                         @* Nút giỏ hàng để dưới, không nằm trong <a> *@
-                        @if (sanpham.SoLuong > 0)
+                        @if (sanpham.SoLuong == 0 && sanpham.TrangThai == "Hết hàng")
+                        {
+                            <span class="text-danger">Hết hàng</span>
+                        }
+                        else
                         {
                             <button class="btn-cart"
                                     type="button"
                                     data-masp="@sanpham.MaSp">
                                 <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
                             </button>
-                        }
-                        else
-                        {
-                            <span class="text-danger">Hết hàng</span>
                         }
 
                     </div>
@@ -790,4 +786,11 @@
             updateView();
         });
     });
+    @functions {
+                        public string ShortText(string text, int length = 20)
+                        {
+                                            if (string.IsNullOrEmpty(text)) return "";
+                                            return text.Length > length ? text.Substring(0, length) + "..." : text;
+                        }
+    }
 </script>

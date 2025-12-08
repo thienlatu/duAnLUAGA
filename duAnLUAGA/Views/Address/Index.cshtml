@@ -605,7 +605,7 @@
                                 @foreach (var ct in donHang.Chitiethoadons)
                                 {
                                     <div class="order-item">
-                                        <img src="@(string.IsNullOrEmpty(ct.MaSpNavigation?.HinhDaiDien) ? "/img/no-image.png" : $"/img/{ct.MaSpNavigation.HinhDaiDien}")" class="item-img">
+                                        <img src="@(string.IsNullOrEmpty(ct.MaSpNavigation?.HinhDaiDien) ? "/img/no-image.png" : $"/image/{ct.MaSpNavigation.HinhDaiDien}")" class="item-img">
                                         <div class="item-info">
                                             <div class="item-name">@ct.MaSpNavigation?.TenSanPham</div>
                                             <div class="item-qty">x @ct.SoLuong</div>

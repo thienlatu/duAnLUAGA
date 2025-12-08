@@ -21,7 +21,7 @@
             <div class="lg:col-span-5 flex flex-col">
                 <div class="mb-4 relative group">
                     <img id="mainImage"
-                         src="/image/@sanpham.HinhDaiDien"
+                         src="~/image/@sanpham.HinhDaiDien"
                          alt="@sanpham.TenSanPham"
                          class="w-full h-auto object-contain max-h-[450px] mx-auto rounded-sm cursor-pointer border border-gray-200"
                          onclick="openMainImage()">
@@ -29,7 +29,7 @@
                 <div class="grid grid-cols-5 gap-2 mb-6 px-2">
                     <div class="cursor-pointer border border-fahasa-red rounded-sm p-1 active-thumb"
                          onclick="changeImage(this, '/image/@sanpham.HinhDaiDien')">
-                        <img src="/image/@sanpham.HinhDaiDien"
+                        <img src="~/image/@sanpham.HinhDaiDien"
                              class="w-full h-full object-cover"
                              alt="Ảnh đại diện @sanpham.TenSanPham">
                     </div>
@@ -42,11 +42,9 @@
                                  alt="">
                         </div>
                     }
-
-
                 </div>
 
-                @if (sanpham.SoLuong > 0)
+                @if (sanpham.SoLuong > 0 && sanpham.TrangThai != "Hết hàng")
                 {
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button id="btnAddToCartDetail"
@@ -62,22 +60,41 @@
                 }
                 else
                 {
-                    <span class="text-danger">Hết hàng</span>
+                    <span class="text-danger nnn">Hết hàng</span>
                 }
             </div>
 
             <div class="lg:col-span-7">
                 <h1 class="text-2xl font-medium text-gray-800 mb-2 leading-snug">@sanpham.TenSanPham</h1>
-                <div class="flex items-center gap-2 mb-4">
+                @{
+                    double rating = ViewBag.DiemTrungBinh ?? 0;  // Điểm trung bình ví dụ: 4.6, 2.5
+                    int total = Model.DanhSachBinhLuan?.Count() ?? 0;
+
+                    int fullStars = (int)rating;                      // số sao đầy
+                    bool halfStar = (rating - fullStars) >= 0.5;      // có sao rưỡi hay không
+                    int emptyStars = 5 - fullStars - (halfStar ? 1 : 0);
+                }
+                <div class="flex items-center gap-2 mb-4 cursor-pointer"
+                     onclick="scrollToRating()">
+
                     <div class="flex text-yellow-400 text-sm">
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
-                        <i class="fa-solid fa-star"></i>
+                        @for (int i = 0; i < fullStars; i++)
+                        {
+                            <i class="fa-solid fa-star"></i>
+                        }
+
+                        @if (halfStar)
+                        {
+                            <i class="fa-solid fa-star-half-stroke"></i>
+                        }
+
+                        @for (int i = 0; i < emptyStars; i++)
+                        {
+                            <i class="fa-regular fa-star"></i>
+                        }
                     </div>
-                    <span class="text-yellow-500 text-sm font-medium">(@(Model.DanhSachBinhLuan?.Count() ?? 0) đánh giá)</span>
-                    <span class="text-gray-300">|</span>
+
+                    <span class="text-yellow-500 text-sm font-medium">(@total đánh giá)</span>
                 </div>
                 <div class="flex flex-wrap gap-y-1 text-sm text-gray-600 mb-4">
                     <div class="mr-4">Nhà cung cấp: <span class="text-blue-600 font-medium">@(sanpham.MaDmNavigation.TenDanhMuc)</span></div>
@@ -148,7 +165,7 @@
         </div>
     }
 
-    <div class="bg-white rounded-lg shadow-sm p-6 mt-4">
+    <div id="ratingSection" class="bg-white rounded-lg shadow-sm p-6 mt-4">
         <div class="rv-wrapper">
             <h1 class="rv-title">Đánh giá sản phẩm</h1>
 
@@ -276,63 +293,127 @@
     </div>
 </div>
 
-<div id="reviewModal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+<div id="reviewModal" class="fixed inset-0 z-50 hidden bg-black bg-opacity-50 flex items-center justify-center">
     <div class="bg-white w-full max-w-lg rounded-lg p-6 relative shadow-xl">
-        <button onclick="closeModal()"
-                type="button"
-                class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">
-            &times;
-        </button>
+
+        <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
+
         <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Viết đánh giá sản phẩm</h3>
+
+        @* ALERT thành công *@
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <script>
+                window.onload = function () {
+                    var msg = '@Html.Raw(TempData["SuccessMessage"])';
+                    alert(msg);
+                };
+            </script>
+        }
+
+        @* Lỗi chung khác (nếu có) *@
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="text-red-500 text-sm mb-2">
+                @TempData["ErrorMessage"]
+            </div>
+        }
 
         <form asp-controller="ChiTSP"
               asp-action="Them"
               method="post"
               enctype="multipart/form-data">
-            <input type="hidden" name="MaSp" value="@(Model.SanPhamChiTiet?.MaSp ?? 0)">
 
+            <!-- Mã sản phẩm -->
+            <input asp-for="BinhLuan.MaSp" type="hidden" value="@Model.SanPhamChiTiet.MaSp" />
+
+            <!-- SỐ SAO -->
             <div class="mb-4 text-center">
                 <p class="text-sm text-gray-600 mb-2">Bạn thấy sản phẩm thế nào?</p>
-                <div id="starRating" class="flex justify-center gap-2 text-3xl text-gray-300 cursor-pointer">
-                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="1"></i>
-                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="2"></i>
-                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="3"></i>
-                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="4"></i>
-                    <i class="fa-solid fa-star hover:text-yellow-400 transition" data-value="5"></i>
+
+                <div id="starRating" class="flex justify-center gap-2 text-3xl cursor-pointer">
+                    <i class="fa-solid fa-star text-gray-300" data-value="1"></i>
+                    <i class="fa-solid fa-star text-gray-300" data-value="2"></i>
+                    <i class="fa-solid fa-star text-gray-300" data-value="3"></i>
+                    <i class="fa-solid fa-star text-gray-300" data-value="4"></i>
+                    <i class="fa-solid fa-star text-gray-300" data-value="5"></i>
                 </div>
-                <input type="hidden" id="ratingValue" name="SoSao" value="0">
+
+                <!-- binding SoSao -->
+                <input asp-for="BinhLuan.SoSao" type="hidden" id="ratingValue" />
+                <span asp-validation-for="BinhLuan.SoSao" class="text-red-500 text-xs"></span>
+
+                @* Lỗi số sao từ TempData – hiện đúng dưới sao *@
+                @if (TempData["ErrorSoSao"] != null)
+                {
+                    <div class="text-red-500 text-xs mt-1">
+                        @TempData["ErrorSoSao"]
+                    </div>
+
+                    <script>
+                        window.addEventListener('load', function () {
+                            if (typeof openModal === 'function') {
+                                openModal();
+                            }
+                        });
+                    </script>
+                }
             </div>
 
+            <!-- NỘI DUNG -->
             <div class="mb-4">
-                <textarea id="reviewText" name="NoiDung" rows="4"
-                          class="w-full border border-gray-300 rounded p-3 focus:outline-none focus:border-blue-500 resize-none"
-                          placeholder="Hãy chia sẻ cảm nhận của bạn về sản phẩm..."></textarea>
+                <textarea asp-for="BinhLuan.NoiDung"
+                          rows="4"
+                          class="w-full border border-gray-300 rounded p-3"
+                          placeholder="Hãy chia sẻ cảm nhận của bạn..."></textarea>
+
+                <span asp-validation-for="BinhLuan.NoiDung" class="text-red-500 text-xs"></span>
+
+                @* Lỗi nội dung từ TempData – hiện ngay dưới textarea *@
+                @if (TempData["ErrorNoiDung"] != null)
+                {
+                    <div class="text-red-500 text-xs mt-1">
+                        @TempData["ErrorNoiDung"]
+                    </div>
+
+                    <script>
+                        window.addEventListener('load', function () {
+                            if (typeof openModal === 'function') {
+                                openModal();
+                            }
+                        });
+                    </script>
+                }
             </div>
 
+            <!-- HÌNH ẢNH -->
             <div class="mb-6">
-                <label class="block text-sm font-medium text-gray-700 mb-2">Thêm hình ảnh (tối đa 1)</label>
-                <div class="flex gap-2">
-                    <label class="w-16 h-16 border-2 border-dashed border-gray-300 rounded flex items-center justify-center text-gray-400 cursor-pointer hover:border-blue-500 hover:text-blue-500 transition">
-                        <i class="fa-solid fa-camera"></i>
-                        <input type="file" class="hidden" id="imageUpload" accept="image/*"
-                               name="HinhAnhFiles" onchange="handleImageUpload(this)">
-                    </label>
-                    <div id="imagePreview" class="flex gap-2"></div>
-                </div>
-                <p id="uploadError" class="text-red-500 text-xs mt-1 hidden">Chỉ được chọn tối đa 1 ảnh.</p>
+                <label class="block text-sm font-medium mb-2">Thêm hình ảnh (không bắt buộc)</label>
+
+                <input asp-for="BinhLuan.HinhAnhFiles"
+                       type="file"
+                       accept="image/*"
+                       class="block w-full"
+                       onchange="previewSelectedImage(this)" />
+
+                <span asp-validation-for="BinhLuan.HinhAnhFiles" class="text-red-500 text-xs"></span>
+
+                <!-- Preview hiện ở đây -->
+                <div id="imagePreview" class="mt-2"></div>
             </div>
 
             <div class="flex justify-end gap-3">
-                <button onclick="closeModal()" type="button" class="px-4 py-2 border rounded text-gray-600 hover:bg-gray-50">Hủy bỏ</button>
-
-                <button type="submit"
-                        class="px-6 py-2 bg-fahasa-red text-white rounded font-bold hover:bg-red-700">
+                <button type="button" onclick="closeModal()" class="px-4 py-2 border rounded">
+                    Hủy bỏ
+                </button>
+                <button type="submit" class="px-6 py-2 bg-red-600 text-white rounded">
                     Gửi đánh giá
                 </button>
             </div>
         </form>
     </div>
 </div>
+
 
 <div id="imageLightbox"
      class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-90 transition-opacity duration-300"
@@ -351,6 +432,31 @@
     </div>
 </div>
 @section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+
+    <script>
+        // mở modal lại khi có lỗi
+        window.addEventListener('load', () => {
+            if ('@ViewBag.OpenReviewModal' === 'True') {
+                openModal();
+            }
+        });
+
+        // chọn sao
+        document.querySelectorAll('#starRating i').forEach(star => {
+            star.addEventListener('click', function () {
+                let value = this.dataset.value;
+
+                document.getElementById('ratingValue').value = value;
+
+                document.querySelectorAll('#starRating i').forEach((s, i) => {
+                    if (i < value) s.classList.add('text-yellow-400');
+                    else s.classList.remove('text-yellow-400');
+                });
+            });
+        });
+    </script>
+
     <script>
         // JS cho tăng giảm số lượng
         function updateQty(change) {
@@ -397,6 +503,8 @@
             }
         });
 
+
+
         // Logic xử lý upload ảnh (Giữ nguyên)
         function handleImageUpload(input) {
             const files = input.files;
@@ -423,6 +531,8 @@
                 reader.readAsDataURL(file);
             });
         }
+
+
         // Hàm mở Lightbox
         function openLightbox(imageUrl) {
             const lightbox = document.getElementById('imageLightbox');
@@ -438,6 +548,21 @@
             const lightbox = document.getElementById('imageLightbox');
             lightbox.classList.add('hidden'); // Ẩn modal
             document.body.style.overflow = ''; // Cho phép cuộn lại
+        }
+            function previewSelectedImage(input) {
+            const preview = document.getElementById("imagePreview");
+            preview.innerHTML = ""; // Xóa preview cũ
+
+            if (input.files && input.files[0]) {
+                const file = input.files[0];
+
+                // Tạo thẻ ảnh nhỏ
+                const img = document.createElement("img");
+                img.src = URL.createObjectURL(file);
+                img.className = "w-20 h-20 object-cover rounded border";
+
+                preview.appendChild(img);
+            }
         }
     </script>
 }
@@ -578,6 +703,12 @@
                 });
             });
         });
+        function scrollToRating() {
+        const target = document.getElementById("ratingSection");
+        if (target) {
+            target.scrollIntoView({ behavior: "smooth" });
+        }
+    }
 </script>
 <style>
     .rv-stars {
@@ -682,4 +813,7 @@
             border-color: #C92127;
         }
 
+    .nnn {
+        font-size: 20px;
+    }
 </style>

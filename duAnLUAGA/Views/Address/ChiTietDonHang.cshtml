@@ -7,7 +7,7 @@
     // Lấy thông tin User từ Model để hiển thị Sidebar
     var avatarSrc = !string.IsNullOrEmpty(Model.MaKhNavigation?.HinhAnh)
                     ? $"/img/{Model.MaKhNavigation.HinhAnh}"
-                    : "/img/avatar.png";
+                    : "/image/avatar.png";
     var fullName = Model.MaKhNavigation?.HoVaTen ?? "Thành viên";
 }
 

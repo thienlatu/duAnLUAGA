@@ -12,11 +12,11 @@ namespace duAnLUAGA.Areas.Admin.Controllers
     public class QLDanhGiaController : Controller
     {
         private readonly DuanLuagaContext _context;
-       
+
         public QLDanhGiaController(DuanLuagaContext context)
         {
             _context = context;
-            
+
         }
 
         public IActionResult Index(int page = 1, string keyword = null, string sort = null)
@@ -92,24 +92,41 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             if (danhGia == null)
                 return NotFound();
 
-            return View("CTDanhGia",danhGia);
+            return View("CTDanhGia", danhGia);
         }
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> PhanHoi(Danhgium model) // bỏ [Bind] luôn
+        public async Task<IActionResult> PhanHoi(Danhgium model)
         {
+            if (string.IsNullOrWhiteSpace(model.ShopPhanHoi))
+            {
+                ModelState.AddModelError("ShopPhanHoi", "Phản hồi không được để trống.");
+            }
+            ModelState.Remove(nameof(Danhgium.MaKhNavigation));
+            ModelState.Remove(nameof(Danhgium.MaSpNavigation));
+
+            if (!ModelState.IsValid)
+            {
+                var danhGia = await _context.Danhgia
+                    .Include(x => x.MaKhNavigation)
+                    .Include(x => x.MaSpNavigation)
+                    .FirstOrDefaultAsync(x => x.Id == model.Id);
+
+                return View("CTDanhGia", danhGia);
+            }
             var entity = await _context.Danhgia.FirstOrDefaultAsync(x => x.Id == model.Id);
-            if (entity == null)
-                return NotFound();
+            if (entity == null) return NotFound();
 
             entity.ShopPhanHoi = model.ShopPhanHoi;
             entity.TrangThai = model.TrangThai;
             entity.NgayPhanHoi = DateTime.Now;
 
             await _context.SaveChangesAsync();
-
+            TempData["SuccessMessage"] = "Đã gửi phản hồi đánh giá thành công!";
             return RedirectToAction(nameof(Index));
         }
+
+
         [HttpGet]
         public async Task<IActionResult> Xoa(int id)
         {
@@ -137,7 +154,7 @@ namespace duAnLUAGA.Areas.Admin.Controllers
 
             _context.Danhgia.Remove(danhGia);
             await _context.SaveChangesAsync();
-
+            TempData["SuccessMessage"] = "Đã xóa đánh giá thành công!";
             return RedirectToAction(nameof(Index));
         }
 
