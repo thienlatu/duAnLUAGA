@@ -36,19 +36,48 @@ namespace duAnLUAGA.Controllers
             {
                 return NotFound();
             }
+
             var sanpham = await _context.Sanphams
-
                 .Include(s => s.MaDmNavigation)
-
                 .Include(s => s.Hinhanhs)
-
                 .FirstOrDefaultAsync(m => m.MaSp == id);
+
             if (sanpham == null)
             {
                 return NotFound();
             }
-            decimal giaSauGiam = GiamGia(sanpham.Gia, sanpham.PhanTramGiam);
-            ViewBag.GiaSauGiam = giaSauGiam;
+
+            // --- LOGIC MỚI: KIỂM TRA FLASH SALE ---
+            var flashSaleItem = await _context.Flashsaleitems
+     .Include(f => f.IdflsNavigation)
+     .Where(f => f.MaSp == id
+                 && f.IdflsNavigation.TrangThai == true
+                 && f.IdflsNavigation.NgayBatDau <= DateTime.Now
+                 && f.IdflsNavigation.NgayKetThuc >= DateTime.Now)
+     .OrderByDescending(f => f.IdflsNavigation.NgayBatDau)
+     .FirstOrDefaultAsync();
+
+            // [QUAN TRỌNG] Thêm điều kiện: Phải còn số lượng Sale (SoLuong > DaBan)
+            if (flashSaleItem != null && (flashSaleItem.SoLuong - flashSaleItem.SoLuongDaBan) > 0)
+            {
+                // CÒN SUẤT SALE -> HIỂN THỊ GIÁ SALE
+                int phanTramFs = (int)flashSaleItem.PhanTramGiam;
+                ViewBag.GiaSauGiam = GiamGia(sanpham.Gia, phanTramFs);
+                ViewBag.PhanTramGiam = phanTramFs;
+                ViewBag.IsFlashSale = true;
+                ViewBag.FlashSaleEndTime = flashSaleItem.IdflsNavigation.NgayKetThuc;
+
+                // Truyền thêm số lượng còn lại để View hiển thị (nếu cần)
+                ViewBag.StockFlashSale = flashSaleItem.SoLuong - flashSaleItem.SoLuongDaBan;
+            }
+            else
+            {
+                // HẾT SUẤT SALE HOẶC KHÔNG CÓ SALE -> VỀ GIÁ GỐC
+                ViewBag.GiaSauGiam = GiamGia(sanpham.Gia, sanpham.PhanTramGiam);
+                ViewBag.PhanTramGiam = sanpham.PhanTramGiam;
+                ViewBag.IsFlashSale = false; // Tắt cờ Flash Sale -> View sẽ tự ẩn Badge
+            }
+            // --------------------------------------
 
             var DanhSachHinhAnh = await _context.Hinhanhs
                 .Where(ha => ha.MaSp == id)
@@ -61,6 +90,7 @@ namespace duAnLUAGA.Controllers
                 .Where(bl => bl.TrangThai == true)
                 .OrderByDescending(bl => bl.NgayDanhGia)
                 .ToListAsync();
+
             double diemTrungBinh = 0;
             int tongSoDanhGia = danhSachBinhLuan.Count;
 
@@ -80,15 +110,12 @@ namespace duAnLUAGA.Controllers
             ViewBag.DiemTrungBinh = diemTrungBinh;
             ViewBag.TongSoDanhGia = tongSoDanhGia;
             ViewBag.StarCount = starCount;
+
             var viewModel = new HomModel
             {
                 SanPhamChiTiet = sanpham,
                 DanhSachBinhLuan = danhSachBinhLuan,
                 DanhSachHinhAnh = DanhSachHinhAnh,
-                BinhLuan = new BinhluanVM
-                {
-                    MaSp = sanpham.MaSp
-                }
             };
             return View(viewModel);
         }

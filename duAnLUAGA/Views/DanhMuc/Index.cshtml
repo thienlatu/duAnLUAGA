@@ -1,0 +1,303 @@
+﻿@model duAnLUAGA.ViewModel.HomModel
+
+@{
+    ViewData["Title"] = ViewBag.TenDanhMuc;
+    Layout = "~/Views/Shared/_Layout.cshtml";
+
+    // Ép kiểu dynamic để nhận diện được các thuộc tính của Object ẩn danh (GiaSauGiam, v.v.)
+    var listSanPham = ViewBag.DanhSachSanPhamHienThi as IEnumerable<dynamic>;
+}
+
+<style>
+    :root {
+        --primary-red: #C92127;
+        --bg-white: #ffffff;
+        --text-dark: #333;
+    }
+
+    .product-grid {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 15px;
+        margin-top: 20px;
+    }
+
+    .product-card {
+        background: var(--bg-white);
+        border-radius: 8px;
+        padding: 12px;
+        position: relative;
+        transition: transform 0.2s, box-shadow 0.2s;
+        border: 1px solid #eee;
+        display: flex;
+        flex-direction: column;
+        height: 100%;
+        overflow: hidden;
+    }
+
+        .product-card:hover {
+            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
+            transform: translateY(-2px);
+            border-color: var(--primary-red);
+        }
+
+    .card-img-wrapper {
+        height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        margin-bottom: 10px;
+    }
+
+    .card-img {
+        max-height: 100%;
+        max-width: 100%;
+        object-fit: contain;
+        transition: transform 0.3s;
+    }
+
+    .product-card:hover .card-img {
+        transform: scale(1.05);
+    }
+
+    .badge-discount {
+        position: absolute;
+        top: 0;
+        left: 0;
+        background: var(--primary-red);
+        color: white;
+        font-size: 11px;
+        padding: 3px 8px;
+        border-bottom-right-radius: 8px;
+        font-weight: bold;
+        z-index: 2;
+    }
+
+    .card-name {
+        font-size: 14px;
+        font-weight: 500;
+        color: var(--text-dark);
+        margin-bottom: 5px;
+        line-height: 1.4;
+        display: -webkit-box;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 40px;
+        text-decoration: none;
+    }
+
+    .product-card:hover .card-name {
+        color: var(--primary-red);
+    }
+
+    .card-price-group {
+        margin-bottom: 8px;
+        display: flex;
+        align-items: baseline;
+        gap: 8px;
+    }
+
+    .price-current {
+        color: var(--primary-red);
+        font-size: 16px;
+        font-weight: 700;
+    }
+
+    .price-old {
+        font-size: 12px;
+        color: #999;
+        text-decoration: line-through;
+    }
+
+    .btn-cart {
+        width: 100%;
+        background: white;
+        border: 1px solid var(--primary-red);
+        color: var(--primary-red);
+        padding: 6px;
+        border-radius: 4px;
+        font-weight: 500;
+        font-size: 13px;
+        cursor: pointer;
+        margin-top: auto;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        transition: 0.2s;
+    }
+
+        .btn-cart:hover {
+            background: var(--primary-red);
+            color: white;
+        }
+
+    @@media (max-width: 768px) {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+    }
+</style>
+
+<div class="container py-4">
+    <div class="page-header-luxury mb-4">
+        <nav class="breadcrumb-nav">
+            <a asp-controller="Home" asp-action="Index" class="breadcrumb-link">
+                <i class="fa-solid fa-house"></i> TRANG CHỦ
+            </a>
+            <span class="separator">/</span>
+            <span class="breadcrumb-current">@ViewBag.TenDanhMuc</span>
+        </nav>
+
+    </div>
+
+    <style>
+        /* Container chính */
+        .page-header-luxury {
+            background: #ffffff;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f0f0f0; /* Đường viền xám mờ rất nhẹ */
+            margin-top: 10px;
+        }
+
+        /* 1. Breadcrumb (Thanh điều hướng nhỏ) */
+        .breadcrumb-nav {
+            font-size: 12px;
+            font-weight: 500;
+            letter-spacing: 1px; /* Giãn chữ ra nhìn sang hơn */
+            margin-bottom: 10px;
+            color: #888;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .breadcrumb-link {
+            text-decoration: none;
+            color: #999;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+            /* Hiệu ứng Hover: Chuyển màu Đỏ */
+            .breadcrumb-link:hover {
+                color: #C92127; /* Đỏ chủ đạo */
+                transform: translateX(3px); /* Trượt nhẹ sang phải */
+            }
+
+        .separator {
+            color: #ddd;
+            font-weight: 300;
+        }
+
+        .breadcrumb-current {
+            color: #C92127; /* Màu đỏ cho trang hiện tại */
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+        /* 2. Tiêu đề chính (Main Title) */
+        .title-wrapper {
+            position: relative;
+            display: inline-block;
+        }
+
+        .main-title {
+            color: #212529; /* Đen nhạt sang trọng */
+            font-size: 32px;
+            font-weight: 800; /* Rất đậm */
+            text-transform: uppercase;
+            margin: 0;
+            letter-spacing: -0.5px;
+            line-height: 1.2;
+        }
+
+        /* 3. Đường kẻ đỏ (Điểm nhấn Luxury) */
+        .red-line {
+            width: 40px; /* Ngắn thôi mới tinh tế */
+            height: 4px;
+            background-color: #C92127;
+            margin-top: 8px;
+            border-radius: 2px;
+            transition: width 0.3s ease;
+        }
+
+        /* Khi di chuột vào tiêu đề, đường kẻ dài ra một chút */
+        .title-wrapper:hover .red-line {
+            width: 100%;
+        }
+    </style>
+
+    @if (listSanPham != null && listSanPham.Any())
+    {
+        <div class="product-grid">
+            @foreach (var item in listSanPham)
+            {
+                // Vì dùng dynamic nên ta truy cập thẳng thuộc tính
+                bool coGiamGia = item.PhanTramGiam > 0;
+                string hinhAnh = item.HinhDaiDien ?? "no-image.jpg";
+
+                <div class="product-card">
+                    <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@item.MaSp" title="@item.TenSanPham">
+                        <div class="card-img-wrapper">
+                            <img src="~/image/@hinhAnh" alt="@item.TenSanPham" class="card-img">
+                            @if (coGiamGia)
+                            {
+                                <div class="badge-discount">-@item.PhanTramGiam%</div>
+                            }
+                        </div>
+
+                        <div class="card-info">
+                            <h3 class="card-name">@ShortText(item.TenSanPham, 45)</h3>
+
+                            <div class="card-author" style="font-size:12px; color:#777; margin-bottom:5px;">
+                                Tác giả: @(item.TacGia ?? "Đang cập nhật")
+                            </div>
+
+                            <div class="card-price-group">
+                                @if (coGiamGia)
+                                {
+                                    <div class="price-current">@item.GiaSauGiam.ToString("#,##0")đ</div>
+                                    <div class="price-old">@item.Gia.ToString("#,##0")đ</div>
+                                }
+                                else
+                                {
+                                    <div class="price-current">@item.Gia.ToString("#,##0")đ</div>
+                                }
+                            </div>
+                        </div>
+                    </a>
+
+                    @if (item.SoLuong == 0 || item.TrangThai == "Hết hàng")
+                    {
+                        <div class="text-danger text-center fw-bold mt-2" style="font-size: 13px;">Tạm hết hàng</div>
+                    }
+                    else
+                    {
+                        <button class="btn-cart add-to-cart" data-masp="@item.MaSp">
+                            <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
+                        </button>
+                    }
+                </div>
+            }
+        </div>
+    }
+    else
+    {
+        <div class="text-center py-5">
+            <h4 class="text-muted">Chưa có sản phẩm nào trong danh mục này!</h4>
+            <a href="/" class="btn btn-outline-danger mt-3">Về trang chủ</a>
+        </div>
+    }
+</div>
+
+@functions {
+    public string ShortText(string text, int length)
+    {
+        if (string.IsNullOrEmpty(text)) return "";
+        return text.Length > length ? text.Substring(0, length) + "..." : text;
+    }
+}

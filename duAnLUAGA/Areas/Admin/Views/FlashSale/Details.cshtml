@@ -1,0 +1,288 @@
+﻿@model duAnLUAGA.Domain.Entitie.Flashsale
+
+@{
+    ViewData["Title"] = "Chi tiết chiến dịch";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    :root {
+        --bg-dark: #121212;
+        --card-bg: #1e1e1e;
+        --accent-red: #e50914;
+        --text-white: #e5e5e5;
+        --border-color: #333;
+    }
+
+    body {
+        background-color: var(--bg-dark) !important;
+        color: var(--text-white);
+    }
+
+    .luxury-card {
+        background-color: var(--card-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .luxury-header {
+        border-left: 4px solid var(--accent-red);
+        padding-left: 15px;
+        color: var(--text-white);
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    /* Box thông tin nhỏ */
+    .info-box {
+        background: #252525;
+        padding: 20px;
+        border-radius: 6px;
+        border: 1px solid #333;
+        text-align: center;
+        height: 100%;
+        transition: 0.3s;
+    }
+
+        .info-box:hover {
+            border-color: var(--accent-red);
+            transform: translateY(-3px);
+        }
+
+    .info-label {
+        font-size: 0.75rem;
+        color: #888;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 8px;
+    }
+
+    .info-value {
+        font-size: 1.1rem;
+        font-weight: 700;
+        color: #fff;
+    }
+
+    /* Ảnh sản phẩm */
+    .product-img-wrapper {
+        width: 50px;
+        height: 50px;
+        border-radius: 4px;
+        overflow: hidden;
+        border: 1px solid #444;
+        background: #000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .product-img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    /* Table */
+    .table-luxury {
+        color: #ccc;
+    }
+
+        .table-luxury thead th {
+            background: #1a1a1a;
+            border-top: none;
+            border-bottom: 2px solid var(--accent-red);
+            color: var(--accent-red);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .table-luxury td {
+            border-top: 1px solid #333;
+            vertical-align: middle;
+        }
+
+    .text-luxury-red {
+        color: var(--accent-red) !important;
+        font-weight: bold;
+    }
+
+    .btn-luxury-back {
+        border: 1px solid #444;
+        color: #ccc;
+        background: transparent;
+        padding: 8px 20px;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+        .btn-luxury-back:hover {
+            border-color: #fff;
+            color: #fff;
+            text-decoration: none;
+        }
+
+    .btn-luxury-edit {
+        background: var(--accent-red);
+        color: #fff;
+        border: none;
+        padding: 8px 20px;
+        border-radius: 4px;
+        font-weight: 600;
+        transition: 0.3s;
+    }
+
+        .btn-luxury-edit:hover {
+            background: #b20710;
+            color: #fff;
+            text-decoration: none;
+        }
+</style>
+
+<div class="container-fluid p-4" style="background-color: var(--bg-dark); min-height: 100vh;">
+
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="luxury-header mb-1">Chi tiết chiến dịch #@Model.Idfls</h2>
+            <small class="text-muted ml-3">Xem thông tin chi tiết và danh sách sản phẩm</small>
+        </div>
+        <div>
+            <a asp-action="Index" class="btn-luxury-back mr-2"><i class="fas fa-arrow-left mr-2"></i> Quay lại</a>
+            <a asp-action="Edit" asp-route-id="@Model.Idfls" class="btn-luxury-edit"><i class="fas fa-edit mr-2"></i> Chỉnh sửa</a>
+        </div>
+    </div>
+
+    <div class="row mb-5">
+        <div class="col-md-3 mb-3">
+            <div class="info-box">
+                <div class="info-label">Thời gian bắt đầu</div>
+                <div class="info-value text-success">
+                    <i class="far fa-clock mr-2"></i> @Model.NgayBatDau.ToString("HH:mm - dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="info-box">
+                <div class="info-label">Thời gian kết thúc</div>
+                <div class="info-value text-danger">
+                    <i class="far fa-clock mr-2"></i> @Model.NgayKetThuc.ToString("HH:mm - dd/MM/yyyy")
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="info-box">
+                <div class="info-label">Trạng thái</div>
+                <div class="info-value">
+                    @if (!Model.TrangThai)
+                    {
+                        <span class="badge badge-secondary px-3 py-2">ĐÃ TẮT</span>
+                    }
+                    else if (DateTime.Now < Model.NgayBatDau)
+                    {
+                        <span class="badge badge-warning px-3 py-2 text-dark">SẮP DIỄN RA</span>
+                    }
+                    else if (DateTime.Now >= Model.NgayBatDau && DateTime.Now <= Model.NgayKetThuc)
+                    {
+                        <span class="badge badge-success px-3 py-2" style="background-color: var(--accent-red);">ĐANG HOẠT ĐỘNG</span>
+                    }
+                    else
+                    {
+                        <span class="badge badge-dark border border-secondary px-3 py-2">ĐÃ KẾT THÚC</span>
+                    }
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="info-box">
+                <div class="info-label">Số lượng sản phẩm</div>
+                <div class="info-value text-white" style="font-size: 1.5rem;">
+                    @if (Model.Flashsaleitems != null)
+                    {
+                        <span>@Model.Flashsaleitems.Count</span>
+                    }
+                    else
+                    {
+                        <span>0</span>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="luxury-card p-4">
+        <h5 class="text-white mb-4 pl-2" style="border-left: 3px solid #555;">DANH SÁCH SẢN PHẨM KHUYẾN MÃI</h5>
+
+        <div class="table-responsive">
+            <table class="table table-luxury mb-0">
+                <thead>
+                    <tr>
+                        <th style="width: 300px;">Sản phẩm</th>
+                        <th>Giá gốc</th>
+                        <th>Giảm giá</th>
+                        <th>Giá Flash Sale</th>
+                        <th class="text-center">Số lượng Sale</th>
+                        <th class="text-center">Đã bán</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Flashsaleitems != null && Model.Flashsaleitems.Any())
+                    {
+                        foreach (var item in Model.Flashsaleitems)
+                        {
+                            // Tính giá sau giảm
+                            var giaGoc = item.MaSpNavigation.Gia;
+                            var giaGiam = giaGoc * (1 - (item.PhanTramGiam / 100));
+
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="product-img-wrapper mr-3">
+                                            @if (!string.IsNullOrEmpty(item.MaSpNavigation.HinhDaiDien))
+                                            {
+                                                // Bạn nhớ sửa đường dẫn ảnh cho đúng project nhé
+                                                <img src="~/images/products/@item.MaSpNavigation.HinhDaiDien" class="product-img" alt="SP" />
+                                            }
+                                            else
+                                            {
+                                                <i class="fas fa-box text-muted"></i>
+                                            }
+                                        </div>
+                                        <div>
+                                            <div class="font-weight-bold text-white">@item.MaSpNavigation.TenSanPham</div>
+                                            <small class="text-muted">ID: @item.MaSp</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="text-muted" style="text-decoration: line-through;">
+                                    @giaGoc.ToString("N0") đ
+                                </td>
+                                <td>
+                                    <span class="badge badge-danger px-2 py-1">-@item.PhanTramGiam.ToString("0")%</span>
+                                </td>
+                                <td class="text-luxury-red" style="font-size: 1.1em;">
+                                    @giaGiam.ToString("N0") đ
+                                </td>
+                                <td class="text-center text-white font-weight-bold">
+                                    @item.SoLuong
+                                </td>
+                                <td class="text-center text-muted">
+                                    @item.SoLuongDaBan
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5">
+                                <i class="fas fa-box-open fa-3x text-muted mb-3"></i>
+                                <p class="text-muted">Chưa có sản phẩm nào được thêm vào chiến dịch này.</p>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

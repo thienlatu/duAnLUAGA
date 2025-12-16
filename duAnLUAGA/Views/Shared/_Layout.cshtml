@@ -380,10 +380,168 @@
                 <span class="voucher-tooltip">Săn Voucher</span>
             </a>
 
-            <form class="search-form d-flex" asp-controller="SanPham" asp-action="Index" method="get">
-                <input class="search-input form-control" type="search" name="searchString" placeholder="Search..." aria-label="Search" style="margin-right: 12px;">
+            <form class="search-form d-flex" asp-controller="SanPham" asp-action="Index" method="get" style="position: relative;">
+
+                <input id="searchInput" autocomplete="off" class="search-input form-control" type="search" name="searchString" placeholder="Tìm kiếm sản phẩm..." style="margin-right: 12px;">
+
+                <div id="searchResultBox" class="luxury-search-result"></div>
+
                 <button class="search-btn" type="submit"><i class="bi bi-search"></i></button>
             </form>
+
+            <style>
+                .luxury-search-result {
+                    position: absolute;
+                    top: 110%; /* Cách ô input 1 xíu cho thoáng */
+                    left: 0;
+                    /* Chỗ này làm cho nó TO và RỘNG hơn */
+                    min-width: 450px; /* Bắt buộc rộng ít nhất 450px */
+                    width: auto; /* Tự động giãn nếu tên dài */
+
+                    background: white;
+                    /* Đổ bóng kiểu Luxury: Mờ, rộng, sang */
+                    box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+                    border: 1px solid #f0f0f0;
+                    border-radius: 8px; /* Bo góc mềm mại */
+                    z-index: 999999;
+                    display: none;
+                    overflow: hidden;
+                    padding: 5px 0; /* Khoảng cách trên dưới */
+                }
+
+                /* Style cho từng dòng sản phẩm */
+                .luxury-item {
+                    display: flex;
+                    align-items: center;
+                    padding: 15px 20px; /* Tăng padding cho nó thoáng (Luxury) */
+                    border-bottom: 1px solid #f9f9f9;
+                    text-decoration: none !important;
+                    color: #222;
+                    transition: all 0.2s ease;
+                    cursor: pointer;
+                }
+
+                    .luxury-item:hover {
+                        background-color: #fcfcfc; /* Màu nền hover rất nhẹ */
+                        padding-left: 25px; /* Hiệu ứng đẩy nhẹ sang phải */
+                    }
+
+                    .luxury-item:last-child {
+                        border-bottom: none;
+                    }
+
+                    /* Ảnh to hơn */
+                    .luxury-item img {
+                        width: 60px;
+                        height: 60px;
+                        object-fit: cover;
+                        border-radius: 6px;
+                        margin-right: 20px;
+                        box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+                    }
+
+                .luxury-info {
+                    display: flex;
+                    flex-direction: column;
+                    justify-content: center;
+                }
+
+                .luxury-name {
+                    font-size: 16px; /* Chữ to hơn */
+                    font-weight: 600;
+                    color: #333;
+                    margin-bottom: 5px;
+                    font-family: 'Segoe UI', sans-serif; /* Font sạch sẽ */
+                }
+
+                .luxury-price {
+                    color: #b91c1c; /* Đỏ đậm sang trọng (ko phải đỏ tươi rẻ tiền) */
+                    font-weight: 700;
+                    font-size: 15px;
+                }
+
+                /* Style cho dòng thông báo KHÔNG TÌM THẤY */
+                .not-found-msg {
+                    padding: 30px 20px;
+                    text-align: center;
+                    color: #666;
+                    font-style: italic;
+                    font-size: 14px;
+                }
+            </style>
+
+            <script>
+                document.addEventListener("DOMContentLoaded", function() {
+                    var timer;
+                    var input = document.getElementById("searchInput");
+                    var resultBox = document.getElementById("searchResultBox");
+
+                    var formatVND = function(price) {
+                        return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(price);
+                    };
+
+                    input.addEventListener("input", function() {
+                        var keyword = this.value.trim();
+                        clearTimeout(timer);
+
+                        if (keyword.length < 2) {
+                            resultBox.style.display = 'none';
+                            return;
+                        }
+
+                        timer = setTimeout(function() {
+                            fetch('/SanPham/SearchLive?query=' + encodeURIComponent(keyword))
+                                .then(response => response.json())
+                                .then(res => {
+                                    var html = '';
+
+                                    // TRƯỜNG HỢP CÓ KẾT QUẢ
+                                    if (res.success && res.data && res.data.length > 0) {
+                                        res.data.forEach(function(p) {
+                                            var link = '/ChiTSP/Index?id=' + p.id;
+                                            var imgUrl = '/image/' + p.hinh;
+                                            var gia = formatVND(p.giaBan);
+
+                                            html += '<a href="' + link + '" class="luxury-item">' +
+                                                        '<img src="' + imgUrl + '" onerror="this.src=\'/images/no-image.jpg\'">' +
+                                                        '<div class="luxury-info">' +
+                                                            '<span class="luxury-name">' + p.ten + '</span>' +
+                                                            '<span class="luxury-price">' + gia + '</span>' +
+                                                        '</div>' +
+                                                    '</a>';
+                                        });
+                                    }
+                                    // TRƯỜNG HỢP KHÔNG TÌM THẤY
+                                    else {
+                                        html = '<div class="not-found-msg">Không tìm thấy thông tin sản phẩm</div>';
+                                    }
+
+                                    // Hiển thị ra
+                                    resultBox.innerHTML = html;
+                                    resultBox.style.display = 'block';
+                                })
+                                .catch(error => console.error('Lỗi:', error));
+                        }, 300);
+                    });
+
+                    // Click ra ngoài thì đóng
+                    document.addEventListener("click", function(e) {
+                        if (!input.contains(e.target) && !resultBox.contains(e.target)) {
+                            resultBox.style.display = 'none';
+                        }
+                    });
+                });
+            </script>
+
+
+
+
+
+
+
+
+
+
             <nav id="navmenu" class="navmenu">
                 <ul>
                     <li><a asp-controller="Home" asp-action="Index" class="active">Trang Chủ</a></li>

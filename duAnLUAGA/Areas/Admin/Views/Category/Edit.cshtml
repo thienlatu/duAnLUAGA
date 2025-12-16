@@ -1,0 +1,250 @@
+﻿@model duAnLUAGA.Domain.Entitie.Danhmuc
+
+@{
+    ViewData["Title"] = "Chỉnh sửa Danh Mục";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* ... (Copy CSS từ phần Create ở trên paste vào đây hoặc để vào file css chung) ... */
+    :root {
+        --bg-dark: #121212;
+        --card-bg: #1e1e1e;
+        --accent-red: #e50914;
+        --text-white: #e5e5e5;
+        --input-bg: #2a2a2a;
+    }
+
+    .luxury-card {
+        background-color: var(--card-bg);
+        border: 1px solid #333;
+        border-radius: 8px;
+    }
+
+    .luxury-header {
+        border-left: 4px solid var(--accent-red);
+        padding-left: 15px;
+        color: var(--text-white);
+        margin-bottom: 20px;
+    }
+
+    .form-control-luxury {
+        background-color: var(--input-bg);
+        border: 1px solid #444;
+        color: #fff;
+        border-radius: 4px;
+        padding: 10px 15px;
+    }
+
+        .form-control-luxury:focus {
+            background-color: #333;
+            border-color: var(--accent-red);
+            color: #fff;
+        }
+
+    .control-label {
+        font-weight: 600;
+        color: #ccc;
+        margin-bottom: 8px;
+    }
+
+    .img-preview-container {
+        width: 100%;
+        height: 200px;
+        border: 2px dashed #444;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #181818;
+        overflow: hidden;
+        margin-bottom: 15px;
+        position: relative;
+    }
+
+    .img-preview {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    .btn-luxury {
+        background-color: var(--accent-red);
+        color: white;
+        padding: 10px 30px;
+        border: none;
+        font-weight: bold;
+        transition: 0.3s;
+    }
+
+        .btn-luxury:hover {
+            background-color: #b20710;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-secondary-luxury {
+        background-color: transparent;
+        border: 1px solid #555;
+        color: #ccc;
+        padding: 10px 20px;
+        transition: 0.3s;
+    }
+
+        .btn-secondary-luxury:hover {
+            border-color: #fff;
+            color: #fff;
+            background: #333;
+        }
+
+    /* Cảnh báo riêng cho Edit */
+    .warning-box {
+        background: rgba(229, 9, 20, 0.1);
+        border: 1px solid var(--accent-red);
+        color: #ff8a8a;
+        padding: 10px;
+        border-radius: 4px;
+        font-size: 0.85rem;
+        margin-top: 10px;
+        display: none; /* Ẩn mặc định */
+    }
+</style>
+
+<div class="container p-4">
+    <div class="row justify-content-center">
+        <div class="col-md-8">
+            <h2 class="luxury-header">Chỉnh sửa: @Model.TenDanhMuc</h2>
+
+            <div class="luxury-card p-4">
+                <form asp-action="Edit" enctype="multipart/form-data">
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+                    <input type="hidden" asp-for="MaDm" />
+                    <input type="hidden" asp-for="HinhAnh" />
+
+                    <div class="form-group mb-4">
+                        <label asp-for="TenDanhMuc" class="control-label">Tên danh mục</label>
+                        <input asp-for="TenDanhMuc" class="form-control form-control-luxury" />
+                        <span asp-validation-for="TenDanhMuc" class="text-danger"></span>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <label class="control-label">Hình ảnh đại diện</label>
+
+                        <div class="img-preview-container" onclick="document.getElementById('hinhAnhFile').click()" style="cursor: pointer;">
+                            @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                            {
+                                <img id="previewImg" src="@Model.HinhAnh" class="img-preview" style="display:block" />
+                                <span class="placeholder-text" style="display:none"><i class="fas fa-cloud-upload-alt mr-2"></i>Chọn ảnh thay thế</span>
+                            }
+                            else
+                            {
+                                <img id="previewImg" class="img-preview" style="display:none" />
+                                <span class="placeholder-text"><i class="fas fa-cloud-upload-alt mr-2"></i>Thêm ảnh</span>
+                            }
+                        </div>
+
+                        <input type="file" name="hinhAnhFile" id="hinhAnhFile" class="d-none" onchange="previewFile(this)" accept="image/*" />
+                        <small class="text-muted d-block mt-1">Click vào ảnh để thay đổi.</small>
+                    </div>
+
+                    <div class="form-group mb-4">
+                        <div class="custom-control custom-switch">
+                            <input class="custom-control-input" type="checkbox" asp-for="TrangThai" id="TrangThaiSwitch" onchange="toggleWarning()">
+                            <label class="custom-control-label text-white" for="TrangThaiSwitch">
+                                Đang hoạt động
+                            </label>
+                        </div>
+
+                        <div id="statusWarning" class="warning-box">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>
+                            Cảnh báo: Nếu tắt trạng thái này, tất cả sản phẩm thuộc danh mục sẽ chuyển sang "Hết hàng".
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end mt-5">
+                        <a asp-action="Index" class="btn btn-secondary-luxury mr-3">Hủy bỏ</a>
+                        <button type="submit" class="btn btn-luxury">
+                            <i class="fas fa-save mr-2"></i> Cập nhật
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
+
+    <script>
+        // 1. Preview ảnh
+        function previewFile(input) {
+            var file = input.files[0];
+            if(file){
+                var reader = new FileReader();
+                reader.onload = function(){
+                    document.getElementById("previewImg").src = reader.result;
+                    document.getElementById("previewImg").style.display = "block";
+                    var text = document.querySelector(".placeholder-text");
+                    if(text) text.style.display = "none";
+                }
+                reader.readAsDataURL(file);
+            }
+        }
+
+        // 2. Ẩn hiện cảnh báo switch
+        function toggleWarning() {
+            var isChecked = document.getElementById("TrangThaiSwitch").checked;
+            var warningBox = document.getElementById("statusWarning");
+            warningBox.style.display = isChecked ? "none" : "block";
+        }
+
+        // 3. VALIDATE LOGIC
+        $(document).ready(function() {
+
+            function validateInput() {
+                var input = $('#TenDanhMuc');
+                var val = input.val().trim();
+                var errorSpan = $('span[data-valmsg-for="TenDanhMuc"]');
+
+                // Reset trạng thái
+                errorSpan.text('');
+                errorSpan.removeClass('field-validation-error').addClass('field-validation-valid');
+
+                // Check độ dài
+                if (val.length > 100) {
+                    errorSpan.text('Tên danh mục không được quá 100 ký tự');
+                    errorSpan.removeClass('field-validation-valid').addClass('field-validation-error');
+                    return false;
+                }
+
+                // --- CHECK REGEX (Giống hệt C#) ---
+                // \p{L} : Chữ cái Unicode (bao gồm Tiếng Việt)
+                // 0-9   : Số
+                // \s    : Khoảng trắng
+                // cờ 'u' ở cuối: Bắt buộc để JS hiểu \p{L}
+                const regex = /^[\p{L}0-9\s]+$/u;
+
+                if (val.length > 0 && !regex.test(val)) {
+                    errorSpan.text('Tên không được chứa ký tự đặc biệt');
+                    errorSpan.removeClass('field-validation-valid').addClass('field-validation-error');
+                    return false;
+                }
+
+                return true;
+            }
+
+            // Gắn sự kiện
+            $('form').on('submit', function(e) {
+                if (!validateInput()) e.preventDefault();
+            });
+
+            $('#TenDanhMuc').on('input', function() {
+                validateInput();
+            });
+        });
+    </script>
+}

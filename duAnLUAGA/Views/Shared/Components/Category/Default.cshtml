@@ -1,0 +1,342 @@
+﻿@model IEnumerable<duAnLUAGA.Domain.Entitie.Danhmuc>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;0,700;1,400&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.css" />
+
+<section id="lux-exclusive-collection">
+    <div class="lux-container">
+
+        <div class="lux-header-wrap">
+          
+            <h2 class="lux-heading">BỘ SƯU TẬP</h2>
+            <div class="lux-divider"></div>
+           
+        </div>
+
+        <div class="swiper lux-swiper-container">
+            <div class="swiper-wrapper">
+                @if (Model != null && Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <div class="swiper-slide">
+                            <a asp-controller="DanhMuc" asp-action="Index" asp-route-id="@item.MaDm" class="lux-card">
+
+                                <div class="lux-image-box">
+                                    @if (!string.IsNullOrEmpty(item.HinhAnh))
+                                    {
+                                        <img src="@item.HinhAnh"
+                                             alt="@item.TenDanhMuc"
+                                             onerror="this.src='https://via.placeholder.com/400x500?text=LUAGA'" />
+                                    }
+                                    else
+                                    {
+                                        <img src="https://via.placeholder.com/400x500?text=LUAGA" alt="No Image" />
+                                    }
+
+                                    <div class="lux-overlay"></div>
+                                    <div class="lux-bottom-line"></div>
+                                </div>
+
+                                <div class="lux-content">
+                                    <div class="lux-content-inner">
+                                        
+                                        <h3 class="lux-title-main">@item.TenDanhMuc</h3>
+
+                                        <div class="lux-action-wrapper">
+                                            <div class="lux-explore-btn">
+                                                <span class="btn-text">XEM NGAY</span>
+                                                <svg class="btn-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8l4 4m0 0l-4 4m4-4H3" />
+                                                </svg>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="lux-corner-accent"></div>
+                            </a>
+                        </div>
+                    }
+                }
+                else
+                {
+                    <div class="text-center w-100 p-5">Đang cập nhật danh mục...</div>
+                }
+            </div>
+
+            <div class="swiper-scrollbar"></div>
+        </div>
+
+    </div>
+</section>
+
+<style>
+    /* --- Variables & Reset --- */
+    #lux-exclusive-collection {
+        --lux-bg: #ffffff;
+        --lux-text: #1a1a1a;
+        --lux-primary: #C92127; /* Luxury Red */
+        --lux-border: #e5e5e5;
+        --lux-font-display: 'Cormorant Garamond', serif;
+        --lux-font-body: 'Montserrat', sans-serif;
+        background-color: var(--lux-bg);
+        padding: 80px 0;
+        width: 100%;
+        display: block;
+        overflow: hidden;
+    }
+
+        #lux-exclusive-collection * {
+            box-sizing: border-box;
+        }
+
+        #lux-exclusive-collection .lux-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
+
+        /* --- Header Styles --- */
+        #lux-exclusive-collection .lux-header-wrap {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+    .lux-top-tag {
+        display: block;
+        font-family: var(--lux-font-body);
+        font-size: 12px;
+        letter-spacing: 0.3em;
+        text-transform: uppercase;
+        color: #888;
+        margin-bottom: 10px;
+    }
+
+    #lux-exclusive-collection .lux-heading {
+        font-family: var(--lux-font-display);
+        font-size: 48px;
+        font-weight: 500;
+        color: var(--lux-text);
+        margin: 0 0 15px 0;
+        line-height: 1.1;
+    }
+
+    #lux-exclusive-collection .lux-divider {
+        width: 60px;
+        height: 2px;
+        background-color: var(--lux-primary);
+        margin: 0 auto 20px auto;
+    }
+
+    #lux-exclusive-collection .lux-subheading {
+        font-family: var(--lux-font-body);
+        font-size: 15px;
+        color: #666;
+        max-width: 600px;
+        margin: 0 auto;
+        line-height: 1.6;
+    }
+
+    /* --- Card Styles --- */
+    #lux-exclusive-collection .lux-card {
+        display: block;
+        position: relative;
+        background: #fff;
+        border: 1px solid var(--lux-border);
+        overflow: hidden;
+        cursor: pointer;
+        text-decoration: none;
+        height: 100%;
+        transition: border-color 0.3s, box-shadow 0.3s;
+    }
+
+        #lux-exclusive-collection .lux-card:hover {
+            border-color: var(--lux-primary);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+    /* Image Box */
+    #lux-exclusive-collection .lux-image-box {
+        position: relative;
+        aspect-ratio: 4/5;
+        overflow: hidden;
+    }
+
+        #lux-exclusive-collection .lux-image-box img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.8s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+        }
+
+    #lux-exclusive-collection .lux-card:hover .lux-image-box img {
+        transform: scale(1.08);
+    }
+
+    /* Overlay - Tối ưu cho việc đọc chữ */
+    #lux-exclusive-collection .lux-overlay {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(to top, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.4) 40%, transparent 100%);
+        opacity: 0.85;
+        transition: opacity 0.5s;
+        z-index: 1;
+    }
+
+    #lux-exclusive-collection .lux-bottom-line {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        width: 0;
+        height: 3px;
+        background-color: var(--lux-primary);
+        transition: width 0.5s;
+        z-index: 10;
+    }
+
+    #lux-exclusive-collection .lux-card:hover .lux-bottom-line {
+        width: 100%;
+    }
+
+    /* --- Content Typography (The PRO Fix) --- */
+    #lux-exclusive-collection .lux-content {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 30px 25px;
+        z-index: 20;
+        color: #fff;
+        text-align: left;
+    }
+
+    .lux-label-small {
+        display: block;
+        font-family: var(--lux-font-body);
+        font-size: 10px;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: rgba(255, 255, 255, 0.8);
+        margin-bottom: 8px;
+        transform: translateY(0);
+        transition: 0.5s;
+    }
+
+    .lux-title-main {
+        font-family: var(--lux-font-display);
+        font-size: 34px; /* To, rõ */
+        font-weight: 600;
+        font-style: italic;
+        color: #ffffff;
+        margin: 0;
+        line-height: 1.1;
+        text-shadow: 0 2px 10px rgba(0,0,0,0.3); /* Tạo chiều sâu */
+        transform: translateY(0);
+        transition: 0.5s;
+    }
+
+    /* Hover Effects for Text */
+    #lux-exclusive-collection .lux-card:hover .lux-label-small {
+        transform: translateY(-5px);
+        color: var(--lux-primary);
+    }
+
+    #lux-exclusive-collection .lux-card:hover .lux-title-main {
+        transform: translateY(-5px);
+    }
+
+    /* --- Button Animation --- */
+    .lux-action-wrapper {
+        overflow: hidden;
+        height: 30px;
+        margin-top: 10px;
+    }
+
+    .lux-explore-btn {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        color: #fff;
+        transform: translateY(150%);
+        transition: transform 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+    }
+
+    .btn-text {
+        font-family: var(--lux-font-body);
+        font-size: 11px;
+        font-weight: 700;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        white-space: nowrap;
+    }
+
+    .btn-icon {
+        width: 16px;
+        height: 16px;
+        transition: transform 0.3s;
+    }
+
+    #lux-exclusive-collection .lux-card:hover .lux-explore-btn {
+        transform: translateY(0);
+    }
+
+    #lux-exclusive-collection .lux-card:hover .btn-icon {
+        transform: translateX(4px);
+    }
+
+    /* Corner Accent */
+    .lux-corner-accent {
+        position: absolute;
+        top: 20px;
+        right: 20px;
+        width: 20px;
+        height: 20px;
+        border-top: 1px solid rgba(255,255,255,0.5);
+        border-right: 1px solid rgba(255,255,255,0.5);
+        opacity: 0;
+        transition: 0.5s;
+        z-index: 5;
+    }
+
+    #lux-exclusive-collection .lux-card:hover .lux-corner-accent {
+        opacity: 1;
+    }
+
+    /* Swiper Adjustments */
+    #lux-exclusive-collection .swiper-scrollbar-drag {
+        background: var(--lux-primary) !important;
+    }
+
+    #lux-exclusive-collection .swiper-wrapper {
+        padding-bottom: 30px;
+    }
+</style>
+
+<script src="https://cdn.jsdelivr.net/npm/swiper@11/swiper-bundle.min.js"></script>
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // Chỉ khởi tạo nếu element tồn tại
+        var swiperEl = document.querySelector('.lux-swiper-container');
+        if(swiperEl) {
+            new Swiper('.lux-swiper-container', {
+                slidesPerView: 1.2,
+                spaceBetween: 15,
+                grabCursor: true,
+                freeMode: true,
+                scrollbar: {
+                    el: '.swiper-scrollbar',
+                    draggable: true,
+                    hide: false, // Để true nếu muốn tự ẩn
+                },
+                breakpoints: {
+                    576: { slidesPerView: 2.2, spaceBetween: 20 },
+                    992: { slidesPerView: 3.5, spaceBetween: 25 },
+                    1200: { slidesPerView: 4.5, spaceBetween: 30 },
+                }
+            });
+        }
+    });
+</script>

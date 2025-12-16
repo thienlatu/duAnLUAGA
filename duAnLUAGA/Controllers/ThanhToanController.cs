@@ -1,5 +1,7 @@
 ﻿using duAnLUAGA.Domain.Entitie;
+using duAnLUAGA.Helpers;
 using duAnLUAGA.Infrastructure.Data;
+using duAnLUAGA.Models;
 using duAnLUAGA.ViewModel;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -9,6 +11,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
+using System.Text.Json;
+using System.Net.Http;
 
 namespace duAnLUAGA.Controllers
 {
@@ -22,72 +26,70 @@ namespace duAnLUAGA.Controllers
             _context = context;
             _configuration = configuration;
         }
+        private CartItemVM CalculateItemPrice(Sanpham sp, int soLuongMua)
+        {
+            var now = DateTime.Now;
+            var flashSaleItem = _context.Flashsaleitems
+                .Include(fsi => fsi.IdflsNavigation)
+                .Where(fsi => fsi.MaSp == sp.MaSp
+                              && fsi.IdflsNavigation.TrangThai == true
+                              && fsi.IdflsNavigation.NgayBatDau <= now
+                              && fsi.IdflsNavigation.NgayKetThuc >= now)
+                .FirstOrDefault();
 
-        // --- HELPER: LẤY ID NGƯỜI DÙNG HIỆN TẠI ---
+            var item = new CartItemVM
+            {
+                MaSp = sp.MaSp,
+                TenSanPham = sp.TenSanPham,
+                HinhDaiDien = sp.HinhDaiDien,
+                GiaGoc = sp.Gia,
+                Gia = sp.Gia,
+                SoLuong = soLuongMua,
+                IsFlashSale = false,
+                ThanhTien = sp.Gia * soLuongMua
+            };
+
+            if (flashSaleItem != null)
+            {
+                int suatConLai = flashSaleItem.SoLuong - flashSaleItem.SoLuongDaBan;
+                if (suatConLai <= 0) { item.IsFlashSale = false; }
+                else
+                {
+                    item.IsFlashSale = true; item.FlashSaleEndTime = flashSaleItem.IdflsNavigation.NgayKetThuc; item.StockFlashSale = suatConLai;
+                    decimal tienGiam = sp.Gia * (flashSaleItem.PhanTramGiam / 100m);
+                    decimal giaSale = sp.Gia - tienGiam;
+                    item.Gia = giaSale;
+                    if (soLuongMua <= suatConLai) { item.ThanhTien = giaSale * soLuongMua; }
+                    else
+                    {
+                        int slGiaSale = suatConLai; int slGiaGoc = soLuongMua - suatConLai;
+                        item.ThanhTien = (slGiaSale * giaSale) + (slGiaGoc * sp.Gia);
+                        item.PriceMessage = $"Chỉ còn {slGiaSale} suất giá khuyến mãi. {slGiaGoc} sản phẩm tính giá gốc.";
+                    }
+                }
+            }
+            return item;
+        }
+
         private int? GetCurrentUserId()
         {
             if (!User.Identity.IsAuthenticated) return null;
-
             var claim = User.FindFirst("UserId") ?? User.FindFirst("MaKh") ?? User.FindFirst(ClaimTypes.NameIdentifier);
-            if (claim != null && int.TryParse(claim.Value, out int id))
-            {
-                return id;
-            }
+            if (claim != null && int.TryParse(claim.Value, out int id)) return id;
             return null;
         }
 
-        // 1. Hàm xóa dấu tiếng Việt (Copy hàm này vào Controller)
-        private static string RemoveSign4VietnameseString(string str)
-        {
-            if (string.IsNullOrEmpty(str)) return "";
-
-            for (int i = 1; i < VietnameseSigns.Length; i++)
-            {
-                for (int j = 0; j < VietnameseSigns[i].Length; j++)
-                    str = str.Replace(VietnameseSigns[i][j], VietnameseSigns[0][i - 1]);
-            }
-            return str;
-        }
-
-        private static readonly string[] VietnameseSigns = new string[]
-        {
-            "aAeEoOuUiIdDyY",
-            "áàạảãâấầậẩẫăắằặẳẵ",
-            "ÁÀẠẢÃÂẤẦẬẨẪĂẮẰẶẲẴ",
-            "éèẹẻẽêếềệểễ",
-            "ÉÈẸẺẼÊẾỀỆỂỄ",
-            "óòọỏõôốồộổỗơớờợởỡ",
-            "ÓÒỌỎÕÔỐỒỘỔỖƠỚỜỢỞỠ",
-            "úùụủũưứừựửữ",
-            "ÚÙỤỦŨƯỨỪỰỬỮ",
-            "íìịỉĩ",
-            "ÍÌỊỈĨ",
-            "đ",
-            "Đ",
-            "ýỳỵỷỹ",
-            "ÝỲỴỶỸ"
-        };
-
-        // --- HÀM TÍNH PHÍ VẬN CHUYỂN ---
         private decimal TinhPhiShip(string tinhThanh)
         {
             if (string.IsNullOrEmpty(tinhThanh)) return 37700;
-
-            // 1. Chuyển hết về chữ thường
             string lower = tinhThanh.ToLower();
-
-            // 2. Kiểm tra kiểu "cục súc" (bao gồm mọi trường hợp có thể xảy ra của bộ gõ)
-            // Đắk Lắk, Dak Lak, Dac Lac, Daklak, Buon Ma Thuot...
-            if (lower.Contains("dak") || lower.Contains("đắk") || lower.Contains("đắc") ||
-                lower.Contains("buon ma") || lower.Contains("buôn ma"))
-            {
-                return 0;
-            }
-
+            if (lower.Contains("dak") || lower.Contains("đắk") || lower.Contains("đắc") || lower.Contains("buon ma") || lower.Contains("buôn ma")) return 0;
             return 37700;
         }
 
-        // 1. GET: TRANG THANH TOÁN
+        // ==========================================================
+        // ACTION: INDEX
+        // ==========================================================
         [HttpGet]
         public async Task<IActionResult> Index(string? maVoucherDuocChon, List<int> selectedIds, int? selectedAddressId)
         {
@@ -95,86 +97,30 @@ namespace duAnLUAGA.Controllers
             if (userId == null) return RedirectToAction("Login", "Account");
             int currentUserId = userId.Value;
 
-            // 1. LẤY KHÁCH HÀNG
-            var user = await _context.Khachhangs
-                .Include(k => k.Diachis)
-                .FirstOrDefaultAsync(k => k.MaKh == currentUserId);
-
-            // 2. XÁC ĐỊNH ĐỊA CHỈ GIAO HÀNG
+            var user = await _context.Khachhangs.Include(k => k.Diachis).FirstOrDefaultAsync(k => k.MaKh == currentUserId);
             Diachi currentAddress = null;
-
-            // 1. Ưu tiên: Nếu URL có selectedAddressId (do người dùng vừa chọn xong) -> Lấy địa chỉ đó
-            if (selectedAddressId != null)
-            {
-                currentAddress = user.Diachis.FirstOrDefault(d => d.Id == selectedAddressId && !d.IsDelete);
-            }
-
-            // 2. Dự phòng: Nếu không có (lần đầu vào), mới lấy địa chỉ Mặc định
-            if (currentAddress == null)
-            {
-                currentAddress = user.Diachis.Where(d => !d.IsDelete).OrderByDescending(d => d.MacDinh).FirstOrDefault();
-            }
-
-            // Nếu chưa chọn, lấy mặc định
-            if (currentAddress == null)
-            {
-                currentAddress = user.Diachis
-                    .Where(d => !d.IsDelete)
-                    .OrderByDescending(d => d.MacDinh)
-                    .FirstOrDefault();
-            }
-
+            if (selectedAddressId != null) currentAddress = user.Diachis.FirstOrDefault(d => d.Id == selectedAddressId && !d.IsDelete);
+            if (currentAddress == null) currentAddress = user.Diachis.Where(d => !d.IsDelete).OrderByDescending(d => d.MacDinh).FirstOrDefault();
             var allAddresses = user.Diachis.Where(d => !d.IsDelete).ToList();
-
-            // 3. TÍNH PHÍ SHIP DỰA TRÊN ĐỊA CHỈ ĐANG CHỌN
             decimal phiVanChuyen = TinhPhiShip(currentAddress?.Tinh);
 
-            // 4. QUERY GIỎ HÀNG (CÓ LỌC THEO SẢN PHẨM ĐÃ CHỌN)
-            var query = _context.Giohangs
-                .Where(gh => gh.MaKh == currentUserId)
-                .SelectMany(gh => gh.Chitietgiohangs)
-                .Include(ct => ct.MaSpNavigation)
-                .AsQueryable();
+            var query = _context.Giohangs.Where(gh => gh.MaKh == currentUserId).SelectMany(gh => gh.Chitietgiohangs).Include(ct => ct.MaSpNavigation).AsQueryable();
+            if (selectedIds != null && selectedIds.Any()) query = query.Where(ct => selectedIds.Contains(ct.MaSp));
+            else return RedirectToAction("Index", "Cart");
 
-            if (selectedIds != null && selectedIds.Any())
-            {
-                query = query.Where(ct => selectedIds.Contains(ct.MaSp));
-            }
-            else
-            {
-                return RedirectToAction("Index", "Cart"); // Không có món nào thì về giỏ
-            }
+            var rawCartItems = await query.ToListAsync();
+            var calculatedItems = new List<CartItemVM>();
+            foreach (var ct in rawCartItems) calculatedItems.Add(CalculateItemPrice(ct.MaSpNavigation, ct.SoLuong));
 
-            var cartItems = await query.Select(ct => new CartItemVM
-            {
-                MaSp = ct.MaSp,
-                TenSanPham = ct.MaSpNavigation.TenSanPham,
-                Gia = ct.MaSpNavigation.Gia,
-                SoLuong = ct.SoLuong,
-                HinhDaiDien = ct.MaSpNavigation.HinhDaiDien ?? "https://via.placeholder.com/150",
-                Variant = "Mặc định"
-            }).ToListAsync();
+            if (!calculatedItems.Any()) return RedirectToAction("Index", "Cart");
+            decimal tongTienHang = calculatedItems.Sum(x => x.ThanhTien);
 
-            if (!cartItems.Any()) return RedirectToAction("Index", "Cart");
-
-            decimal tongTienHang = cartItems.Sum(x => x.ThanhTien);
-
-            // 5. XỬ LÝ VOUCHER (CHỈ HIỆN VOUCHER CỦA TÔI)
-            var myVouchers = await _context.Magiamgia
-                .Where(v => v.MaKh == currentUserId
-                 && v.TrangThai == true
-                 && v.SoLuong > 0 // [THÊM DÒNG NÀY]: Chỉ lấy cái còn lượt
-                 && v.NgayKetThuc >= DateTime.Now)
-                .ToListAsync();
-
-            var validVouchers = myVouchers;
-
+            var myVouchers = await _context.Magiamgia.Where(v => v.MaKh == currentUserId && v.TrangThai == true && v.SoLuong > 0 && v.NgayKetThuc >= DateTime.Now).ToListAsync();
             decimal tienGiam = 0;
             string selectedCode = null;
-
             if (!string.IsNullOrEmpty(maVoucherDuocChon))
             {
-                var v = validVouchers.FirstOrDefault(x => x.MaCode == maVoucherDuocChon);
+                var v = myVouchers.FirstOrDefault(x => x.MaCode == maVoucherDuocChon);
                 if (v != null)
                 {
                     selectedCode = v.MaCode;
@@ -183,7 +129,6 @@ namespace duAnLUAGA.Controllers
                 }
             }
 
-            // 6. MAP DỮ LIỆU
             var model = new CheckoutVM
             {
                 MaDc = currentAddress?.Id,
@@ -193,230 +138,428 @@ namespace duAnLUAGA.Controllers
                 XaPhuong = currentAddress?.XaPhuong ?? "",
                 Tinh = currentAddress?.Tinh ?? "",
                 DanhSachDiaChi = allAddresses,
-
-                Items = cartItems,
+                Items = calculatedItems,
                 TongTienHang = tongTienHang,
-                PhiVanChuyen = phiVanChuyen, // Phí ship đã tính toán
-
-                AvailableVouchers = validVouchers,
+                PhiVanChuyen = phiVanChuyen,
+                AvailableVouchers = myVouchers,
                 MaVoucher = selectedCode,
                 GiamGiaVoucher = tienGiam,
                 PhuongThucThanhToan = "COD"
             };
-
-            // Truyền selectedIds sang View để dùng cho form POST
             ViewBag.SelectedIds = selectedIds;
             ViewBag.SelectedAddressId = currentAddress?.Id;
-            ViewBag.DebugTinh = currentAddress?.Tinh + " (Phí: " + phiVanChuyen + ")";
-
             return View(model);
         }
 
-        // 2. POST: ĐẶT HÀNG
+        // ==================================================================================
+        // ACTION: ĐẶT HÀNG  XỬ LÝ  VNPAY VÀ MOMO
+        // ==================================================================================
         [HttpPost]
-        public async Task<IActionResult> DatHang(CheckoutVM model, List<int> selectedIds)
+        public async Task<IActionResult> DatHang([FromBody] DatHangRequest request)
         {
-            int? userId = GetCurrentUserId();
-            if (userId == null) return RedirectToAction("Login", "Account");
-            int currentUserId = userId.Value;
-
-            if (model.MaDc == null) return RedirectToAction("Index");
-
-            // 1. LẤY LẠI GIỎ HÀNG (CÓ LỌC)
-            var query = _context.Giohangs
-                 .Where(gh => gh.MaKh == currentUserId)
-                 .SelectMany(gh => gh.Chitietgiohangs)
-                 .Include(ct => ct.MaSpNavigation)
-                 .AsQueryable();
-
-            if (selectedIds != null && selectedIds.Any())
+            try
             {
-                query = query.Where(ct => selectedIds.Contains(ct.MaSp));
-            }
+                int? userId = GetCurrentUserId();
+                if (userId == null) return Json(new { success = false, message = "Vui lòng đăng nhập" });
+                int currentUserId = userId.Value;
+                if (request.MaDc == null) return Json(new { success = false, message = "Vui lòng chọn địa chỉ giao hàng" });
 
-            var cartDb = await query.ToListAsync();
-            if (!cartDb.Any()) return RedirectToAction("Index", "Cart");
+                var query = _context.Giohangs.Where(gh => gh.MaKh == currentUserId).SelectMany(gh => gh.Chitietgiohangs).Include(ct => ct.MaSpNavigation).AsQueryable();
+                if (request.SelectedIds != null && request.SelectedIds.Any()) query = query.Where(ct => request.SelectedIds.Contains(ct.MaSp));
+                var cartDb = await query.ToListAsync();
+                if (!cartDb.Any()) return Json(new { success = false, message = "Giỏ hàng trống" });
 
-            decimal tongTienHang = cartDb.Sum(x => x.SoLuong * x.MaSpNavigation.Gia);
-
-            // Tính lại phí ship lần cuối (Bảo mật Server-side)
-            var diaChiGiaoHang = await _context.Diachis.FindAsync(model.MaDc);
-            decimal phiVanChuyen = TinhPhiShip(diaChiGiaoHang?.Tinh);
-
-            decimal tienGiamGia = 0;
-
-            // 2. XỬ LÝ VOUCHER (TÍNH TIỀN & XÓA KHỎI KHO)
-            if (!string.IsNullOrEmpty(model.MaVoucher))
-            {
-                var voucherClone = await _context.Magiamgia
-                    .FirstOrDefaultAsync(v => v.MaCode == model.MaVoucher && v.MaKh == currentUserId);
-
-                if (voucherClone != null)
+                decimal tongTienHang = 0;
+                var finalItems = new List<CartItemVM>();
+                foreach (var ct in cartDb)
                 {
-                    if (voucherClone.SoTienGiam > 0)
-                        tienGiamGia = (decimal)voucherClone.SoTienGiam;
-                    else if (voucherClone.PhanTramGiam > 0)
-                        tienGiamGia = tongTienHang * ((decimal)voucherClone.PhanTramGiam / 100);
+                    var processedItem = CalculateItemPrice(ct.MaSpNavigation, ct.SoLuong);
+                    tongTienHang += processedItem.ThanhTien;
+                    finalItems.Add(processedItem);
+                }
 
-                    // Lấy Mã Gốc để lưu vào Hóa đơn
-                    string maGoc = voucherClone.MaCode;
-                    if (voucherClone.MaCode.Contains("_"))
+                var diaChiGiaoHang = await _context.Diachis.FindAsync(request.MaDc);
+                decimal phiVanChuyen = TinhPhiShip(diaChiGiaoHang?.Tinh);
+                decimal tienGiamGia = 0;
+                if (!string.IsNullOrEmpty(request.MaVoucher))
+                {
+                    var voucher = await _context.Magiamgia.FirstOrDefaultAsync(v => v.MaCode == request.MaVoucher && v.MaKh == currentUserId);
+                    if (voucher != null && voucher.SoLuong > 0 && voucher.TrangThai == true)
                     {
-                        maGoc = voucherClone.MaCode.Substring(0, voucherClone.MaCode.LastIndexOf('_'));
+                        if (voucher.SoTienGiam > 0) tienGiamGia = (decimal)voucher.SoTienGiam;
+                        else if (voucher.PhanTramGiam > 0) tienGiamGia = tongTienHang * ((decimal)voucher.PhanTramGiam / 100);
+                        if (request.MaVoucher.Contains("_")) request.MaVoucher = request.MaVoucher.Substring(0, request.MaVoucher.LastIndexOf('_'));
                     }
-                    model.MaVoucher = maGoc;
+                }
+                decimal tongThanhToan = (tongTienHang + phiVanChuyen) - tienGiamGia;
+                if (tongThanhToan < 0) tongThanhToan = 0;
 
-                    // Xóa Voucher Clone khỏi kho
-                    voucherClone.SoLuong = 0;         // Số lượng còn lại = 0
-                    voucherClone.SoLuongDaDung = 1;
-                    _context.Update(voucherClone);
+                // --- LƯU SESSION ---
+                string orderRefId = DateTime.Now.Ticks.ToString();
+                string cleanMaVoucher = string.IsNullOrEmpty(request.MaVoucher) ? null : request.MaVoucher;
+
+                var tempOrder = new TempOrderData
+                {
+                    UserId = currentUserId,
+                    MaDc = request.MaDc,
+                    MaVoucher = cleanMaVoucher,
+                    Items = finalItems,
+                    TongTien = tongTienHang,
+                    PhiShip = phiVanChuyen,
+                    GiamGia = tienGiamGia,
+                    TongThanhToan = tongThanhToan
+                };
+                HttpContext.Session.Set("TempOrder_" + orderRefId, tempOrder);
+
+                // --- PHÂN LOẠI VNPAY / MOMO ---
+                if (request.PhuongThucThanhToan == "VnPay")
+                {
+                    string vnpUrl = CreateVnPayUrlInternal(orderRefId, (double)tongThanhToan);
+                    return Json(new { success = true, redirectUrl = vnpUrl });
+                }
+                else if (request.PhuongThucThanhToan == "MOMO")
+                {
+                    // Gọi hàm tạo URL MoMo
+                    string momoUrl = await CreateMomoUrlInternal(orderRefId, (long)tongThanhToan);
+                    if (string.IsNullOrEmpty(momoUrl)) return Json(new { success = false, message = "Lỗi tạo giao dịch MoMo." });
+
+                    return Json(new { success = true, redirectUrl = momoUrl });
+                }
+                else
+                {
+                    return Json(new { success = false, message = "Phương thức COD chưa hỗ trợ ở Demo AJAX này." });
                 }
             }
-
-            decimal tongThanhToan = (tongTienHang + phiVanChuyen) - tienGiamGia;
-
-            // 3. TRANSACTION: TẠO HÓA ĐƠN
-            using (var transaction = _context.Database.BeginTransaction())
+            catch (Exception ex)
             {
-                try
-                {
-                    // A. Lưu Hóa Đơn
-                    var hoadon = new Hoadon
-                    {
-                        MaKh = currentUserId,
-                        Id = model.MaDc,
-                        MaCode = model.MaVoucher,
-                        NgayXuatHoaDon = DateTime.Now,
-                        TongTien = tongTienHang,
-                        PhiVanChuyen = phiVanChuyen,
-                        TienGiamGia = tienGiamGia,
-                        ThanhTien = tongThanhToan,
-                        Httt = model.PhuongThucThanhToan,
-                        TrangThai = model.PhuongThucThanhToan == "COD" ? "ChoXacNhan" : "ChoXacNhan",
-                        LyDoHuy = ""
-                    };
-
-                    _context.Hoadons.Add(hoadon);
-                    await _context.SaveChangesAsync(); // Sinh MaHd
-
-                    // B. Lưu Chi Tiết
-                    var listChiTiet = new List<Chitiethoadon>();
-                    foreach (var item in cartDb)
-                    {
-                        listChiTiet.Add(new Chitiethoadon
-                        {
-                            MaHd = hoadon.MaHd,
-                            MaSp = item.MaSp,
-                            SoLuong = item.SoLuong,
-                            DonGia = item.MaSpNavigation.Gia
-                        });
-                    }
-                    _context.Chitiethoadons.AddRange(listChiTiet);
-                    await _context.SaveChangesAsync();
-
-                    // C. Xóa giỏ hàng
-                    _context.Chitietgiohangs.RemoveRange(cartDb);
-                    await _context.SaveChangesAsync();
-
-                    transaction.Commit();
-
-                    // D. Chuyển hướng thanh toán
-                    //if (model.PhuongThucThanhToan == "VNPAY")
-                    //{
-                    //    var vnPayModel = new VnPayRequestModel
-                    //    {
-                    //        Amount = (double)hoadon.ThanhTien,
-                    //        CreatedDate = DateTime.Now,
-                    //        Description = "Thanh toan don hang " + hoadon.MaHd,
-                    //        FullName = model.TenNguoiNhan,
-                    //        OrderId = hoadon.MaHd
-                    //    };
-                    //    return Redirect(_configuration["VnPay:BaseUrl"] + "?" + CreateVnPayUrl(vnPayModel));
-                    //}
-
-                    return Redirect("/Address/Index#orders");
-                }
-                catch (Exception ex)
-                {
-                    transaction.Rollback();
-                    return Content("Lỗi xử lý đơn hàng: " + ex.Message);
-                }
+                return Json(new { success = false, message = "Lỗi server: " + ex.Message });
             }
         }
 
-        // HÀM TẠO URL VNPAY
-    //    private string CreateVnPayUrl(VnPayRequestModel model)
-    //    {
-    //        string vnp_TmnCode = _configuration["VnPay:TmnCode"];
-    //        string vnp_HashSecret = _configuration["VnPay:HashSecret"];
-    //        string vnp_Url = _configuration["VnPay:BaseUrl"];
-    //        string vnp_ReturnUrl = _configuration["VnPay:ReturnUrl"];
+        // ==================================================================================
+        // CALLBACK: MOMO (LÀM Y CHANG VNPAY, KHÔNG GỘP HÀM)
+        // ==================================================================================
+        [HttpGet]
+        public async Task<IActionResult> MomoCallback()
+        {
+            // 1. Lấy thông tin từ URL trả về
+            var collection = Request.Query;
+            string resultCode = collection["resultCode"]; // 0 là thành công
+            string orderId = collection["orderId"]; // Chính là RefId gửi đi
 
-    //        VnPayLibrary vnpay = new VnPayLibrary();
-    //        vnpay.AddRequestData("vnp_Version", "2.1.0");
-    //        vnpay.AddRequestData("vnp_Command", "pay");
-    //        vnpay.AddRequestData("vnp_TmnCode", vnp_TmnCode);
-    //        vnpay.AddRequestData("vnp_Amount", (model.Amount * 100).ToString());
-    //        vnpay.AddRequestData("vnp_CreateDate", model.CreatedDate.ToString("yyyyMMddHHmmss"));
-    //        vnpay.AddRequestData("vnp_CurrCode", "VND");
-    //        vnpay.AddRequestData("vnp_IpAddr", "127.0.0.1");
-    //        vnpay.AddRequestData("vnp_Locale", "vn");
-    //        vnpay.AddRequestData("vnp_OrderInfo", model.Description);
-    //        vnpay.AddRequestData("vnp_OrderType", "other");
-    //        vnpay.AddRequestData("vnp_ReturnUrl", vnp_ReturnUrl);
-    //        vnpay.AddRequestData("vnp_TxnRef", model.OrderId.ToString());
+            // 2. Lấy dữ liệu từ Session
+            var tempOrder = HttpContext.Session.Get<TempOrderData>("TempOrder_" + orderId);
+            if (tempOrder == null)
+            {
+                TempData["PaymentStatus"] = "Fail";
+                TempData["PaymentMessage"] = "Phiên giao dịch hết hạn (Mất Session).";
+                return RedirectToAction("Index", "Cart");
+            }
 
-    //        string requestUrl = vnpay.CreateRequestUrl(vnp_Url, vnp_HashSecret);
-    //        return requestUrl.Substring(vnp_Url.Length + 1);
-    //    }
+            // 3. Kiểm tra kết quả
+            if (resultCode == "0") // THÀNH CÔNG
+            {
+                using (var transaction = _context.Database.BeginTransaction())
+                {
+                    try
+                    {
+                        string voucherToSave = string.IsNullOrEmpty(tempOrder.MaVoucher) ? null : tempOrder.MaVoucher;
 
-    //    // CALLBACK VNPAY
-    //    [HttpGet]
-    //    public IActionResult PaymentCallback()
-    //    {
-    //        var response = Request.Query;
-    //        if (response.Count > 0)
-    //        {
-    //            string vnp_HashSecret = _configuration["VnPay:HashSecret"];
-    //            var vnpayData = response;
-    //            VnPayLibrary vnpay = new VnPayLibrary();
+                        // A. Tạo Hóa Đơn
+                        var hoadon = new Hoadon
+                        {
+                            MaKh = tempOrder.UserId,
+                            Id = tempOrder.MaDc,
+                            MaCode = voucherToSave,
+                            NgayXuatHoaDon = DateTime.Now,
+                            TongTien = tempOrder.TongTien,
+                            PhiVanChuyen = tempOrder.PhiShip,
+                            TienGiamGia = tempOrder.GiamGia,
+                            ThanhTien = tempOrder.TongThanhToan,
+                            Httt = "Momo", // Đổi tên phương thức thành Momo
+                            TrangThai = "ChoXacNhan",
+                            LyDoHuy = ""
+                        };
+                        _context.Hoadons.Add(hoadon);
+                        await _context.SaveChangesAsync();
 
-    //            foreach (var s in vnpayData)
-    //            {
-    //                if (!string.IsNullOrEmpty(s.Key) && s.Key.StartsWith("vnp_"))
-    //                {
-    //                    vnpay.AddResponseData(s.Key, s.Value);
-    //                }
-    //            }
+                        // B. Lưu Chi tiết
+                        var listChiTiet = new List<Chitiethoadon>();
+                        foreach (var item in tempOrder.Items)
+                        {
+                            listChiTiet.Add(new Chitiethoadon { MaHd = hoadon.MaHd, MaSp = item.MaSp, SoLuong = item.SoLuong, DonGia = item.Gia });
+                        }
+                        _context.Chitiethoadons.AddRange(listChiTiet);
 
-    //            long orderId = Convert.ToInt64(vnpay.GetResponseData("vnp_TxnRef"));
-    //            string vnp_ResponseCode = vnpay.GetResponseData("vnp_ResponseCode");
-    //            string vnp_SecureHash = response["vnp_SecureHash"];
+                        // C. Trừ kho FlashSale
+                        foreach (var item in tempOrder.Items)
+                        {
+                            if (item.IsFlashSale)
+                            {
+                                var fsItem = await _context.Flashsaleitems.Include(f => f.IdflsNavigation).FirstOrDefaultAsync(f => f.MaSp == item.MaSp && f.IdflsNavigation.NgayKetThuc >= DateTime.Now && f.IdflsNavigation.TrangThai == true);
+                                if (fsItem != null)
+                                {
+                                    int suatCon = fsItem.SoLuong - fsItem.SoLuongDaBan;
+                                    int soLuongTru = (item.SoLuong <= suatCon) ? item.SoLuong : suatCon;
+                                    if (soLuongTru > 0)
+                                    {
+                                        fsItem.SoLuongDaBan += soLuongTru; _context.Update(fsItem);
+                                        if (fsItem.SoLuongDaBan >= fsItem.SoLuong)
+                                        {
+                                            bool conMonKhac = await _context.Flashsaleitems.AnyAsync(x => x.Idfls == fsItem.Idfls && x.MaSp != fsItem.MaSp && x.SoLuong > x.SoLuongDaBan);
+                                            if (!conMonKhac) { fsItem.IdflsNavigation.TrangThai = false; _context.Update(fsItem.IdflsNavigation); }
+                                        }
+                                    }
+                                }
+                            }
+                        }
 
-    //            if (vnpay.ValidateSignature(vnp_SecureHash, vnp_HashSecret))
-    //            {
-    //                if (vnp_ResponseCode == "00")
-    //                {
-    //                    var order = _context.Hoadons.FirstOrDefault(x => x.MaHd == orderId);
-    //                    if (order != null)
-    //                    {
-    //                        order.TrangThai = "DaThanhToan";
-    //                        _context.SaveChanges();
-    //                    }
-    //                    return Redirect("/Address/Index#orders");
-    //                }
-    //            }
-    //        }
-    //        return Redirect("/Address/Index#orders");
-    //    }
+                        // D. Trừ Voucher
+                        if (!string.IsNullOrEmpty(tempOrder.MaVoucher))
+                        {
+                            var voucherDb = await _context.Magiamgia.FirstOrDefaultAsync(v => v.MaCode == tempOrder.MaVoucher && v.MaKh == tempOrder.UserId);
+                            if (voucherDb != null) { voucherDb.SoLuongDaDung += 1; voucherDb.SoLuong -= 1; _context.Update(voucherDb); }
+                        }
+
+                        // E. Xóa Giỏ hàng
+                        var idSps = tempOrder.Items.Select(x => x.MaSp).ToList();
+                        var cartDel = await _context.Chitietgiohangs.Include(c => c.MaGhNavigation).Where(c => c.MaGhNavigation.MaKh == tempOrder.UserId && idSps.Contains(c.MaSp)).ToListAsync();
+                        _context.Chitietgiohangs.RemoveRange(cartDel);
+                        await _context.SaveChangesAsync();
+
+                        transaction.Commit();
+                        HttpContext.Session.Remove("TempOrder_" + orderId);
+
+                        TempData["PaymentStatus"] = "Success";
+                        TempData["PaymentMessage"] = $"Thanh toán MoMo thành công đơn hàng #{hoadon.MaHd}.";
+                        return Redirect("/Address/Index#orders");
+                    }
+                    catch (Exception ex)
+                    {
+                        transaction.Rollback();
+                        return Content("Lỗi lưu đơn hàng MoMo: " + (ex.InnerException?.Message ?? ex.Message));
+                    }
+                }
+            }
+            else // THẤT BẠI
+            {
+                TempData["PaymentStatus"] = "Fail";
+                TempData["PaymentMessage"] = $"Thanh toán MoMo thất bại (Mã lỗi: {resultCode}).";
+
+                var queryParams = new List<string>();
+                if (tempOrder.MaDc.HasValue) queryParams.Add($"selectedAddressId={tempOrder.MaDc}");
+                foreach (var item in tempOrder.Items) queryParams.Add($"selectedIds={item.MaSp}");
+
+                return Redirect($"/ThanhToan/Index?{string.Join("&", queryParams)}");
+            }
+        }
+
+        // ==================================================================================
+        // CALLBACK: VNPAY (GIỮ NGUYÊN CODE CŨ CỦA BẠN)
+        // ==================================================================================
+        [HttpGet]
+        public async Task<IActionResult> PaymentCallback()
+        {
+            var response = _configuration.GetSection("VnPay");
+            var vnPayData = Request.Query;
+            VnPayLibrary vnPayLibrary = new VnPayLibrary();
+            foreach (var s in vnPayData) if (!string.IsNullOrEmpty(s.Key) && s.Key.StartsWith("vnp_")) vnPayLibrary.AddResponseData(s.Key, s.Value);
+
+            string vnp_SecureHash = vnPayData["vnp_SecureHash"];
+            bool checkSignature = vnPayLibrary.ValidateSignature(vnp_SecureHash, response["HashSecret"]);
+
+            if (checkSignature)
+            {
+                string vnp_ResponseCode = vnPayLibrary.GetResponseData("vnp_ResponseCode");
+                string vnp_TxnRef = vnPayLibrary.GetResponseData("vnp_TxnRef");
+
+                var tempOrder = HttpContext.Session.Get<TempOrderData>("TempOrder_" + vnp_TxnRef);
+                if (tempOrder == null)
+                {
+                    TempData["PaymentStatus"] = "Fail";
+                    TempData["PaymentMessage"] = "Phiên giao dịch hết hạn.";
+                    return RedirectToAction("Index", "Cart");
+                }
+
+                if (vnp_ResponseCode == "00")
+                {
+                    using (var transaction = _context.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            string voucherToSave = string.IsNullOrEmpty(tempOrder.MaVoucher) ? null : tempOrder.MaVoucher;
+
+                            var hoadon = new Hoadon
+                            {
+                                MaKh = tempOrder.UserId,
+                                Id = tempOrder.MaDc,
+                                MaCode = voucherToSave,
+                                NgayXuatHoaDon = DateTime.Now,
+                                TongTien = tempOrder.TongTien,
+                                PhiVanChuyen = tempOrder.PhiShip,
+                                TienGiamGia = tempOrder.GiamGia,
+                                ThanhTien = tempOrder.TongThanhToan,
+                                Httt = "VnPay",
+                                TrangThai = "ChoXacNhan",
+                                LyDoHuy = ""
+                            };
+                            _context.Hoadons.Add(hoadon);
+                            await _context.SaveChangesAsync();
+
+                            var listChiTiet = new List<Chitiethoadon>();
+                            foreach (var item in tempOrder.Items)
+                            {
+                                listChiTiet.Add(new Chitiethoadon { MaHd = hoadon.MaHd, MaSp = item.MaSp, SoLuong = item.SoLuong, DonGia = item.Gia });
+                            }
+                            _context.Chitiethoadons.AddRange(listChiTiet);
+
+                            foreach (var item in tempOrder.Items)
+                            {
+                                if (item.IsFlashSale)
+                                {
+                                    var fsItem = await _context.Flashsaleitems.Include(f => f.IdflsNavigation).FirstOrDefaultAsync(f => f.MaSp == item.MaSp && f.IdflsNavigation.NgayKetThuc >= DateTime.Now && f.IdflsNavigation.TrangThai == true);
+                                    if (fsItem != null)
+                                    {
+                                        int suatCon = fsItem.SoLuong - fsItem.SoLuongDaBan;
+                                        int soLuongTru = (item.SoLuong <= suatCon) ? item.SoLuong : suatCon;
+                                        if (soLuongTru > 0)
+                                        {
+                                            fsItem.SoLuongDaBan += soLuongTru; _context.Update(fsItem);
+                                            if (fsItem.SoLuongDaBan >= fsItem.SoLuong)
+                                            {
+                                                bool conMonKhac = await _context.Flashsaleitems.AnyAsync(x => x.Idfls == fsItem.Idfls && x.MaSp != fsItem.MaSp && x.SoLuong > x.SoLuongDaBan);
+                                                if (!conMonKhac) { fsItem.IdflsNavigation.TrangThai = false; _context.Update(fsItem.IdflsNavigation); }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            if (!string.IsNullOrEmpty(tempOrder.MaVoucher))
+                            {
+                                var voucherDb = await _context.Magiamgia.FirstOrDefaultAsync(v => v.MaCode == tempOrder.MaVoucher && v.MaKh == tempOrder.UserId);
+                                if (voucherDb != null) { voucherDb.SoLuongDaDung += 1; voucherDb.SoLuong -= 1; _context.Update(voucherDb); }
+                            }
+
+                            var idSps = tempOrder.Items.Select(x => x.MaSp).ToList();
+                            var cartDel = await _context.Chitietgiohangs.Include(c => c.MaGhNavigation).Where(c => c.MaGhNavigation.MaKh == tempOrder.UserId && idSps.Contains(c.MaSp)).ToListAsync();
+                            _context.Chitietgiohangs.RemoveRange(cartDel);
+                            await _context.SaveChangesAsync();
+
+                            transaction.Commit();
+                            HttpContext.Session.Remove("TempOrder_" + vnp_TxnRef);
+
+                            TempData["PaymentStatus"] = "Success";
+                            TempData["PaymentMessage"] = $"Thanh toán VNPay thành công đơn hàng #{hoadon.MaHd}.";
+                            return Redirect("/Address/Index#orders");
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            return Content("Lỗi lưu đơn hàng VNPay: " + (ex.InnerException?.Message ?? ex.Message));
+                        }
+                    }
+                }
+                else
+                {
+                    TempData["PaymentStatus"] = "Fail";
+                    TempData["PaymentMessage"] = $"Thanh toán VNPay thất bại (Mã lỗi: {vnp_ResponseCode}).";
+
+                    var queryParams = new List<string>();
+                    if (tempOrder.MaDc.HasValue) queryParams.Add($"selectedAddressId={tempOrder.MaDc}");
+                    foreach (var item in tempOrder.Items) queryParams.Add($"selectedIds={item.MaSp}");
+
+                    return Redirect($"/ThanhToan/Index?{string.Join("&", queryParams)}");
+                }
+            }
+            return RedirectToAction("Index", "Cart");
+        }
+
+        // ==================================================================================
+        // INTERNAL HELPER: TẠO URL VNPAY
+        // ==================================================================================
+        private string CreateVnPayUrlInternal(string orderRefId, double amount)
+        {
+            var vnPayHelper = new VnPayLibrary();
+            var timeNow = DateTime.Now;
+            var vnp_TmnCode = _configuration["VnPay:TmnCode"];
+            var vnp_HashSecret = _configuration["VnPay:HashSecret"];
+            var vnp_Url = _configuration["VnPay:BaseUrl"];
+            var vnp_Returnurl = _configuration["VnPay:ReturnUrl"];
+
+            vnPayHelper.AddRequestData("vnp_Version", "2.1.0");
+            vnPayHelper.AddRequestData("vnp_Command", "pay");
+            vnPayHelper.AddRequestData("vnp_TmnCode", vnp_TmnCode);
+            vnPayHelper.AddRequestData("vnp_Amount", ((int)amount * 100).ToString());
+            vnPayHelper.AddRequestData("vnp_CreateDate", timeNow.ToString("yyyyMMddHHmmss"));
+            vnPayHelper.AddRequestData("vnp_CurrCode", "VND");
+            vnPayHelper.AddRequestData("vnp_IpAddr", Utils.GetIpAddress(HttpContext));
+            vnPayHelper.AddRequestData("vnp_Locale", "vn");
+            vnPayHelper.AddRequestData("vnp_OrderInfo", "Thanh toan don hang " + orderRefId);
+            vnPayHelper.AddRequestData("vnp_OrderType", "other");
+            vnPayHelper.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
+            vnPayHelper.AddRequestData("vnp_TxnRef", orderRefId);
+
+            return vnPayHelper.CreateRequestUrl(vnp_Url, vnp_HashSecret);
+        }
+
+        // ==================================================================================
+        // INTERNAL HELPER: TẠO URL MOMO (API CALL)
+        // ==================================================================================
+        private async Task<string> CreateMomoUrlInternal(string orderRefId, long amount)
+        {
+            var momoConfig = _configuration.GetSection("Momo");
+            string endpoint = momoConfig["ApiEndpoint"];
+            string partnerCode = momoConfig["PartnerCode"];
+            string accessKey = momoConfig["AccessKey"];
+            string secretKey = momoConfig["SecretKey"];
+            string returnUrl = momoConfig["ReturnUrl"];
+            string notifyUrl = momoConfig["NotifyUrl"];
+
+            string requestId = Guid.NewGuid().ToString();
+            string orderInfo = "Thanh toan don hang " + orderRefId;
+            string requestType = "captureWallet";
+            string extraData = "";
+
+            string rawHash = "accessKey=" + accessKey +
+                             "&amount=" + amount +
+                             "&extraData=" + extraData +
+                             "&ipnUrl=" + notifyUrl +
+                             "&orderId=" + orderRefId +
+                             "&orderInfo=" + orderInfo +
+                             "&partnerCode=" + partnerCode +
+                             "&redirectUrl=" + returnUrl +
+                             "&requestId=" + requestId +
+                             "&requestType=" + requestType;
+
+            string signature = MomoLibrary.ComputeHmacSha256(rawHash, secretKey);
+
+            var request = new MomoRequest
+            {
+                partnerCode = partnerCode,
+                requestId = requestId,
+                amount = amount,
+                orderId = orderRefId,
+                orderInfo = orderInfo,
+                redirectUrl = returnUrl,
+                ipnUrl = notifyUrl,
+                requestType = requestType,
+                extraData = extraData,
+                signature = signature
+            };
+
+            string responseJson = await MomoLibrary.SendPaymentRequest(endpoint, JsonSerializer.Serialize(request));
+            var response = JsonSerializer.Deserialize<MomoResponse>(responseJson);
+
+            return response?.payUrl;
+        }
     }
 
-    public class VnPayRequestModel
+    public class DatHangRequest
     {
-        public long OrderId { get; set; }
-        public string FullName { get; set; }
-        public string Description { get; set; }
-        public double Amount { get; set; }
-        public DateTime CreatedDate { get; set; }
+        public int? MaDc { get; set; }
+        public string? MaVoucher { get; set; }
+        public string PhuongThucThanhToan { get; set; }
+        public List<int> SelectedIds { get; set; }
     }
 }

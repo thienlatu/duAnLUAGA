@@ -1,0 +1,424 @@
+﻿@model duAnLUAGA.Domain.Entitie.Flashsale
+
+@{
+    // Lưu ID hiện tại để JS so sánh (nếu null thì là 0)
+    int currentId = Model != null ? Model.Idfls : 0;
+}
+
+<div id="fs-component-wrapper" data-id="@currentId">
+
+    @if (Model != null && Model.Flashsaleitems != null && Model.Flashsaleitems.Any())
+    {
+        var endTimeString = Model.NgayKetThuc.ToString("yyyy-MM-ddTHH:mm:ss");
+
+        <div id="fs-isolated-wrapper">
+            <div class="fs-inner-container">
+
+                <div class="fs-header">
+                    <div class="fs-header-left">
+                        <i class="fas fa-bolt" style="color: #d0021b; font-size: 18px; margin-right: 8px;"></i>
+                        <h2 class="fs-title">FLASH SALE</h2>
+                        <span class="fs-timer-label">Kết thúc trong</span>
+                        <div class="fs-timer">
+                            <div class="fs-time-box" id="iso-hours">00</div>
+                            <span class="fs-time-sep">:</span>
+                            <div class="fs-time-box" id="iso-minutes">00</div>
+                            <span class="fs-time-sep">:</span>
+                            <div class="fs-time-box" id="iso-seconds">00</div>
+                        </div>
+                    </div>
+
+                    <div class="fs-header-right">
+                        <a href="/SaleUser/Index" class="fs-view-all">Xem tất cả ></a>
+                    </div>
+                </div>
+
+                <div class="fs-body-relative">
+                    <button type="button" class="fs-nav-btn fs-prev" id="btnFsPrev">&#10094;</button>
+                    <button type="button" class="fs-nav-btn fs-next" id="btnFsNext">&#10095;</button>
+
+                    <div class="fs-list-scroll" id="fsListScroll">
+                        @foreach (var item in Model.Flashsaleitems)
+                        {
+                            // Ẩn sản phẩm hết hàng
+                            if ((item.SoLuong - item.SoLuongDaBan) <= 0) { continue; }
+
+                            var giaGoc = item.MaSpNavigation.Gia;
+                            var giaGiam = giaGoc * (1 - (item.PhanTramGiam / 100));
+                            var percentSold = item.SoLuong > 0 ? (double)item.SoLuongDaBan / item.SoLuong * 100 : 0;
+                            if (percentSold > 100) percentSold = 100;
+
+                            <a href="/ChiTSP/Index?id=@item.MaSp" class="fs-item-card">
+                                <div class="fs-img-wrapper">
+                                    @if (!string.IsNullOrEmpty(item.MaSpNavigation.HinhDaiDien))
+                                    {
+                                        <img src="~/image/@item.MaSpNavigation.HinhDaiDien" alt="@item.MaSpNavigation.TenSanPham" />
+                                    }
+                                    else
+                                    {
+                                        <img src="https://via.placeholder.com/300x300?text=No+Image" alt="No Image" />
+                                    }
+                                    <span class="fs-discount-badge">-@item.PhanTramGiam.ToString("0")%</span>
+                                </div>
+
+                                <div class="fs-item-info">
+                                    <div class="fs-item-name">@item.MaSpNavigation.TenSanPham</div>
+
+                                    <div class="fs-price-row">
+                                        <span class="fs-price-new">@giaGiam.ToString("N0")đ</span>
+                                        <span class="fs-price-old">@giaGoc.ToString("N0")đ</span>
+                                    </div>
+
+                                    <div class="fs-progress-container">
+                                        <div class="fs-progress-bar">
+                                            <div class="fs-progress-fill" style="width:@percentSold%"></div>
+                                        </div>
+                                        <div class="fs-sold-row">
+                                            <span class="fs-sold-text">Đã bán @item.SoLuongDaBan</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </a>
+                        }
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <style>
+            #fs-isolated-wrapper {
+                display: block;
+                width: 100%;
+                background: #fff;
+                padding: 20px 0;
+                font-family: system-ui, -apple-system, sans-serif;
+                box-sizing: border-box;
+                margin-bottom: 20px;
+            }
+
+                #fs-isolated-wrapper * {
+                    box-sizing: border-box;
+                }
+
+                #fs-isolated-wrapper .fs-inner-container {
+                    max-width: 1200px;
+                    margin: 0 auto;
+                    border: 1px solid #eee;
+                    border-radius: 4px;
+                    background: #fff;
+                    overflow: hidden;
+                }
+
+                #fs-isolated-wrapper .fs-header {
+                    display: flex;
+                    justify-content: space-between;
+                    align-items: center;
+                    padding: 12px 15px;
+                    border-bottom: 1px solid #f0f0f0;
+                }
+
+            .fs-header-left {
+                display: flex;
+                align-items: center;
+                gap: 10px;
+            }
+
+            .fs-title {
+                font-size: 18px;
+                font-weight: 700;
+                color: #d0021b;
+                margin: 0;
+                text-transform: uppercase;
+            }
+
+            .fs-timer-label {
+                font-size: 13px;
+                color: #666;
+                margin-left: 10px;
+            }
+
+            .fs-timer {
+                display: flex;
+                align-items: center;
+                margin-left: 5px;
+            }
+
+            .fs-time-box {
+                background: #333;
+                color: #fff;
+                font-weight: 600;
+                font-size: 12px;
+                padding: 2px 5px;
+                border-radius: 3px;
+                min-width: 24px;
+                text-align: center;
+            }
+
+            .fs-time-sep {
+                margin: 0 3px;
+                font-weight: bold;
+                color: #333;
+            }
+
+            .fs-view-all {
+                font-size: 13px;
+                color: #333;
+                text-decoration: none;
+            }
+
+                .fs-view-all:hover {
+                    color: #d0021b;
+                }
+
+            .fs-body-relative {
+                position: relative;
+                padding: 15px;
+                background: #fff;
+            }
+
+            .fs-list-scroll {
+                display: flex;
+                gap: 12px;
+                overflow-x: auto;
+                scroll-behavior: smooth;
+                padding-bottom: 5px;
+            }
+
+                .fs-list-scroll::-webkit-scrollbar {
+                    height: 4px;
+                }
+
+                .fs-list-scroll::-webkit-scrollbar-thumb {
+                    background: #eee;
+                }
+
+            .fs-nav-btn {
+                position: absolute;
+                top: 50%;
+                transform: translateY(-50%);
+                width: 30px;
+                height: 30px;
+                background: rgba(255,255,255,0.9);
+                border: 1px solid #ddd;
+                border-radius: 50%;
+                cursor: pointer;
+                z-index: 5;
+                box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+                color: #333;
+                display: flex;
+                align-items: center;
+                justify-content: center;
+            }
+
+            .fs-prev {
+                left: 5px;
+            }
+
+            .fs-next {
+                right: 5px;
+            }
+
+            .fs-item-card {
+                flex: 0 0 190px;
+                width: 190px;
+                border: 1px solid #eee;
+                border-radius: 4px;
+                text-decoration: none;
+                background: #fff;
+                transition: 0.2s;
+                display: flex;
+                flex-direction: column;
+            }
+
+                .fs-item-card:hover {
+                    border-color: #d0021b;
+                    box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+                }
+
+            .fs-img-wrapper {
+                width: 100%;
+                height: 190px;
+                position: relative;
+                overflow: hidden;
+            }
+
+                .fs-img-wrapper img {
+                    width: 100%;
+                    height: 100%;
+                    object-fit: cover;
+                    transition: 0.3s;
+                }
+
+            .fs-item-card:hover img {
+                transform: scale(1.05);
+            }
+
+            .fs-discount-badge {
+                position: absolute;
+                top: 5px;
+                right: 5px;
+                background: #ffe97a;
+                color: #d0021b;
+                font-size: 11px;
+                font-weight: 700;
+                padding: 2px 6px;
+                border-radius: 2px;
+            }
+
+            .fs-item-info {
+                padding: 10px;
+                display: flex;
+                flex-direction: column;
+            }
+
+            .fs-item-name {
+                font-size: 13px;
+                color: #333;
+                line-height: 1.4;
+                height: 36px;
+                overflow: hidden;
+                display: -webkit-box;
+                -webkit-line-clamp: 2;
+                -webkit-box-orient: vertical;
+                margin-bottom: 5px;
+            }
+
+            .fs-price-row {
+                margin-bottom: 5px;
+                display: flex;
+                align-items: center;
+                flex-wrap: wrap;
+            }
+
+            .fs-price-new {
+                color: #d0021b;
+                font-size: 15px;
+                font-weight: 600;
+                margin-right: 8px;
+            }
+
+            .fs-price-old {
+                color: #999;
+                text-decoration: line-through;
+                font-size: 12px;
+                font-weight: 400;
+            }
+
+            .fs-progress-bar {
+                height: 4px;
+                background: #eee;
+                border-radius: 2px;
+                overflow: hidden;
+                width: 100%;
+                margin-top: auto;
+            }
+
+            .fs-progress-fill {
+                height: 100%;
+                background: #d0021b;
+            }
+
+            .fs-sold-text {
+                font-size: 10px;
+                color: #888;
+                margin-top: 2px;
+                display: block;
+            }
+
+            @@media (max-width: 768px) {
+                .fs-header {
+                    flex-wrap: wrap;
+                }
+
+                .fs-item-card {
+                    flex: 0 0 150px;
+                    width: 150px;
+                }
+
+                .fs-img-wrapper {
+                    height: 150px;
+                }
+            }
+        </style>
+
+        <script>
+            // Script Scroll & Countdown (Chỉ chạy khi DOM đã load xong nội dung)
+            function initFlashSaleScripts() {
+                const c = document.getElementById('fsListScroll');
+                const p = document.getElementById('btnFsPrev');
+                const n = document.getElementById('btnFsNext');
+                if (c && p && n) {
+                    p.onclick = () => c.scrollBy({ left: -200, behavior: 'smooth' });
+                    n.onclick = () => c.scrollBy({ left: 200, behavior: 'smooth' });
+                }
+
+                const h = document.getElementById('iso-hours'), m = document.getElementById('iso-minutes'), s = document.getElementById('iso-seconds');
+                if (h && m && s) {
+                    // Xóa interval cũ nếu có để tránh chạy chồng chéo
+                    if (window.fsTimer) clearInterval(window.fsTimer);
+
+                    const end = new Date("@endTimeString").getTime();
+                    const pad = n => String(n).padStart(2, '0');
+
+                    window.fsTimer = setInterval(() => {
+                        let d = Math.floor((end - Date.now()) / 1000);
+                        if (d <= 0) { h.textContent='00'; m.textContent='00'; s.textContent='00'; return; }
+                        h.textContent = pad(Math.floor(d / 3600));
+                        m.textContent = pad(Math.floor((d % 3600) / 60));
+                        s.textContent = pad(d % 60);
+                    }, 1000);
+                }
+            }
+
+            // Gọi ngay khi load lần đầu
+            document.addEventListener("DOMContentLoaded", initFlashSaleScripts);
+            // Gọi lại mỗi khi Ajax replace nội dung
+            if (typeof initFlashSaleScripts === 'function') initFlashSaleScripts();
+        </script>
+    }
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function() {
+            // Xóa interval cũ để tránh chạy nhiều lần khi navigate trang
+            if (window.fsPolling) clearInterval(window.fsPolling);
+
+            window.fsPolling = setInterval(function() {
+                // Lấy ID đang hiển thị trên giao diện (nếu không có wrapper thì là 0)
+                var wrapper = document.getElementById('fs-component-wrapper');
+                var currentId = wrapper ? wrapper.getAttribute('data-id') : 0;
+
+                // Gọi API check ID mới nhất
+                fetch('/SaleUser/GetActiveFlashSaleId')
+                    .then(response => response.json())
+                    .then(data => {
+                        var newId = data.id;
+
+                        // Logic:
+                        // 1. Nếu ID thay đổi (Khác ID hiện tại) -> Reload
+                        // 2. Nếu ID hiện tại là 0 mà Server trả về > 0 -> Có Sale mới -> Reload
+                        // 3. Nếu ID hiện tại > 0 mà Server trả về 0 -> Hết Sale -> Reload (để ẩn đi)
+                        if (newId != currentId) {
+                            console.log("Flash Sale State Changed: " + currentId + " -> " + newId);
+
+                            // Gọi API tải lại HTML
+                            fetch('/SaleUser/ReloadFlashSaleComponent')
+                                .then(res => res.text())
+                                .then(html => {
+                                    // Thay thế toàn bộ nội dung wrapper (hoặc chèn mới nếu chưa có)
+                                    if (wrapper) {
+                                        wrapper.outerHTML = html;
+                                    } else {
+                                       
+                                    }
+
+                                    // Chạy lại script countdown cho nội dung mới
+                                    // Lưu ý: Các script bên trong HTML trả về sẽ tự chạy nhờ thẻ <script>
+                                });
+                        }
+                    })
+                    .catch(err => console.error("Polling error:", err));
+
+            }, 3000); // Kiểm tra mỗi 3 giây
+        });
+    </script>
+</div>

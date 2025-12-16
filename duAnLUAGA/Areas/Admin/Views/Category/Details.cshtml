@@ -1,0 +1,166 @@
+﻿@model duAnLUAGA.Domain.Entitie.Danhmuc
+
+@{
+    ViewData["Title"] = "Chi Tiết Danh Mục";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Dùng chung bộ CSS Luxury */
+    :root {
+        --bg-dark: #121212;
+        --card-bg: #1e1e1e;
+        --accent-red: #e50914;
+        --text-white: #e5e5e5;
+    }
+
+    .luxury-card {
+        background-color: var(--card-bg);
+        border: 1px solid #333;
+        border-radius: 8px;
+        box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    }
+
+    .luxury-header {
+        border-left: 4px solid var(--accent-red);
+        padding-left: 15px;
+        color: var(--text-white);
+        margin-bottom: 20px;
+    }
+
+    /* Label & Value styling */
+    .detail-label {
+        color: #888;
+        font-size: 0.9rem;
+        font-weight: 600;
+        text-transform: uppercase;
+        margin-bottom: 5px;
+    }
+
+    .detail-value {
+        color: #fff;
+        font-size: 1.1rem;
+        font-weight: 500;
+        margin-bottom: 20px;
+        border-bottom: 1px solid #333;
+        padding-bottom: 10px;
+    }
+
+    /* Image in details */
+    .detail-img-wrapper {
+        width: 100%;
+        height: 300px;
+        background: #181818;
+        border: 1px solid #333;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        overflow: hidden;
+    }
+
+    .detail-img {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+    }
+
+    /* Buttons */
+    .btn-luxury {
+        background-color: var(--accent-red);
+        color: white;
+        padding: 10px 30px;
+        border: none;
+        font-weight: bold;
+        transition: 0.3s;
+        border-radius: 4px;
+    }
+
+        .btn-luxury:hover {
+            background-color: #b20710;
+            color: white;
+            text-decoration: none;
+            transform: translateY(-2px);
+        }
+
+    .btn-secondary-luxury {
+        background-color: transparent;
+        border: 1px solid #555;
+        color: #ccc;
+        padding: 10px 20px;
+        transition: 0.3s;
+        border-radius: 4px;
+    }
+
+        .btn-secondary-luxury:hover {
+            border-color: #fff;
+            color: #fff;
+            background: #333;
+            text-decoration: none;
+        }
+</style>
+
+<div class="container p-4">
+    <div class="row justify-content-center">
+        <div class="col-md-10">
+            <h2 class="luxury-header">Thông Tin Danh Mục</h2>
+
+            <div class="luxury-card p-4">
+                <div class="row">
+                    <div class="col-md-5 mb-4 mb-md-0">
+                        <div class="detail-label">Hình ảnh đại diện</div>
+                        <div class="detail-img-wrapper">
+                            @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                            {
+                                <img src="@Model.HinhAnh" class="detail-img" alt="@Model.TenDanhMuc" />
+                            }
+                            else
+                            {
+                                <div class="text-muted"><i class="fas fa-image fa-3x"></i><br>Không có ảnh</div>
+                            }
+                        </div>
+                    </div>
+
+                    <div class="col-md-7">
+                        <div class="detail-label">Mã Danh Mục (ID)</div>
+                        <div class="detail-value">#@Model.MaDm</div>
+
+                        <div class="detail-label">Tên Danh Mục</div>
+                        <div class="detail-value">@Model.TenDanhMuc</div>
+
+                        <div class="detail-label">Trạng Thái</div>
+                        <div class="detail-value" style="border-bottom: none;">
+                            @if (Model.TrangThai)
+                            {
+                                <span class="badge badge-success px-3 py-2" style="background:#00c851; color:#fff">
+                                    <i class="fas fa-check-circle mr-1"></i> Đang hoạt động
+                                </span>
+                            }
+                            else
+                            {
+                                <span class="badge badge-secondary px-3 py-2">
+                                    <i class="fas fa-times-circle mr-1"></i> Ngưng hoạt động
+                                </span>
+                                <div class="mt-2 text-danger small">
+                                    <i class="fas fa-exclamation-triangle"></i>
+                                    Lưu ý: Các sản phẩm thuộc danh mục này đang ở trạng thái "Hết hàng".
+                                </div>
+                            }
+                        </div>
+
+                      
+
+                        <div class="mt-5 d-flex">
+                            <a asp-action="Index" class="btn btn-secondary-luxury mr-3">
+                                <i class="fas fa-arrow-left mr-2"></i> Quay lại
+                            </a>
+                            <a asp-action="Edit" asp-route-id="@Model.MaDm" class="btn btn-luxury">
+                                <i class="fas fa-pen mr-2"></i> Chỉnh sửa
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

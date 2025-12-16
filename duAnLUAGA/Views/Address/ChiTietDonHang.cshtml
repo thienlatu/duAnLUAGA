@@ -381,7 +381,7 @@
                         <img src="@(string.IsNullOrEmpty(item.MaSpNavigation?.HinhDaiDien) ? "/img/no-image.png" : $"/img/{item.MaSpNavigation.HinhDaiDien}")" class="prod-img">
                         <div class="prod-info">
                             <div class="prod-name">@item.MaSpNavigation?.TenSanPham</div>
-                            <div class="prod-meta">Phân loại: @(item.MaSpNavigation?.TacGia ?? "Mặc định")</div>
+                            <div class="prod-meta">Phân loại: @(item.MaSpNavigation?.HinhThuc ?? "Mặc định")</div>
                             <div class="prod-meta">x @item.SoLuong</div>
                         </div>
                         <div class="prod-price">@item.DonGia.ToString("N0")₫</div>

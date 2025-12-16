@@ -1,8 +1,11 @@
-﻿using duAnLUAGA.Infrastructure.Data;
+﻿
+using duAnLUAGA.Application.Interfaces;
+using duAnLUAGA.Application.Services;
+using duAnLUAGA.Infrastructure.Data;
 using Microsoft.AspNetCore.Authentication.Cookies;
-using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.EntityFrameworkCore;
 using System.Security.Claims;
+
 
 namespace duAnLUAGA
 {
@@ -14,15 +17,15 @@ namespace duAnLUAGA
             builder.Services.AddRazorPages();
 
             var config = builder.Configuration;
-
+            builder.Services.AddHttpClient();
             // DbContext
             builder.Services.AddDbContext<DuanLuagaContext>(options =>
                 options.UseSqlServer(config.GetConnectionString("LUAGA")));
 
             builder.Services.AddControllersWithViews();
-
-            // HttpContextAccessor (dùng cho view hiển thị tên user, v.v.)
+ 
             builder.Services.AddHttpContextAccessor();
+            builder.Services.AddScoped<IChatService, ChatService>();
 
             builder.Services.AddDistributedMemoryCache();
             builder.Services.AddSession(options =>
@@ -87,7 +90,7 @@ namespace duAnLUAGA
             app.UseStaticFiles();
             app.UseSession();
             app.UseRouting();
-
+   
             app.UseAuthentication();
             app.UseAuthorization();
 

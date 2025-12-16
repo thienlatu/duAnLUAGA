@@ -101,5 +101,34 @@ namespace duAnLUAGA.Controllers
 
             return View(viewModel);
         }
+        [HttpGet]
+        public async Task<IActionResult> SearchLive(string query)
+        {
+            
+            if (string.IsNullOrEmpty(query)) return Json(new { success = false });
+            var products = await _context.Sanphams
+                .Where(p => p.TenSanPham.Contains(query) && (p.TrangThai == "Còn hàng" || p.TrangThai == "Hết Hàng"))
+                .Select(p => new
+                {
+                    p.MaSp,
+                    p.TenSanPham,
+                    p.HinhDaiDien,
+                    p.Gia,
+                    p.PhanTramGiam
+                })
+                .Take(5)
+                .ToListAsync();
+
+        
+            var result = products.Select(p => new {
+                id = p.MaSp,
+                ten = p.TenSanPham,
+                hinh = p.HinhDaiDien,
+            
+                giaBan = GiamGia(p.Gia, p.PhanTramGiam)
+            });
+
+            return Json(new { success = true, data = result });
+        }
     }
 }

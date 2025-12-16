@@ -5,74 +5,206 @@
 
 <link href="~/css/index.css" rel="stylesheet" />
 
-<section class="home-hero">
-    <div class="home-hero__inner">
-        <!-- BANNER LỚN BÊN TRÁI -->
-        <div class="hero-banner" data-hero-slider>
-            <div class="hero-banner__viewport" data-slider-viewport>
-                <div class="hero-banner__track" data-slider-track>
-                    <!-- Slide 1 -->
-                    <a class="hero-banner__slide"
-                       data-slider-slide
-                       href="#">
-                        <img src="https://cdn1.fahasa.com/media/magentothem/banner7/PartnershipT11_Resize_840x320.png" alt="Banner 1 - Deal mỹ phẩm" />
-                    </a>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+<script src="https://unpkg.com/lucide@latest"></script>
+<script src="https://cdn.tailwindcss.com"></script>
 
-                    <!-- Slide 2 -->
-                    <a class="hero-banner__slide"
-                       data-slider-slide
-                       href="#">
-                        <img src="https://cdn1.fahasa.com/media/magentothem/banner7/NgoaiVanT11_840x320_v2.png" alt="Banner 2 - Freeship 0đ" />
-                    </a>
+<script>
+    tailwind.config = {
+        // QUAN TRỌNG: Thêm tiền tố 'tw-' cho mọi class Tailwind
+        prefix: 'tw-',
+        corePlugins: {
+            preflight: false, // Tắt reset CSS để không hỏng web cũ
+        },
+        theme: {
+            extend: {
+                colors: { primary: "#ee4d2d" },
+                dropShadow: { hard: "0 2px 2px rgba(0, 0, 0, 0.8)" },
+            },
+        },
+    };
+</script>
 
-                    <!-- Slide 3 -->
-                    <a class="hero-banner__slide"
-                       data-slider-slide
-                       href="">
-                        <img src="https://bookbuy.vn/Res/Images/Album/0617c31a-18b5-44dd-af71-defe9654abd4.jpg?w=880&scale=both&h=320&mode=crop" alt="Banner 3 - Super Brand Day" />
-                    </a>
+<style>
+    /* Chỉ áp dụng font này trong khu vực banner */
+    #luxIsolatedBanner {
+        font-family: "Montserrat", sans-serif;
+        isolation: isolate; /* Tạo context xếp chồng mới */
+        margin-bottom: 30px;
+        width: 100%;
+        display: block;
+        box-sizing: border-box;
+
+    }
+
+        #luxIsolatedBanner img {
+            display: block;
+            max-width: 100%;
+        }
+
+    /* Container riêng để khớp độ rộng với web cũ */
+    .lux-container {
+        width: 100%;
+        margin-right: auto;
+        margin-left: auto;
+        padding-right: 15px;
+        padding-left: 15px;
+    }
+    media (min-width: 1200px) {
+        .lux-container
+
+    {
+        max-width: 1200px; /* Chỉnh theo container của Bootstrap 4/5 */
+    }
+
+    }
+</style>
+
+<section id="luxIsolatedBanner" style=" margin-top: -30px">
+    <div class="lux-container tw-mx-auto tw-py-6">
+        <div class="tw-grid tw-grid-cols-1 lg:tw-grid-cols-3 tw-gap-3 tw-items-stretch tw-h-auto lg:tw-h-[480px]">
+
+            <div class="lg:tw-col-span-2 tw-relative tw-rounded-lg tw-overflow-hidden tw-group tw-shadow-md tw-w-full tw-bg-white tw-aspect-[16/9] md:tw-aspect-[21/9] lg:tw-aspect-auto lg:tw-h-full">
+
+                <div class="lux-slide tw-absolute tw-inset-0 tw-transition-opacity tw-duration-700 tw-opacity-100 tw-z-10" data-lux-index="0">
+                    <img src="https://theme.hstatic.net/200000845405/1001223012/14/home_slider_image_4.jpg?v=476"
+                         alt="Slide 1"
+                         class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center" />
                 </div>
 
-                <!-- Nút điều hướng -->
-                <button class="hero-banner__arrow hero-banner__arrow--prev"
-                        type="button"
-                        data-slider-prev
-                        aria-label="Ảnh trước">
-                    <span>&lt;</span>
-                </button>
-                <button class="hero-banner__arrow hero-banner__arrow--next"
-                        type="button"
-                        data-slider-next
-                        aria-label="Ảnh sau">
-                    <span>&gt;</span>
+                <div class="lux-slide tw-absolute tw-inset-0 tw-transition-opacity tw-duration-700 tw-opacity-0 tw-z-0" data-lux-index="1">
+                    <img src="https://theme.hstatic.net/200000845405/1001223012/14/home_slider_image_1.jpg?v=476"
+                         alt="Slide 2"
+                         class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center" />
+                </div>
+
+                <div class="lux-slide tw-absolute tw-inset-0 tw-transition-opacity tw-duration-700 tw-opacity-0 tw-z-0" data-lux-index="2">
+                    <img src="https://www.netabooks.vn/Data/Sites/1/Banner/nam-phuong-hoang-hau-cuoi-cung-cua-viet-nam-858x450.jpg"
+                         alt="Slide 3"
+                         class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center" />
+                </div>
+
+                <button type="button" data-lux-prev
+                        class="tw-hidden md:tw-block tw-absolute tw-left-4 tw-top-1/2 -tw-translate-y-1/2 tw-bg-white/20 hover:tw-bg-white tw-text-white hover:tw-text-black tw-p-2 tw-rounded-full tw-opacity-0 group-hover:tw-opacity-100 tw-transition-all tw-z-20 tw-shadow-md tw-backdrop-blur-sm tw-border-0">
+                    <i data-lucide="chevron-left" class="tw-w-6 tw-h-6"></i>
                 </button>
 
-                <!-- Dots -->
-                <div class="hero-banner__dots">
-                    <button class="hero-banner__dot is-active" type="button" data-slider-dot></button>
-                    <button class="hero-banner__dot" type="button" data-slider-dot></button>
-                    <button class="hero-banner__dot" type="button" data-slider-dot></button>
+                <button type="button" data-lux-next
+                        class="tw-hidden md:tw-block tw-absolute tw-right-4 tw-top-1/2 -tw-translate-y-1/2 tw-bg-white/20 hover:tw-bg-white tw-text-white hover:tw-text-black tw-p-2 tw-rounded-full tw-opacity-0 group-hover:tw-opacity-100 tw-transition-all tw-z-20 tw-shadow-md tw-backdrop-blur-sm tw-border-0">
+                    <i data-lucide="chevron-right" class="tw-w-6 tw-h-6"></i>
+                </button>
+
+                <div class="tw-absolute tw-bottom-4 tw-left-1/2 -tw-translate-x-1/2 tw-flex tw-gap-2 tw-z-20">
+                    <button type="button" class="lux-dot tw-h-1.5 md:tw-h-2 tw-rounded-full tw-bg-primary tw-transition-all tw-w-6 md:tw-w-8 tw-shadow-sm tw-border-0" data-lux-dot="0"></button>
+                    <button type="button" class="lux-dot tw-h-1.5 md:tw-h-2 tw-rounded-full tw-bg-white/60 tw-transition-all tw-w-1.5 md:tw-w-2 tw-shadow-sm tw-border-0" data-lux-dot="1"></button>
+                    <button type="button" class="lux-dot tw-h-1.5 md:tw-h-2 tw-rounded-full tw-bg-white/60 tw-transition-all tw-w-1.5 md:tw-w-2 tw-shadow-sm tw-border-0" data-lux-dot="2"></button>
                 </div>
             </div>
-        </div>
 
-        <!-- 2 BANNER NHỎ BÊN PHẢI -->
-        <div class="home-hero__side">
-            <a class="home-hero__side-item"
-               href="">
-                <img src="https://cdn1.fahasa.com/media/wysiwyg/Thang-11-2025/chienthannguvan_t11_310x210.png"
-                     alt="Thanh toán Visa Apple Pay" />
-            </a>
-            <a class="home-hero__side-item"
-               href="https://example.com/freeship-bedroom">
-                <img src="https://cdn1.fahasa.com/media/wysiwyg/Thang-11-2025/Homepage_T11_SmallBanner_1125_310x210_MCbooks.png"
-                     alt="Freeship 0đ đơn hàng nệm" />
-            </a>
+            <div class="tw-flex tw-flex-col tw-gap-3 tw-h-auto lg:tw-h-full tw-w-full">
+                <div class="tw-flex-1 tw-relative tw-rounded-lg tw-overflow-hidden tw-group tw-cursor-pointer tw-w-full tw-shadow-md tw-bg-white tw-aspect-[3/1] lg:tw-aspect-auto">
+                    <img src="https://images.unsplash.com/photo-1457369804613-52c61a468e7d?w=800&q=85"
+                         alt="Right 1"
+                         class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center tw-transition-transform tw-duration-700 group-hover:tw-scale-110" />
+                    <div class="tw-absolute tw-inset-0 tw-flex tw-items-center tw-justify-center tw-z-10 tw-p-4">
+                        <div class="tw-text-center tw-text-white tw-drop-shadow-hard">
+                            <p class="tw-text-xs md:tw-text-sm tw-font-semibold tw-uppercase tw-tracking-wider tw-mb-1 tw-text-orange-200">Best Seller</p>
+                            <p class="tw-text-xl md:tw-text-2xl lg:tw-text-3xl tw-font-extrabold">SALE 40%</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="tw-flex-1 tw-relative tw-rounded-lg tw-overflow-hidden tw-group tw-cursor-pointer tw-w-full tw-shadow-md tw-bg-white tw-aspect-[3/1] lg:tw-aspect-auto">
+                    <img src="https://images.unsplash.com/photo-1456513080510-7bf3a84b82f8?w=800&q=85"
+                         alt="Right 2"
+                         class="tw-absolute tw-inset-0 tw-w-full tw-h-full tw-object-cover tw-object-center tw-transition-transform tw-duration-700 group-hover:tw-scale-110" />
+                    <div class="tw-absolute tw-inset-0 tw-flex tw-items-center tw-justify-center tw-z-10 tw-p-4">
+                        <div class="tw-text-center tw-text-white tw-drop-shadow-hard">
+                            <p class="tw-text-xs md:tw-text-sm tw-font-semibold tw-uppercase tw-tracking-wider tw-mb-1 tw-text-orange-200">New Arrival</p>
+                            <p class="tw-text-xl md:tw-text-2xl lg:tw-text-3xl tw-font-extrabold">QUÀ TẶNG</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
 </section>
 
+<script>
+    lucide.createIcons();
 
+    (function () {
+        const scope = document.getElementById("luxIsolatedBanner");
+        if (!scope) return;
+
+        const slides = Array.from(scope.querySelectorAll(".lux-slide"));
+        const dots = Array.from(scope.querySelectorAll(".lux-dot"));
+        const prevBtn = scope.querySelector("[data-lux-prev]");
+        const nextBtn = scope.querySelector("[data-lux-next]");
+
+        let currentSlide = 0;
+        let slideInterval = null;
+
+        function renderSlides() {
+            slides.forEach((el, idx) => {
+                if (idx === currentSlide) {
+                    el.classList.remove("tw-opacity-0", "tw-z-0");
+                    el.classList.add("tw-opacity-100", "tw-z-10");
+                } else {
+                    el.classList.remove("tw-opacity-100", "tw-z-10");
+                    el.classList.add("tw-opacity-0", "tw-z-0");
+                }
+            });
+
+            dots.forEach((dot, idx) => {
+                if (idx === currentSlide) {
+                    dot.classList.remove("tw-bg-white/60", "tw-w-1.5", "md:tw-w-2");
+                    dot.classList.add("tw-bg-primary", "tw-w-6", "md:tw-w-8");
+                } else {
+                    dot.classList.remove("tw-bg-primary", "tw-w-6", "md:tw-w-8");
+                    dot.classList.add("tw-bg-white/60", "tw-w-1.5", "md:tw-w-2");
+                }
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            renderSlides();
+        }
+
+        function prevSlide() {
+            currentSlide = (currentSlide - 1 + slides.length) % slides.length;
+            renderSlides();
+        }
+
+        function resetTimer() {
+            clearInterval(slideInterval);
+            slideInterval = setInterval(nextSlide, 5000);
+        }
+
+        if (nextBtn) nextBtn.addEventListener("click", () => { nextSlide(); resetTimer(); });
+        if (prevBtn) prevBtn.addEventListener("click", () => { prevSlide(); resetTimer(); });
+
+        dots.forEach((dot) => {
+            dot.addEventListener("click", () => {
+                const idx = Number(dot.getAttribute("data-lux-dot"));
+                if (!Number.isNaN(idx)) {
+                    currentSlide = idx;
+                    renderSlides();
+                    resetTimer();
+                }
+            });
+        });
+
+        renderSlides();
+        resetTimer();
+    })();
+</script>
+
+@await Component.InvokeAsync("FlashSale")
+@await Component.InvokeAsync("Category")
 
 @await Html.PartialAsync("_DanhSachSanPham", Model)
 
@@ -84,7 +216,6 @@
     .mt-n1 {
         margin-top: -0.25rem !important;
     }
-
 </style>
 <br />
 <hr />
@@ -147,8 +278,6 @@
                                     </div>
                                 }
                             </div>
-
-                            
                         </div>
                     </a>
                     <div class="card-footer">
@@ -207,7 +336,7 @@
         width: 100%;
     }
 
-    btn-cart {
+    .btn-cart {
         width: 100%;
         background: white;
         border: 1px solid var(--primary-red);
@@ -225,10 +354,10 @@
         gap: 5px;
     }
 
-    .btn-cart:hover {
-        background: var(--primary-red);
-        color: white;
-    }
+        .btn-cart:hover {
+            background: var(--primary-red);
+            color: white;
+        }
     /* Card sản phẩm */
     .random-product-card {
         background: white;
@@ -429,11 +558,716 @@
 </style>
 <script>
     @functions {
-                            public string ShortText(string text, int length = 20)
-                            {
-                                                    if (string.IsNullOrEmpty(text)) return "";
-                                                    return text.Length > length ? text.Substring(0, length) + "..." : text;
-                            }
+        public string ShortText(string text, int length = 20)
+        {
+            if (string.IsNullOrEmpty(text)) return "";
+            return text.Length > length ? text.Substring(0, length) + "..." : text;
+        }
     }
 </script>
-<script src="~/assets/js/banner.js"></script>
+
+
+<div id="lx-wrapper">
+    <button id="lx-btn-main" type="button" aria-label="Open chat">
+        <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" viewBox="0 0 24 24" fill="none"
+             stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
+        </svg>
+    </button>
+
+    <div id="lx-box-container" role="dialog" aria-label="Chat box">
+        <div class="lx-header">
+            <div class="lx-header-left">
+                <div class="lx-avatar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 2a10 10 0 1 0 10 10 4 4 0 0 1-5-5 4 4 0 0 1-5-5 10 10 0 0 0 0-20z"></path>
+                    </svg>
+                </div>
+                <div class="lx-info">
+                    <span class="lx-name">Trợ Lý LUAGA</span>
+                    <span class="lx-status">● Đang hỗ trợ</span>
+                </div>
+            </div>
+            <button id="lx-btn-close" type="button" aria-label="Close chat">
+                <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none"
+                     stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"></line>
+                    <line x1="6" y1="6" x2="18" y2="18"></line>
+                </svg>
+            </button>
+        </div>
+
+        <div id="lx-body-content" aria-live="polite">
+            <div class="lx-msg-row lx-row-bot">
+                <div class="lx-bubble lx-bubble-bot">
+                    Xin chào! Shop LUAGA có thể giúp gì cho bạn hôm nay ạ?
+                </div>
+            </div>
+        </div>
+
+        <div class="lx-footer">
+            <input type="text" id="lx-input-field" placeholder="Nhập tin nhắn..." autocomplete="off">
+            <button id="lx-btn-send" type="button" disabled aria-label="Send">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none"
+                     stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+        </div>
+    </div>
+</div>
+
+<style>
+    /* --- CSS CHAT (GIỮ NGUYÊN) --- */
+    #lx-wrapper {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        z-index: 2147483647;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        line-height: 1.5;
+        color: #333;
+    }
+
+        #lx-wrapper * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            font-size: 14px;
+            text-decoration: none;
+            list-style: none;
+        }
+
+    /* Nút mở chat */
+    #lx-btn-main {
+        position: fixed;
+        bottom: 30px;
+        right: 30px;
+        width: 60px !important;
+        height: 60px !important;
+        border-radius: 50% !important;
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+        border: none !important;
+        box-shadow: 0 4px 14px rgba(220, 38, 38, 0.4) !important;
+        cursor: pointer;
+        color: white !important;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: transform 0.2s ease;
+        z-index: 999999;
+    }
+
+        #lx-btn-main:hover {
+            transform: scale(1.05);
+        }
+
+    /* Khung chat */
+    #lx-box-container {
+        position: fixed;
+        bottom: 100px;
+        right: 30px;
+        width: 360px !important;
+        height: 500px !important;
+        background-color: #ffffff !important;
+        border-radius: 16px !important;
+        box-shadow: 0 10px 40px rgba(0,0,0,0.15) !important;
+        display: none;
+        flex-direction: column;
+        overflow: hidden;
+        border: 1px solid #eee;
+        z-index: 999999;
+        animation: lxFadeInUp 0.3s ease;
+    }
+
+    @@keyframes lxFadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Header */
+    .lx-header {
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+        padding: 15px !important;
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        color: white !important;
+    }
+
+    .lx-header-left {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .lx-avatar {
+        width: 32px;
+        height: 32px;
+        background: rgba(255,255,255,0.2);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .lx-info {
+        display: flex;
+        flex-direction: column;
+    }
+
+    .lx-name {
+        font-weight: 600;
+        font-size: 15px;
+        color: white;
+    }
+
+    .lx-status {
+        font-size: 11px;
+        opacity: 0.9;
+        color: white;
+    }
+
+    #lx-btn-close {
+        background: transparent !important;
+        border: none !important;
+        cursor: pointer;
+        padding: 5px;
+    }
+
+        #lx-btn-close:hover {
+            opacity: 0.8;
+        }
+
+    /* Body */
+    #lx-body-content {
+        flex: 1;
+        background-color: #f8f9fa !important;
+        padding: 15px !important;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .lx-msg-row {
+        display: flex;
+        width: 100%;
+        margin-bottom: 5px;
+    }
+
+    .lx-row-user {
+        justify-content: flex-end;
+    }
+
+    .lx-row-bot {
+        justify-content: flex-start;
+    }
+
+    .lx-bubble {
+        max-width: 80%;
+        padding: 10px 14px !important;
+        border-radius: 12px !important;
+        line-height: 1.4;
+        word-wrap: break-word;
+        white-space: pre-wrap;
+    }
+
+    .lx-bubble-bot {
+        background: white !important;
+        color: #333 !important;
+        border: 1px solid #e5e5e5;
+        border-bottom-left-radius: 2px !important;
+    }
+
+    .lx-bubble-user {
+        background: linear-gradient(135deg, #DC2626, #B91C1C) !important;
+        color: white !important;
+        border-bottom-right-radius: 2px !important;
+    }
+
+    /* Product Cards in Chat */
+    .lx-bubble-products {
+        max-width: 100% !important;
+        background: transparent !important;
+        border: none !important;
+        padding: 0 !important;
+    }
+
+    .lx-product-title {
+        margin-bottom: 10px;
+        font-weight: 600;
+        background: white;
+        padding: 8px 12px;
+        border-radius: 12px;
+        display: inline-block;
+        border: 1px solid #e5e5e5;
+    }
+
+    .lx-product-grid {
+        display: grid;
+        grid-template-columns: repeat(2, 1fr);
+        gap: 10px;
+    }
+
+    .lx-p-card {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 10px;
+        overflow: hidden;
+        padding: 8px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    .lx-p-link {
+        text-decoration: none;
+        color: inherit;
+        display: block;
+    }
+
+    .lx-p-card img {
+        width: 100%;
+        height: 100px;
+        object-fit: cover;
+        border-radius: 8px;
+        background: #f3f3f3;
+        margin-bottom: 6px;
+    }
+
+    .lx-p-name {
+        font-weight: 600;
+        font-size: 13px;
+        line-height: 1.3;
+        margin-bottom: 4px;
+        display: -webkit-box;
+        -webkit-line-clamp: 2;
+        -webkit-box-orient: vertical;
+        overflow: hidden;
+        height: 34px;
+    }
+
+    .lx-p-price {
+        font-weight: 700;
+        color: #d32f2f;
+        margin-bottom: 8px;
+    }
+
+        .lx-p-price .old {
+            font-weight: 400;
+            text-decoration: line-through;
+            color: #999;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+    .lx-btn-addcart {
+        width: 100%;
+        margin-top: auto;
+        height: 32px;
+        border-radius: 8px;
+        border: none;
+        cursor: pointer;
+        background: #DC2626;
+        color: #fff;
+        font-size: 12px;
+        font-weight: 600;
+    }
+
+        .lx-btn-addcart:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+    /* Footer */
+    .lx-footer {
+        padding: 15px !important;
+        background: white !important;
+        border-top: 1px solid #eee;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        height: 70px;
+    }
+
+    #lx-input-field {
+        flex: 1;
+        height: 40px !important;
+        border: 1px solid #ddd !important;
+        border-radius: 20px !important;
+        padding: 0 15px !important;
+        background: white !important;
+        color: #333 !important;
+    }
+
+        #lx-input-field:focus {
+            border-color: #DC2626 !important;
+        }
+
+        #lx-input-field:disabled {
+            background-color: #f0f0f0 !important;
+            cursor: not-allowed;
+        }
+
+    #lx-btn-send {
+        width: 40px !important;
+        height: 40px !important;
+        border-radius: 50% !important;
+        background: #DC2626 !important;
+        border: none !important;
+        color: white !important;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+        #lx-btn-send:disabled {
+            background: #ccc !important;
+            cursor: not-allowed;
+        }
+
+    /* Typing Animation */
+    .lx-typing {
+        display: flex;
+        gap: 4px;
+        padding: 12px 15px;
+        background: white;
+        border-radius: 12px;
+        border-bottom-left-radius: 2px;
+        width: fit-content;
+        border: 1px solid #eee;
+    }
+
+    .lx-dot {
+        width: 6px;
+        height: 6px;
+        background: #DC2626;
+        border-radius: 50%;
+        animation: lxBounce 1.4s infinite ease-in-out;
+    }
+
+        .lx-dot:nth-child(1) {
+            animation-delay: -0.32s;
+        }
+
+        .lx-dot:nth-child(2) {
+            animation-delay: -0.16s;
+        }
+
+    @@keyframes lxBounce {
+        0%, 80%, 100% {
+            transform: scale(0);
+        }
+
+        40% {
+            transform: scale(1);
+        }
+    }
+
+    /* Mobile */
+    @@media (max-width: 480px) {
+        #lx-box-container {
+            width: 90% !important;
+            right: 5%;
+            bottom: 80px;
+            height: 60vh !important;
+        }
+    }
+</style>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        // --- CẤU HÌNH ---
+        const STORAGE_KEY = "LX_CHAT_HISTORY_V1";      // Tên khóa lưu dữ liệu
+        const TIME_KEY = "LX_CHAT_LAST_ACTIVE";        // Tên khóa lưu thời gian
+        const EXPIRE_DAYS = 2;                          // Số ngày hết hạn
+        const EXPIRE_MS = EXPIRE_DAYS * 24 * 60 * 60 * 1000; // Đổi ra mili-giây
+
+        // --- KHAI BÁO BIẾN UI ---
+        const lxWrapper = document.getElementById('lx-wrapper');
+        const lxBtnMain = document.getElementById('lx-btn-main');
+        const lxBox = document.getElementById('lx-box-container');
+        const lxBtnClose = document.getElementById('lx-btn-close');
+        const lxInput = document.getElementById('lx-input-field');
+        const lxBtnSend = document.getElementById('lx-btn-send');
+        const lxBody = document.getElementById('lx-body-content');
+
+        let isProcessing = false;
+
+        // --- 1. LOAD LỊCH SỬ (CÓ KIỂM TRA HẠN SỬ DỤNG) ---
+        loadChatHistory();
+
+        function loadChatHistory() {
+            const lastActive = localStorage.getItem(TIME_KEY);
+            const currentTime = new Date().getTime();
+
+            // KIỂM TRA: Nếu đã quá 2 ngày chưa chat -> Xóa sạch
+            if (lastActive && (currentTime - lastActive > EXPIRE_MS)) {
+                console.log("Lịch sử chat đã hết hạn (2 ngày). Đang xóa...");
+                localStorage.removeItem(STORAGE_KEY);
+                localStorage.removeItem(TIME_KEY);
+                return; // Không load gì cả
+            }
+
+            // Nếu còn hạn -> Load bình thường
+            const history = localStorage.getItem(STORAGE_KEY);
+            if (history) {
+                // Xóa tin nhắn chào mặc định
+                const defaultMsg = document.querySelector('.lx-msg-row');
+                if(defaultMsg) defaultMsg.remove();
+
+                try {
+                    const parsedHistory = JSON.parse(history);
+                    parsedHistory.forEach(item => {
+                        if (item.type === 'text') {
+                            renderMessageText(item.content, item.sender);
+                        } else if (item.type === 'products') {
+                            renderProductsMessage(item.content.title, item.content.products);
+                        }
+                    });
+                } catch (e) {
+                    console.error("Lỗi đọc history cũ", e);
+                    // Nếu lỗi format JSON thì xóa luôn cho sạch
+                    localStorage.removeItem(STORAGE_KEY);
+                }
+            }
+        }
+
+        // --- 2. HÀM LƯU VÀO LOCALSTORAGE (KÈM TIMESTAMP) ---
+        function saveToStorage(sender, type, content) {
+            let history = JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+
+            history.push({
+                sender: sender,
+                type: type,
+                content: content,
+                timestamp: new Date().getTime()
+            });
+
+            if (history.length > 50) history = history.slice(history.length - 50);
+
+            // 1. Lưu nội dung chat
+            localStorage.setItem(STORAGE_KEY, JSON.stringify(history));
+
+            // 2. Cập nhật thời gian hoạt động mới nhất (Reset bộ đếm 2 ngày)
+            localStorage.setItem(TIME_KEY, new Date().getTime());
+        }
+
+        // --- CÁC HÀM UI & LOGIC CHAT (GIỮ NGUYÊN) ---
+        function scrollToBottom() { lxBody.scrollTop = lxBody.scrollHeight; }
+        function formatVnd(n) { return new Intl.NumberFormat('vi-VN').format(n || 0) + " đ"; }
+        function normalizeImage(src) {
+            if (!src) return "/image/no-image.png";
+            if (src.startsWith("~/")) return src.replace("~/", "/");
+            if (src.startsWith("http") || src.startsWith("/")) return src;
+            return "/image/" + src;
+        }
+
+        // Open Chat
+        lxBtnMain.addEventListener('click', (e) => {
+            e.stopPropagation();
+            lxBox.style.display = 'flex';
+            lxBtnMain.style.display = 'none';
+            lxInput.focus();
+            scrollToBottom();
+        });
+
+        // Close Chat
+        lxBtnClose.addEventListener('click', () => closeChat());
+        document.addEventListener('click', function(event) {
+            if (lxBox.style.display === 'flex') {
+                if (!lxBox.contains(event.target) && !lxBtnMain.contains(event.target)) {
+                    closeChat();
+                }
+            }
+        });
+        function closeChat() {
+            lxBox.style.display = 'none';
+            lxBtnMain.style.display = 'flex';
+        }
+
+        // Send Message Logic
+        async function sendMessage() {
+            const text = lxInput.value.trim();
+            if (isProcessing || !text) return;
+
+            isProcessing = true;
+            lxInput.disabled = true;
+            lxBtnSend.disabled = true;
+
+            // Render & Save User Message
+            renderMessageText(text, 'user');
+            saveToStorage('user', 'text', text);
+
+            lxInput.value = '';
+            showTyping();
+
+            try {
+                const response = await fetch('/Chat/GetReply', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ message: text })
+                });
+
+                const data = await response.json();
+                removeTyping();
+
+                if (data.type === "products" && Array.isArray(data.products)) {
+                    renderProductsMessage(data.reply || "", data.products);
+                    saveToStorage('bot', 'products', { title: data.reply, products: data.products });
+                } else {
+                    const replyText = data.reply || "Không có phản hồi.";
+                    renderMessageText(replyText, 'bot');
+                    saveToStorage('bot', 'text', replyText);
+                }
+
+            } catch (error) {
+                console.error(error);
+                removeTyping();
+                renderMessageText("Lỗi kết nối server. Vui lòng thử lại sau.", 'bot');
+            } finally {
+                isProcessing = false;
+                lxInput.disabled = false;
+                lxInput.focus();
+                lxBtnSend.disabled = true;
+            }
+        }
+
+        // Render Text
+        function renderMessageText(text, sender) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = `lx-msg-row lx-row-${sender}`;
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = `lx-bubble lx-bubble-${sender}`;
+            bubbleDiv.innerHTML = text;
+            rowDiv.appendChild(bubbleDiv);
+            lxBody.appendChild(rowDiv);
+            scrollToBottom();
+        }
+
+        // Render Products
+        function renderProductsMessage(title, products) {
+            const rowDiv = document.createElement('div');
+            rowDiv.className = 'lx-msg-row lx-row-bot';
+            const bubbleDiv = document.createElement('div');
+            bubbleDiv.className = 'lx-bubble lx-bubble-bot lx-bubble-products';
+
+            if (title) {
+                const titleDiv = document.createElement('div');
+                titleDiv.className = 'lx-product-title';
+                titleDiv.textContent = title;
+                bubbleDiv.appendChild(titleDiv);
+            }
+
+            const grid = document.createElement('div');
+            grid.className = 'lx-product-grid';
+
+            (products || []).forEach(p => {
+                const card = document.createElement('div');
+                card.className = 'lx-p-card';
+                const detailUrl = `/ChiTSP/Index/${p.maSp}`;
+
+                // Image Link
+                const linkImg = document.createElement('a');
+                linkImg.href = detailUrl;
+                linkImg.className = 'lx-p-link';
+                const img = document.createElement('img');
+                img.src = normalizeImage(p.hinhDaiDien);
+                linkImg.appendChild(img);
+                card.appendChild(linkImg);
+
+                // Name Link
+                const linkName = document.createElement('a');
+                linkName.href = detailUrl;
+                linkName.className = 'lx-p-link lx-p-name';
+                linkName.textContent = p.tenSanPham || "Sản phẩm";
+                card.appendChild(linkName);
+
+                // Price
+                const price = document.createElement('div');
+                price.className = 'lx-p-price';
+                const hasSale = (p.giaSauGiam && p.gia && p.giaSauGiam < p.gia);
+                if (hasSale) {
+                    price.innerHTML = `${formatVnd(p.giaSauGiam)} <span class="old">${formatVnd(p.gia)}</span>`;
+                } else {
+                    price.textContent = formatVnd(p.gia || 0);
+                }
+                card.appendChild(price);
+
+                // Add to Cart Button
+                const btn = document.createElement('button');
+                btn.className = 'lx-btn-addcart';
+                btn.textContent = 'Thêm vào giỏ';
+                btn.addEventListener('click', async () => {
+                    btn.disabled = true;
+                    btn.textContent = "...";
+                    await addToCart(p.maSp, 1);
+                    btn.disabled = false;
+                    btn.textContent = "Thêm vào giỏ";
+                });
+                card.appendChild(btn);
+                grid.appendChild(card);
+            });
+
+            bubbleDiv.appendChild(grid);
+            rowDiv.appendChild(bubbleDiv);
+            lxBody.appendChild(rowDiv);
+            scrollToBottom();
+        }
+
+        // UI Effects
+        function showTyping() {
+            const rowDiv = document.createElement('div');
+            rowDiv.id = 'lx-typing-indicator';
+            rowDiv.className = 'lx-msg-row lx-row-bot';
+            rowDiv.innerHTML = `<div class="lx-typing"><div class="lx-dot"></div><div class="lx-dot"></div><div class="lx-dot"></div></div>`;
+            lxBody.appendChild(rowDiv);
+            scrollToBottom();
+        }
+
+        function removeTyping() {
+            const el = document.getElementById('lx-typing-indicator');
+            if (el) el.remove();
+        }
+
+        // Add to Cart Logic
+        async function addToCart(maSp, soLuong = 1) {
+            try {
+                const body = new URLSearchParams();
+                body.append("maSp", maSp);
+                body.append("soLuong", soLuong);
+                const res = await fetch("/Cart/AddToCart", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8" },
+                    body: body.toString()
+                });
+                const data = await res.json();
+                if (data.success) {
+                    renderMessageText(`✅ Đã thêm vào giỏ! (Tổng: ${data.cartCount})`, 'bot');
+                    // Không lưu thông báo hệ thống vào Storage để tránh rác
+                } else {
+                    renderMessageText(`❌ ${data.message || "Lỗi."}`, 'bot');
+                }
+            } catch (e) {
+                renderMessageText("❌ Lỗi hệ thống.", 'bot');
+            }
+        }
+
+        // Bind Events
+        lxBtnSend.addEventListener('click', sendMessage);
+        lxInput.addEventListener('keypress', (e) => { if (e.key === 'Enter') sendMessage(); });
+        lxInput.addEventListener('input', () => { if (!isProcessing) lxBtnSend.disabled = !lxInput.value.trim(); });
+    });
+</script>

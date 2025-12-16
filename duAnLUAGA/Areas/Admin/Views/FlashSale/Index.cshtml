@@ -1,0 +1,319 @@
+﻿@model IEnumerable<duAnLUAGA.Domain.Entitie.Flashsale>
+
+@{
+    ViewData["Title"] = "Quản lý Flash Sale";
+    Layout = "~/Areas/Admin/Views/Shared/_Layout.cshtml";
+}
+
+<style>
+    /* Style chung */
+    :root {
+        --bg-dark: #121212;
+        --card-bg: #1e1e1e;
+        --accent-red: #e50914;
+        --text-white: #e5e5e5;
+    }
+
+    body {
+        background-color: var(--bg-dark) !important;
+        color: var(--text-white);
+    }
+
+    .luxury-card {
+        background-color: var(--card-bg);
+        border: 1px solid #333;
+        border-radius: 8px;
+    }
+
+    .luxury-header {
+        border-left: 4px solid var(--accent-red);
+        padding-left: 15px;
+        color: var(--text-white);
+        font-weight: 700;
+        text-transform: uppercase;
+    }
+
+    /* Table */
+    .table-luxury thead th {
+        background: #000;
+        border-bottom: 2px solid var(--accent-red);
+        color: var(--accent-red);
+        text-transform: uppercase;
+        font-size: 0.85rem;
+    }
+
+    .table-luxury td {
+        border-top: 1px solid #333;
+        vertical-align: middle;
+        color: #ddd;
+    }
+
+    .table-luxury tbody tr:hover {
+        background-color: rgba(229, 9, 20, 0.05);
+        transition: 0.2s;
+    }
+
+    /* Buttons */
+    .btn-luxury {
+        background-color: var(--accent-red);
+        color: white;
+        border: none;
+        padding: 8px 20px;
+        font-weight: 600;
+        border-radius: 4px;
+        transition: 0.3s;
+    }
+
+        .btn-luxury:hover {
+            background-color: #b20710;
+            color: white;
+            transform: translateY(-2px);
+        }
+
+    .btn-icon {
+        background: transparent;
+        border: 1px solid #444;
+        color: #ccc;
+        padding: 6px 12px;
+        border-radius: 4px;
+        margin-right: 5px;
+        transition: 0.2s;
+    }
+
+        .btn-icon:hover {
+            border-color: #fff;
+            color: #fff;
+        }
+
+    .btn-icon-del:hover {
+        border-color: var(--accent-red);
+        color: var(--accent-red);
+        background: rgba(229, 9, 20, 0.1);
+        cursor: pointer;
+    }
+
+    /* --- LUXURY DELETE MODAL --- */
+    .modal-content-luxury {
+        background-color: #1e1e1e;
+        border: 1px solid #333;
+        color: #fff;
+        border-radius: 8px;
+        box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+    }
+
+    .modal-header-luxury {
+        border-bottom: 1px solid #333;
+        padding: 15px 20px;
+    }
+
+    .modal-footer-luxury {
+        border-top: 1px solid #333;
+        padding: 15px 20px;
+    }
+
+    .warning-icon-wrapper {
+        width: 80px;
+        height: 80px;
+        margin: 0 auto 20px;
+        background: rgba(229, 9, 20, 0.1);
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+
+    .btn-cancel {
+        background: transparent;
+        border: 1px solid #555;
+        color: #ccc;
+        padding: 8px 20px;
+        border-radius: 4px;
+    }
+
+        .btn-cancel:hover {
+            background: #333;
+            color: #fff;
+            text-decoration: none;
+        }
+
+    .btn-confirm-del {
+        background: var(--accent-red);
+        border: none;
+        color: #fff;
+        padding: 8px 25px;
+        border-radius: 4px;
+        font-weight: 600;
+        box-shadow: 0 4px 15px rgba(229, 9, 20, 0.3);
+    }
+
+        .btn-confirm-del:hover {
+            background: #b20710;
+            color: #fff;
+            transform: translateY(-1px);
+            text-decoration: none;
+        }
+
+    /* Toast (Giữ nguyên từ bài trước) */
+    #toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 9999;
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .luxury-toast {
+        background: #1e1e1e;
+        color: #fff;
+        min-width: 300px;
+        padding: 15px 20px;
+        border-left: 4px solid var(--accent-red);
+        border-radius: 4px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.5);
+        display: flex;
+        align-items: center;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.4s ease-out;
+    }
+
+        .luxury-toast.show {
+            opacity: 1;
+            transform: translateX(0);
+        }
+
+        .luxury-toast.success {
+            border-left-color: #00c851;
+        }
+</style>
+
+<div id="toast-container"></div>
+
+<div class="container-fluid p-4" style="background-color: var(--bg-dark); min-height: 100vh;">
+    <div class="d-flex justify-content-between align-items-center mb-5">
+        <div>
+            <h2 class="luxury-header m-0">Danh sách Flash Sale</h2>
+            <small class="text-muted ml-3">Quản lý các chương trình khuyến mãi</small>
+        </div>
+        <a asp-action="Create" class="btn btn-luxury"><i class="fas fa-plus mr-2"></i> TẠO CHIẾN DỊCH</a>
+    </div>
+
+    <div class="luxury-card p-0 overflow-hidden">
+        <div class="table-responsive">
+            <table class="table table-luxury mb-0">
+                <thead>
+                    <tr>
+                        <th class="pl-4">ID</th>
+                        <th>Thời gian</th>
+                        <th>Trạng thái</th>
+                        <th class="text-center">Số lượng sản phẩm</th>
+                        <th class="text-right pr-4">Hành động</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="pl-4 font-weight-bold text-muted">#@item.Idfls</td>
+                                <td>
+                                    <div><i class="fas fa-play text-success mr-2" style="font-size:10px"></i> @item.NgayBatDau.ToString("dd/MM HH:mm")</div>
+                                    <div class="text-muted"><i class="fas fa-stop text-danger mr-2" style="font-size:10px"></i> @item.NgayKetThuc.ToString("dd/MM HH:mm")</div>
+                                </td>
+                                <td>
+                                    @if (!item.TrangThai)
+                                    {
+                                        <span class="badge badge-secondary">Đã tắt</span>
+                                    }
+                                    else if (DateTime.Now < item.NgayBatDau)
+                                    {
+                                        <span class="badge badge-warning text-white">Sắp chạy</span>
+                                    }
+                                    else if (DateTime.Now <= item.NgayKetThuc)
+                                    {
+                                        <span class="badge badge-success" style="background:var(--accent-red)">Đang chạy</span>
+                                    }
+                                    else
+                                    {
+                                        <span class="badge badge-dark border border-secondary">Đã xong</span>
+                                    }
+                                </td>
+                                <td class="text-center font-weight-bold">@item.Flashsaleitems.Count</td>
+                                <td class="text-right pr-4">
+                                    <a asp-action="Edit" asp-route-id="@item.Idfls" class="btn-icon" title="Sửa"><i class="fas fa-pen"></i></a>
+                                    <a asp-action="Details" asp-route-id="@item.Idfls" class="btn-icon" title="Xem"><i class="fas fa-eye"></i></a>
+
+                                    <button type="button" class="btn-icon btn-icon-del"
+                                            onclick="openDeleteModal(@item.Idfls)" title="Xóa">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr><td colspan="5" class="text-center py-5 text-muted">Chưa có dữ liệu</td></tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="deleteModal" tabindex="-1" role="dialog" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered" role="document">
+        <div class="modal-content modal-content-luxury">
+            <div class="modal-body text-center pt-5 pb-4">
+                <div class="warning-icon-wrapper">
+                    <i class="fas fa-exclamation text-danger fa-3x"></i>
+                </div>
+                <h4 class="font-weight-bold mb-2">Xác nhận xóa?</h4>
+                <p class="text-muted mb-0">Hành động này sẽ xóa vĩnh viễn chiến dịch và<br />không thể hoàn tác.</p>
+            </div>
+            <div class="modal-footer-luxury d-flex justify-content-center pb-4">
+                <button type="button" class="btn btn-cancel mr-3" data-dismiss="modal">Hủy bỏ</button>
+                <a href="#" id="btnConfirmDelete" class="btn btn-confirm-del">
+                    <i class="fas fa-trash mr-2"></i> Xóa ngay
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // 1. Logic bật Modal Xóa
+        function openDeleteModal(id) {
+            // Tạo link xóa theo ID
+            var deleteUrl = '@Url.Action("Delete", "FlashSale")/' + id;
+
+            // Gán link vào nút "Xóa ngay" trong Modal
+            $('#btnConfirmDelete').attr('href', deleteUrl);
+
+            // Hiện Modal
+            $('#deleteModal').modal('show');
+        }
+
+        // 2. Logic Toast (Giữ nguyên)
+        function showToast(message, type = 'success') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            let iconHtml = type === 'success' ? '<i class="fas fa-check-circle" style="color:#00c851; margin-right:10px;"></i>' : '<i class="fas fa-exclamation-triangle" style="color:#ff3547; margin-right:10px;"></i>';
+            toast.className = `luxury-toast ${type}`;
+            toast.innerHTML = `<div>${iconHtml} <span style="font-weight:500">${message}</span></div>`;
+            container.appendChild(toast);
+            setTimeout(() => toast.classList.add('show'), 10);
+            setTimeout(() => { toast.classList.remove('show'); setTimeout(() => toast.remove(), 400); }, 3000);
+        }
+
+        $(document).ready(function() {
+            var msg = '@TempData["ToastMsg"]';
+            var type = '@TempData["ToastType"]';
+            if (msg) { showToast(msg, type || 'success'); }
+        });
+    </script>
+}
