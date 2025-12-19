@@ -122,7 +122,15 @@ namespace duAnLUAGA.Controllers
                 return RedirectToAction("Index");
             }
 
-            return View(new AddressVM { MaKh = resolvedMaKh.Value });
+            // Lấy thông tin khách hàng để hiển thị avatar trong sidebar
+            var khach = _context.Khachhangs.FirstOrDefault(k => k.MaKh == resolvedMaKh);
+
+            return View(new AddressVM
+            {
+                MaKh = resolvedMaKh.Value,
+                ProfileAvatarPath = khach?.HinhAnh,
+                ProfileFullName = khach?.HoVaTen
+            });
         }
 
         // POST: THÊM

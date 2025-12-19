@@ -23,6 +23,21 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             _env = env;
         }
 
+        // Helper method: Lấy MaNv của nhân viên đang đăng nhập từ claim
+        private int? GetCurrentEmployeeId()
+        {
+            if (!User.Identity.IsAuthenticated) return null;
+
+            // Lấy MaNv từ claim (đã được lưu khi đăng nhập trong LoginAreaController)
+            var maNvClaim = User.FindFirst("MaNv");
+            if (maNvClaim != null && int.TryParse(maNvClaim.Value, out var maNv))
+            {
+                return maNv;
+            }
+
+            return null;
+        }
+
         // GET: Admin/NhanVien
         public IActionResult Index(string trangThai)
         {
@@ -128,6 +143,36 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             {
                 ModelState.AddModelError("", "Dữ liệu không hợp lệ.");
                 return View(new NhanVienVM());
+            }
+
+            // Debug: Log dữ liệu nhận được
+            System.Diagnostics.Debug.WriteLine($"=== CREATE NHAN VIEN ===");
+            System.Diagnostics.Debug.WriteLine($"TenNhanVien: {viewModel.TenNhanVien}");
+            System.Diagnostics.Debug.WriteLine($"Email: {viewModel.Email}");
+            System.Diagnostics.Debug.WriteLine($"TenDangNhap: {viewModel.TenDangNhap}");
+            System.Diagnostics.Debug.WriteLine($"MatKhau: {viewModel.MatKhau?.Length} ký tự");
+            System.Diagnostics.Debug.WriteLine($"Role: {viewModel.Role}");
+            System.Diagnostics.Debug.WriteLine($"NamSinh: {viewModel.NamSinh}");
+            System.Diagnostics.Debug.WriteLine($"DiaChi: {viewModel.DiaChi}");
+            System.Diagnostics.Debug.WriteLine($"Sdt: {viewModel.Sdt}");
+            System.Diagnostics.Debug.WriteLine($"Cccd: {viewModel.Cccd}");
+            System.Diagnostics.Debug.WriteLine($"ModelState.IsValid: {ModelState.IsValid}");
+
+            // Log tất cả lỗi validation ngay từ đầu
+            if (!ModelState.IsValid)
+            {
+                System.Diagnostics.Debug.WriteLine("=== VALIDATION ERRORS (TRƯỚC KHI VALIDATE BỔ SUNG) ===");
+                foreach (var error in ModelState)
+                {
+                    if (error.Value.Errors.Count > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Field: {error.Key}");
+                        foreach (var err in error.Value.Errors)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"  - {err.ErrorMessage}");
+                        }
+                    }
+                }
             }
 
             // Validation bổ sung cho Email (chặt chẽ)
@@ -237,6 +282,23 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             if (string.IsNullOrEmpty(viewModel.MatKhau) || viewModel.MatKhau.Length < 8 || viewModel.MatKhau.Length > 11)
             {
                 ModelState.AddModelError("MatKhau", "Mật khẩu phải từ 8 đến 11 ký tự.");
+            }
+
+            // Log tất cả lỗi validation
+            if (!ModelState.IsValid)
+            {
+                System.Diagnostics.Debug.WriteLine("=== VALIDATION ERRORS ===");
+                foreach (var error in ModelState)
+                {
+                    if (error.Value.Errors.Count > 0)
+                    {
+                        System.Diagnostics.Debug.WriteLine($"Field: {error.Key}");
+                        foreach (var err in error.Value.Errors)
+                        {
+                            System.Diagnostics.Debug.WriteLine($"  - {err.ErrorMessage}");
+                        }
+                    }
+                }
             }
 
             if (ModelState.IsValid)
@@ -382,6 +444,25 @@ namespace duAnLUAGA.Areas.Admin.Controllers
 
                 if (nhanVien == null) return NotFound();
 
+                // Debug: Log thông tin ảnh từ database
+                System.Diagnostics.Debug.WriteLine($"=== EDIT NHAN VIEN - MaNv: {id} ===");
+                System.Diagnostics.Debug.WriteLine($"HinhAnh từ DB: '{nhanVien.HinhAnh}'");
+                System.Diagnostics.Debug.WriteLine($"HinhAnh is null: {nhanVien.HinhAnh == null}");
+                System.Diagnostics.Debug.WriteLine($"HinhAnh is empty: {string.IsNullOrEmpty(nhanVien.HinhAnh)}");
+
+                // Tính sẵn đường dẫn + kiểm tra file tồn tại để view hiển thị rõ
+                string? imageUrl = null;
+                bool imageExists = false;
+                if (!string.IsNullOrEmpty(nhanVien.HinhAnh))
+                {
+                    var physical = Path.Combine(_env.WebRootPath, "img", nhanVien.HinhAnh);
+                    imageExists = System.IO.File.Exists(physical);
+                    imageUrl = imageExists ? Url.Content($"~/img/{nhanVien.HinhAnh}") : null;
+                }
+                ViewBag.ImageUrl = imageUrl;
+                ViewBag.ImageExists = imageExists;
+                ViewBag.ImageFileName = nhanVien.HinhAnh;
+
                 var viewModel = new NhanVienVM
                 {
                     MaNv = nhanVien.MaNv,
@@ -393,11 +474,13 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                     Sdt = nhanVien.Sdt,
                     Cccd = nhanVien.Cccd,
                     DiaChi = nhanVien.DiaChi,
-                    HinhAnh = nhanVien.HinhAnh,
+                    HinhAnh = nhanVien.HinhAnh ?? string.Empty, // Đảm bảo không null
                     TenDangNhap = nhanVien.TenDangNhap,
                     MatKhau = "", // Để trống để người dùng có thể chọn không đổi mật khẩu
                     TrangThai = nhanVien.TrangThai
                 };
+
+                System.Diagnostics.Debug.WriteLine($"HinhAnh trong ViewModel: '{viewModel.HinhAnh}'");
 
                 return View(viewModel);
             }
@@ -689,6 +772,20 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                         : "Employee";
 
                     // Cập nhật thông tin
+                    // Kiểm tra không cho phép vô hiệu hóa chính tài khoản đang đăng nhập
+                    var currentEmployeeId = GetCurrentEmployeeId();
+                    if (currentEmployeeId.HasValue && currentEmployeeId.Value == id && viewModel.TrangThai == true)
+                    {
+                        ModelState.AddModelError("TrangThai", "Bạn không thể vô hiệu hóa chính tài khoản của mình.");
+                        // Load lại dữ liệu để hiển thị form
+                        var nhanVienForView = _context.Nhanviens.AsNoTracking().FirstOrDefault(nv => nv.MaNv == id);
+                        if (nhanVienForView != null)
+                        {
+                            viewModel.HinhAnh = nhanVienForView.HinhAnh;
+                        }
+                        return View(viewModel);
+                    }
+
                     nhanVien.TenNhanVien = viewModel.TenNhanVien;
                     nhanVien.Role = roleValue;
                     nhanVien.GioiTinh = viewModel.GioiTinh;
@@ -728,6 +825,14 @@ namespace duAnLUAGA.Areas.Admin.Controllers
 
             try
             {
+                // Kiểm tra nhân viên đang đăng nhập có phải là nhân viên bị xóa không
+                var currentEmployeeId = GetCurrentEmployeeId();
+                if (currentEmployeeId.HasValue && currentEmployeeId.Value == id)
+                {
+                    TempData["ErrorMessage"] = "Bạn không thể xóa chính tài khoản của mình.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 var nhanVien = _context.Nhanviens
                     .AsNoTracking()
                     .Where(nv => nv.MaNv == id)
@@ -775,6 +880,14 @@ namespace duAnLUAGA.Areas.Admin.Controllers
         {
             try
             {
+                // Kiểm tra nhân viên đang đăng nhập có phải là nhân viên bị xóa không
+                var currentEmployeeId = GetCurrentEmployeeId();
+                if (currentEmployeeId.HasValue && currentEmployeeId.Value == id)
+                {
+                    TempData["ErrorMessage"] = "Bạn không thể xóa chính tài khoản của mình.";
+                    return RedirectToAction(nameof(Index));
+                }
+
                 // Kiểm tra có đơn hàng liên quan không
                 var soLuongHoaDon = _context.Hoadons.Count(h => h.MaNv == id);
                 if (soLuongHoaDon > 0)
@@ -827,6 +940,19 @@ namespace duAnLUAGA.Areas.Admin.Controllers
         {
             try
             {
+                // Kiểm tra không cho phép vô hiệu hóa chính tài khoản đang đăng nhập
+                var currentEmployeeId = GetCurrentEmployeeId();
+                if (currentEmployeeId.HasValue && currentEmployeeId.Value == id)
+                {
+                    var nhanVienCheck = _context.Nhanviens.AsNoTracking().FirstOrDefault(nv => nv.MaNv == id);
+                    if (nhanVienCheck != null && !nhanVienCheck.TrangThai)
+                    {
+                        // Nếu đang bật và sẽ chuyển sang tắt (vô hiệu hóa) thì không cho phép
+                        TempData["ErrorMessage"] = "Bạn không thể vô hiệu hóa chính tài khoản của mình.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                }
+
                 var nhanVien = _context.Nhanviens.Find(id);
                 if (nhanVien == null)
                 {

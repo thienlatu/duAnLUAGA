@@ -170,8 +170,13 @@
 
     <aside class="sidebar">
         <div class="user-info">
-            <img src="~/img/avatar.png" asp-append-version="true">
-            <div class="username">Thành viên</div>
+            @{
+                var avatarSrc = !string.IsNullOrEmpty(Model.ProfileAvatarPath)
+                ? $"~/img/{Model.ProfileAvatarPath}"
+                : "~/img/avatar.png";
+            }
+            <img src="@avatarSrc" asp-append-version="true">
+            <div class="username">@(!string.IsNullOrWhiteSpace(Model.ProfileFullName) ? Model.ProfileFullName : "Thành viên")</div>
         </div>
         <ul class="menu">
             <li><a href="/Address/Index"><i class="fa-solid fa-user"></i> Tài Khoản Của Tôi</a></li>

@@ -35,7 +35,7 @@ namespace duAnLUAGA.Controllers
             {
                 // Lấy UserId từ claims
                 var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst("MaKh");
-                
+
                 if (userIdClaim == null || !int.TryParse(userIdClaim.Value, out var userId))
                 {
                     return Ok(new { isLoggedIn = false, isLocked = false });
@@ -49,17 +49,19 @@ namespace duAnLUAGA.Controllers
                 // Nếu không tồn tại hoặc bị khóa
                 if (khachHang == null || khachHang.TrangThai == true)
                 {
-                    return Ok(new { 
-                        isLoggedIn = true, 
+                    return Ok(new
+                    {
+                        isLoggedIn = true,
                         isLocked = true,
                         message = "Tài khoản của bạn đã bị khóa hoặc không tồn tại."
                     });
                 }
 
                 // Tài khoản hợp lệ
-                return Ok(new { 
-                    isLoggedIn = true, 
-                    isLocked = false 
+                return Ok(new
+                {
+                    isLoggedIn = true,
+                    isLocked = false
                 });
             }
             catch

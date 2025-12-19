@@ -30,7 +30,7 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
         [Display(Name = "Email")]
         [Required(ErrorMessage = "Vui lòng nhập Email")]
         [StringLength(100, ErrorMessage = "Email không được vượt quá 100 ký tự")]
-        [RegularExpression(@"^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$", 
+        [RegularExpression(@"^[a-zA-Z0-9]([a-zA-Z0-9._-]*[a-zA-Z0-9])?@[a-zA-Z0-9]([a-zA-Z0-9.-]*[a-zA-Z0-9])?\.[a-zA-Z]{2,}$",
             ErrorMessage = "Email không hợp lệ.")]
         [DataType(DataType.EmailAddress)]
         public string Email { get; set; } = null!;
@@ -50,10 +50,7 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
 
         [Display(Name = "Địa chỉ")]
         [StringLength(400, ErrorMessage = "Địa chỉ tối đa 400 ký tự")]
-        [RegularExpression(@"^[A-Za-zÀ-ỹ0-9\s,/-]+$",
-    ErrorMessage = "Địa chỉ chỉ được chứa chữ cái, số, khoảng trắng và các ký tự: , / -")]
-
-
+        // Bỏ regex validation cho địa chỉ vì khi ghép từ dropdown có thể có nhiều ký tự đặc biệt
         public string? DiaChi { get; set; }
 
         [Display(Name = "Hình ảnh hiện tại")]

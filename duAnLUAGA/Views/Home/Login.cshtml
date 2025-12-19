@@ -8,6 +8,63 @@
     #openLogin {
         display: none !important;
     }
+
+    /* Popup thông báo bảo mật khi tài khoản bị khóa */
+    .security-modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+    }
+
+    .security-modal {
+        background: #fff;
+        border-radius: 8px;
+        max-width: 520px;
+        width: 90%;
+        box-shadow: 0 12px 30px rgba(0, 0, 0, 0.2);
+        padding: 24px 28px 20px;
+        text-align: left;
+        font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    .security-modal__title {
+        font-size: 20px;
+        font-weight: 600;
+        margin-bottom: 12px;
+        color: #222;
+    }
+
+    .security-modal__body {
+        font-size: 14px;
+        line-height: 1.6;
+        color: #444;
+        margin-bottom: 20px;
+    }
+
+    .security-modal__actions {
+        text-align: right;
+    }
+
+    .security-modal__btn {
+        background-color: #ff5a3c;
+        color: #fff;
+        border: none;
+        padding: 8px 22px;
+        border-radius: 4px;
+        font-size: 14px;
+        font-weight: 500;
+        cursor: pointer;
+        transition: background-color 0.15s ease, transform 0.1s ease;
+    }
+
+        .security-modal__btn:hover {
+            background-color: #e14c30;
+            transform: translateY(-1px);
+        }
 </style>
 <main class="lv-auth" id="page-login" role="main">
     <div class="container-xl">
@@ -79,7 +136,49 @@
     </div>
 </main>
 
+@* Popup thông báo bảo mật khi tài khoản bị khóa *@
+@if (ViewBag.LockedMessage != null)
+{
+    <div id="securityModalOverlay" class="security-modal-overlay">
+        <div class="security-modal" role="dialog" aria-modal="true" aria-labelledby="securityModalTitle">
+            <h3 id="securityModalTitle" class="security-modal__title">Thông báo bảo mật</h3>
+            <div class="security-modal__body">
+                @ViewBag.LockedMessage
+            </div>
+            <div class="security-modal__actions">
+                <button type="button" id="securityModalClose" class="security-modal__btn">Đồng ý</button>
+            </div>
+        </div>
+    </div>
+}
+
 @section Scripts {
     <partial name="_ValidationScriptsPartial" />
+
+    @if (ViewBag.LockedMessage != null)
+    {
+        <script>
+            (function () {
+                const overlay = document.getElementById('securityModalOverlay');
+                const btnClose = document.getElementById('securityModalClose');
+
+                if (!overlay || !btnClose) return;
+
+                // Hiển thị popup ngay khi vào trang
+                overlay.style.display = 'flex';
+
+                const closeModal = () => {
+                    overlay.style.display = 'none';
+                };
+
+                btnClose.addEventListener('click', closeModal);
+                overlay.addEventListener('click', function (e) {
+                    if (e.target === overlay) {
+                        closeModal();
+                    }
+                });
+            })();
+        </script>
+    }
 }
 

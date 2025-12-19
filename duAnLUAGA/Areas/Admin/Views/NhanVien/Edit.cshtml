@@ -3,274 +3,499 @@
     ViewData["Title"] = "Sửa Nhân viên";
 }
 
-<div class="container-fluid pt-4 px-4">
-    <div class="bg-secondary rounded p-4">
-        <h3 class="mb-4">Sửa Thông tin Nhân viên</h3>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;500&display=swap" rel="stylesheet">
 
-        <form asp-area="Admin" asp-controller="NhanVien" asp-action="Edit" method="post" enctype="multipart/form-data">
-            @Html.AntiForgeryToken()
-            <input type="hidden" asp-for="MaNv" />
-            <input type="hidden" asp-for="HinhAnh" />
-            <div asp-validation-summary="All" class="text-danger mb-3"></div>
+<div class="luxury-viewport">
+    <div class="container py-5">
+        <div class="luxury-form-card">
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="TenNhanVien" class="form-label"></label>
-                    <input asp-for="TenNhanVien" class="form-control" />
-                    <span asp-validation-for="TenNhanVien" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label asp-for="Email" class="form-label"></label>
-                    <input asp-for="Email" class="form-control" type="email" />
-                    <span asp-validation-for="Email" class="text-danger"></span>
-                </div>
+            <div class="luxury-header-section">
+               
+                <h1 class="luxury-title">Sửa Nhân Viên</h1>
+                <div class="luxury-accent-line"></div>
             </div>
 
-            <div class="row">
-                <div class="col-md-6 mb-3">
-                    <label asp-for="TenDangNhap" class="form-label"></label>
-                    <input asp-for="TenDangNhap" class="form-control" />
-                    <span asp-validation-for="TenDangNhap" class="text-danger"></span>
-                </div>
+            <form asp-area="Admin" asp-controller="NhanVien" asp-action="Edit" method="post" enctype="multipart/form-data" class="luxury-form-body" id="editNhanVienForm">
+                @Html.AntiForgeryToken()
+                <input type="hidden" asp-for="MaNv" />
+                <input type="hidden" asp-for="HinhAnh" />
 
-                <div class="col-md-6 mb-3">
-                    <label asp-for="MatKhau" class="form-label">Mật khẩu mới (để trống nếu không đổi)</label>
-                    <div class="input-group">
-                        <input asp-for="MatKhau" class="form-control" type="password" id="matKhauEdit" placeholder="Để trống nếu không đổi mật khẩu" data-val="false" />
-                        <button class="btn btn-outline-secondary" type="button" id="togglePasswordEdit" style="border-left: 0; min-width: 45px;">
-                            <i class="fas fa-eye" id="eyeIconEdit"></i>
-                        </button>
-                    </div>
-                    <span asp-validation-for="MatKhau" class="text-danger"></span>
-                    <small class="form-text text-muted">Để trống nếu không muốn đổi mật khẩu. Nếu nhập, mật khẩu phải từ 8 đến 11 ký tự</small>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Role" class="form-label"></label>
-                    <select asp-for="Role" class="form-select" required>
-                        <option value="Employee">Nhân viên</option>
-                        <option value="Admin">Quản trị viên</option>
-                    </select>
-                    <span asp-validation-for="Role" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label asp-for="GioiTinh" class="form-label"></label>
-                    <select asp-for="GioiTinh" class="form-select">
-                        <option value="">-- Chọn --</option>
-                        <option value="Nam">Nam</option>
-                        <option value="Nữ">Nữ</option>
-                        <option value="Khác">Khác</option>
-                    </select>
-                    <span asp-validation-for="GioiTinh" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label asp-for="NamSinh" class="form-label"></label>
-                    <div class="row g-2">
-                        <div class="col-4">
-                            <select id="ngaySelect" class="form-select">
-                                <option value="">Ngày</option>
-                            </select>
-                        </div>
-                        <div class="col-4">
-                            <select id="thangSelect" class="form-select">
-                                <option value="">Tháng</option>
-                            </select>
-                        </div>
-                        <div class="col-4">
-                            <select id="namSelect" class="form-select">
-                                <option value="">Năm</option>
-                            </select>
-                        </div>
-                    </div>
-                    <input type="hidden" asp-for="NamSinh" id="namSinhInput" />
-                    <span asp-validation-for="NamSinh" class="text-danger"></span>
-                </div>
-
-                <div class="col-md-4 mb-3">
-                    <label asp-for="Sdt" class="form-label"></label>
-                    <input asp-for="Sdt" class="form-control" />
-                    <span asp-validation-for="Sdt" class="text-danger"></span>
-                </div>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="Cccd" class="form-label"></label>
-                <input asp-for="Cccd" class="form-control" />
-                <span asp-validation-for="Cccd" class="text-danger"></span>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Tỉnh/Thành phố</label>
-                    <select id="tinhSelect" class="form-select">
-                        <option value="">-- Chọn Tỉnh/Thành phố --</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Quận/Huyện</label>
-                    <select id="quanHuyenSelect" class="form-select" disabled>
-                        <option value="">-- Chọn Quận/Huyện --</option>
-                    </select>
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label">Xã/Phường</label>
-                    <select id="xaPhuongSelect" class="form-select" disabled>
-                        <option value="">-- Chọn Xã/Phường --</option>
-                    </select>
-                </div>
-            </div>
-            <div class="mb-3">
-                <label asp-for="DiaChi" class="form-label">Địa chỉ chi tiết</label>
-                <input asp-for="DiaChi" class="form-control" placeholder="Số nhà, tên đường" />
-                <span asp-validation-for="DiaChi" class="text-danger"></span>
-            </div>
-
-            <div class="mb-3">
-                <label asp-for="HinhAnhFile" class="form-label"></label>
-                @if (!string.IsNullOrEmpty(Model.HinhAnh))
+                @if (!ViewData.ModelState.IsValid)
                 {
-                    <div class="mb-2">
-                        <img src="~/img/@Model.HinhAnh" alt="Ảnh hiện tại" style="max-width: 150px; max-height: 150px;" class="img-thumbnail" />
-                        <p class="text-muted small mt-1">Ảnh hiện tại</p>
+                    <div class="alert alert-danger" role="alert">
+                        <h5 class="alert-heading">Có lỗi xảy ra:</h5>
+                        <div asp-validation-summary="All" class="text-danger mb-0"></div>
                     </div>
                 }
-                <input asp-for="HinhAnhFile" class="form-control" type="file" accept="image/*" />
-                <span asp-validation-for="HinhAnhFile" class="text-danger"></span>
-                <small class="form-text text-muted">Chọn file ảnh mới để thay thế (JPG, PNG, GIF)</small>
-            </div>
 
-            <div class="mb-3 form-check">
-                <input asp-for="TrangThai" class="form-check-input" type="checkbox" />
-                <label asp-for="TrangThai" class="form-check-label">
-                    Kích hoạt tài khoản
-                </label>
-            </div>
+                <div class="form-block">
+                    <div class="block-label">01. Thông tin danh tính</div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="luxury-input-group">
+                                <label asp-for="TenNhanVien"></label>
+                                <input asp-for="TenNhanVien" class="luxury-field" placeholder="Nhập họ và tên..." />
+                                <span asp-validation-for="TenNhanVien" class="luxury-error"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="luxury-input-group">
+                                <label asp-for="Email"></label>
+                                <input asp-for="Email" class="luxury-field" type="email" placeholder="example@luxury.com" />
+                                <span asp-validation-for="Email" class="luxury-error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
 
-            <div class="d-flex gap-2">
-                <button type="submit" class="btn btn-primary">
-                    <i class="fa fa-save me-2"></i>Cập nhật
-                </button>
-                <a asp-action="Index" class="btn btn-secondary">
-                    <i class="fa fa-arrow-left me-2"></i>Quay lại
-                </a>
-            </div>
-        </form>
+                <div class="form-block">
+                    <div class="block-label">02. Bảo mật tài khoản</div>
+                    <div class="row g-4">
+                        <div class="col-md-6">
+                            <div class="luxury-input-group">
+                                <label asp-for="TenDangNhap"></label>
+                                <input asp-for="TenDangNhap" class="luxury-field" />
+                                <span asp-validation-for="TenDangNhap" class="luxury-error"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="luxury-input-group position-relative">
+                                <label asp-for="MatKhau">Mật khẩu mới (để trống nếu không đổi)</label>
+                                <div class="password-wrapper">
+                                    <input asp-for="MatKhau" class="luxury-field pe-5" type="password" id="matKhauEdit" placeholder="Để trống nếu không đổi" data-val="false" />
+                                    <button type="button" class="luxury-toggle-eye" id="togglePasswordEdit">
+                                        <i class="fas fa-eye" id="eyeIconEdit"></i>
+                                    </button>
+                                </div>
+                                <span asp-validation-for="MatKhau" class="luxury-error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <div class="block-label">03. Chi tiết hồ sơ</div>
+                    <div class="row g-4">
+                        <div class="col-md-4">
+                            <div class="luxury-input-group">
+                                <label asp-for="Role"></label>
+                                <select asp-for="Role" class="luxury-select" required>
+                                    <option value="Employee">Nhân viên</option>
+                                    <option value="Admin">Quản trị viên</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="luxury-input-group">
+                                <label asp-for="GioiTinh"></label>
+                                <select asp-for="GioiTinh" class="luxury-select">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="luxury-input-group">
+                                <label>Ngày sinh</label>
+                                <div class="d-flex gap-1">
+                                    <select id="ngaySelect" class="luxury-select flex-fill"><option value="">Ngày</option></select>
+                                    <select id="thangSelect" class="luxury-select flex-fill"><option value="">Tháng</option></select>
+                                    <select id="namSelect" class="luxury-select flex-fill"><option value="">Năm</option></select>
+                                </div>
+                                <input type="hidden" asp-for="NamSinh" id="namSinhInput" />
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="luxury-input-group">
+                                <label asp-for="Sdt"></label>
+                                <input asp-for="Sdt" class="luxury-field" />
+                                <span asp-validation-for="Sdt" class="luxury-error"></span>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="luxury-input-group">
+                                <label asp-for="Cccd"></label>
+                                <input asp-for="Cccd" class="luxury-field" />
+                                <span asp-validation-for="Cccd" class="luxury-error"></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="form-block">
+                    <div class="block-label">04. Liên hệ & Hình ảnh</div>
+
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-4">
+                            <div class="luxury-input-group">
+                                <label class="form-label">Tỉnh/Thành phố</label>
+                                <select id="tinhSelect" class="luxury-select">
+                                    <option value="">-- Chọn Tỉnh/Thành phố --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="luxury-input-group">
+                                <label class="form-label">Quận/Huyện</label>
+                                <select id="quanHuyenSelect" class="luxury-select" disabled>
+                                    <option value="">-- Chọn Quận/Huyện --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <div class="luxury-input-group">
+                                <label class="form-label">Xã/Phường</label>
+                                <select id="xaPhuongSelect" class="luxury-select" disabled>
+                                    <option value="">-- Chọn Xã/Phường --</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="col-md-12">
+                            <div class="luxury-input-group">
+                                <label asp-for="DiaChi">Địa chỉ chi tiết</label>
+                                <input asp-for="DiaChi" class="luxury-field" id="DiaChiChiTiet" placeholder="Số nhà, tên đường..." />
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="row justify-content-center mt-5">
+                        <div class="col-md-10 text-center">
+                            <div class="luxury-photo-display-container">
+                                <div class="photo-render-zone">
+                                    @{
+                                        var imageUrl = ViewBag.ImageUrl as string;
+                                        var imageExists = (ViewBag.ImageExists as bool?) ?? false;
+                                        var imageFileName = ViewBag.ImageFileName as string;
+                                    }
+                                    @if (imageExists && !string.IsNullOrWhiteSpace(imageUrl))
+                                    {
+                                        <img id="imgPreview"
+                                             src="@imageUrl"
+                                             alt="Ảnh nhân viên: @Model.TenNhanVien"
+                                             style="max-width: 100%; max-height: 700px; border: 1px solid #800020; display: block; object-fit: contain;"
+                                             asp-append-version="true" />
+                                        <div class="photo-empty-state" style="display: none;">
+                                            <i class="fas fa-image"></i>
+                                            <p>HÌNH ẢNH HỒ SƠ</p>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <img id="imgPreview" src="#" alt="Original Aspect Ratio" style="display:none;" />
+                                        <div class="photo-empty-state">
+                                            <i class="fas fa-image"></i>
+                                            <p>HÌNH ẢNH HỒ SƠ</p>
+                                            @if (!string.IsNullOrWhiteSpace(imageFileName))
+                                            {
+                                                <p class="text-warning small mt-1">Không tìm thấy file '@imageFileName' trong wwwroot/img</p>
+                                            }
+                                        </div>
+                                    }
+                                </div>
+                                <div class="mt-4">
+                                    <label asp-for="HinhAnhFile" class="btn-luxury-action" for="HinhAnhFileEdit">
+                                        <i class="fas fa-camera me-2"></i> CHỌN ẢNH TỪ MÁY
+                                    </label>
+                                    <input asp-for="HinhAnhFile" type="file" class="d-none" accept="image/*" id="HinhAnhFileEdit" />
+                                    <p id="file-name" class="luxury-file-info">@(!string.IsNullOrEmpty(Model.HinhAnh) ? $"Ảnh hiện tại: {Model.HinhAnh}" : "Chưa chọn tệp")</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="luxury-status-area">
+                    <div class="form-check custom-switch">
+                        <input asp-for="TrangThai" class="form-check-input" type="checkbox" id="trangThaiSwitch" />
+                        <label class="form-check-label text-white" for="trangThaiSwitch">Vô hiệu hóa tài khoản này</label>
+                    </div>
+                </div>
+
+                <div class="luxury-actions">
+                    <a asp-action="Index" class="btn-luxury-ghost">Quay lại</a>
+                    <button type="submit" class="btn-luxury-crimson">
+                        <span>Cập nhật hồ sơ nhân sự</span>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <style>
-        #togglePasswordCreate, #togglePasswordEdit {
-            cursor: pointer;
-            transition: all 0.3s ease;
+        :root {
+            --deep-black: #050505;
+            --matte-black: #121212;
+            --burgundy: #800020;
+            --border-white: rgba(255, 255, 255, 0.08);
+        }
+
+        body {
+            background-color: var(--deep-black);
+            font-family: 'Inter', sans-serif;
+            color: #fff;
+        }
+
+        .luxury-viewport {
+            min-height: 100vh;
+            background: radial-gradient(circle at top right, #1a0505, var(--deep-black) 60%);
+        }
+
+        .luxury-form-card {
+            background: var(--matte-black);
+            border: 1px solid var(--border-white);
+            padding: 60px;
+            position: relative;
+            box-shadow: 0 40px 100px rgba(0, 0, 0, 0.8);
+        }
+
+            .luxury-form-card::before {
+                content: '';
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 2px;
+                background: linear-gradient(90deg, transparent, var(--burgundy), transparent);
+            }
+
+        .luxury-header-section {
+            text-align: center;
+            margin-bottom: 50px;
+        }
+
+        .luxury-badge {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 4px;
+            color: var(--burgundy);
+            font-weight: 700;
+            margin-bottom: 10px;
+        }
+
+        .luxury-title {
+            font-family: 'Cinzel', serif;
+            font-size: 2.2rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .form-block {
+            margin-bottom: 40px;
+        }
+
+        .block-label {
+            font-size: 11px;
+            text-transform: uppercase;
+            color: #666;
+            border-bottom: 1px solid var(--border-white);
+            padding-bottom: 8px;
+            font-weight: 600;
+            margin-bottom: 25px;
+        }
+
+        .luxury-input-group label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .luxury-field, .luxury-select {
+            width: 100%;
+            background: #000 !important;
+            border: 1px solid #222 !important;
+            color: #fff !important;
+            padding: 12px 15px;
+            outline: none;
+            transition: 0.3s;
+        }
+
+            .luxury-field:focus {
+                border-color: var(--burgundy) !important;
+                box-shadow: 0 0 10px rgba(128, 0, 32, 0.2);
+            }
+
+        /* KHUNG ẢNH CHUYÊN NGHIỆP - GIỮ TỈ LỆ GỐC */
+        .luxury-photo-display-container {
+            background: #080808;
+            padding: 25px;
+            border: 1px solid #1a1a1a;
+            display: inline-block;
+            min-width: 400px;
+        }
+
+        .photo-render-zone {
+            max-width: 700px;
+            min-height: 300px;
+            background: #000;
             display: flex;
             align-items: center;
             justify-content: center;
+            border: 1px solid #222;
+            position: relative;
         }
-        #togglePasswordCreate:hover, #togglePasswordEdit:hover {
-            background-color: rgba(255, 255, 255, 0.1);
+
+            .photo-render-zone img {
+                max-width: 100%;
+                max-height: 700px;
+                border: 1px solid var(--burgundy);
+                display: block;
+            }
+
+        .photo-empty-state {
+            color: #1a1a1a;
+            text-align: center;
         }
-        #togglePasswordCreate i, #togglePasswordEdit i {
-            font-size: 16px;
+
+            .photo-empty-state i {
+                font-size: 5rem;
+                display: block;
+                margin-bottom: 10px;
+            }
+
+            .photo-empty-state p {
+                font-size: 11px;
+                letter-spacing: 3px;
+                font-weight: 700;
+            }
+
+        .btn-luxury-action {
+            background: transparent;
+            border: 1px solid var(--burgundy);
             color: #fff;
+            padding: 12px 30px;
+            font-family: 'Cinzel', serif;
+            font-size: 12px;
+            letter-spacing: 2px;
+            cursor: pointer;
+            transition: 0.4s;
         }
-        .input-group .form-control:focus {
-            z-index: 3;
+
+            .btn-luxury-action:hover {
+                background: var(--burgundy);
+                box-shadow: 0 0 20px rgba(128,0,32,0.5);
+            }
+
+        .luxury-file-info {
+            font-size: 11px;
+            color: #444;
+            margin-top: 10px;
+        }
+
+        .luxury-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 30px;
+            border-top: 1px solid var(--border-white);
+            padding-top: 30px;
+            margin-top: 50px;
+        }
+
+        .btn-luxury-crimson {
+            background: var(--burgundy);
+            color: #fff;
+            border: none;
+            padding: 15px 45px;
+            font-family: 'Cinzel', serif;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: 0.4s;
+        }
+
+            .btn-luxury-crimson:hover {
+                background: #a52a2a;
+                transform: translateY(-2px);
+                box-shadow: 0 0 30px rgba(128,0,32,0.4);
+            }
+
+        .btn-luxury-ghost {
+            color: #555;
+            text-decoration: none;
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+
+            .btn-luxury-ghost:hover {
+                color: #fff;
+            }
+
+        /* CSS cho Validation Summary và Error Messages */
+        .luxury-error {
+            color: #ff3333;
+            font-size: 11px;
+            margin-top: 5px;
+            display: block;
+        }
+
+        .alert-danger {
+            background-color: rgba(220, 53, 69, 0.1);
+            border: 1px solid rgba(220, 53, 69, 0.3);
+            color: #ff6b6b;
+            padding: 15px;
+            margin-bottom: 25px;
+            border-radius: 4px;
+        }
+
+            .alert-danger .alert-heading {
+                color: #ff3333;
+                font-size: 14px;
+                font-weight: 600;
+                margin-bottom: 10px;
+            }
+
+            .alert-danger ul {
+                margin: 0;
+                padding-left: 20px;
+            }
+
+            .alert-danger li {
+                margin-bottom: 5px;
+            }
+
+        .password-wrapper {
+            position: relative;
+        }
+
+        .luxury-toggle-eye {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            background: none;
+            border: none;
+            color: #aaa;
+            cursor: pointer;
+            padding: 5px;
+        }
+
+            .luxury-toggle-eye:hover {
+                color: #fff;
+            }
+
+        .luxury-status-area {
+            margin-bottom: 40px;
+        }
+
+        .form-check-label.text-white {
+            color: #fff !important;
         }
     </style>
+
     <script>
         $(document).ready(function () {
-            // Tạo dropdown ngày (1-31)
-            for (let day = 1; day <= 31; day++) {
-                $('#ngaySelect').append($('<option>', {
-                    value: day.toString().padStart(2, '0'),
-                    text: day
-                }));
-            }
-
-            // Tạo dropdown tháng (1-12)
-            const months = ['Tháng 1', 'Tháng 2', 'Tháng 3', 'Tháng 4', 'Tháng 5', 'Tháng 6', 
-                           'Tháng 7', 'Tháng 8', 'Tháng 9', 'Tháng 10', 'Tháng 11', 'Tháng 12'];
-            for (let month = 1; month <= 12; month++) {
-                $('#thangSelect').append($('<option>', {
-                    value: month.toString().padStart(2, '0'),
-                    text: months[month - 1]
-                }));
-            }
-
-            // Tạo dropdown năm (1950 - năm hiện tại)
-            const currentYear = new Date().getFullYear();
-            const startYear = 1950;
-            const currentNamSinh = '@(Model.NamSinh?.ToString("yyyy-MM-dd"))';
-            
-            for (let year = currentYear; year >= startYear; year--) {
-                $('#namSelect').append($('<option>', {
-                    value: year,
-                    text: year
-                }));
-            }
-
-            // Pre-select giá trị hiện tại nếu có
-            if (currentNamSinh) {
-                const dateParts = currentNamSinh.split('-');
-                if (dateParts.length === 3) {
-                    $('#namSelect').val(dateParts[0]);
-                    $('#thangSelect').val(dateParts[1]);
-                    $('#ngaySelect').val(dateParts[2]);
-                    $('#namSinhInput').val(currentNamSinh);
-                }
-            }
-
-            // Hàm cập nhật ngày sinh
-            function updateNamSinh() {
-                const ngay = $('#ngaySelect').val();
-                const thang = $('#thangSelect').val();
-                const nam = $('#namSelect').val();
-
-                if (ngay && thang && nam) {
-                    const dateValue = nam + '-' + thang + '-' + ngay;
-                    $('#namSinhInput').val(dateValue);
-                } else {
-                    $('#namSinhInput').val('');
-                }
-            }
-
-            // Khi chọn ngày, tháng, năm
-            $('#ngaySelect, #thangSelect, #namSelect').on('change', function () {
-                updateNamSinh();
-            });
-
-            // API Địa chỉ
+            // KHÔI PHỤC NGUYÊN VĂN LOGIC API ĐỊA CHỈ CỦA BẠN
             let provinces = [];
             let districts = [];
             let wards = [];
-            const currentDiaChi = '@Model.DiaChi';
-
-            // Parse địa chỉ hiện tại nếu có
-            let currentTinh = '';
-            let currentQuanHuyen = '';
-            let currentXaPhuong = '';
-            let currentDiaChiChiTiet = '';
-
-            if (currentDiaChi) {
-                const parts = currentDiaChi.split(',').map(p => p.trim());
-                if (parts.length >= 4) {
-                    currentDiaChiChiTiet = parts[0];
-                    currentXaPhuong = parts[1];
-                    currentQuanHuyen = parts[2];
-                    currentTinh = parts[3];
-                } else if (parts.length >= 3) {
-                    currentXaPhuong = parts[0];
-                    currentQuanHuyen = parts[1];
-                    currentTinh = parts[2];
-                }
-            }
 
             // Load danh sách tỉnh/thành phố
             $.getJSON('https://provinces.open-api.vn/api/?depth=1', function (data) {
@@ -279,58 +504,73 @@
                     $('#tinhSelect').append($('<option>', {
                         value: province.name,
                         text: province.name
-                    }).prop('selected', province.name === currentTinh));
+                    }));
                 });
 
-                // Nếu có tỉnh hiện tại, load quận/huyện
-                if (currentTinh) {
-                    const province = provinces.find(p => p.name === currentTinh);
-                    if (province) {
-                        loadDistricts(province.code);
+                // Load địa chỉ hiện tại nếu có
+                const fullDiaChi = '@Html.Raw(Model.DiaChi)';
+                if (fullDiaChi) {
+                    const parts = fullDiaChi.split(',').map(p => p.trim());
+                    if (parts.length >= 4) {
+                        const curTinh = parts[parts.length - 1];
+                        const curHuyen = parts[parts.length - 2];
+                        const curXa = parts[parts.length - 3];
+                        const curChiTiet = parts.slice(0, parts.length - 3).join(', ');
+
+                        $('#DiaChiChiTiet').val(curChiTiet);
+
+                        if (curTinh) {
+                            $('#tinhSelect').val(curTinh);
+                            const pCode = provinces.find(p => p.name === curTinh)?.code;
+                            if (pCode) loadDistricts(pCode, curHuyen, curXa);
+                        }
+                    } else {
+                        $('#DiaChiChiTiet').val(fullDiaChi);
                     }
                 }
             });
 
-            function loadDistricts(provinceCode) {
+            function loadDistricts(provinceCode, curHuyen = '', curXa = '') {
                 $('#quanHuyenSelect').prop('disabled', false).html('<option value="">-- Chọn Quận/Huyện --</option>');
-                
+
                 $.getJSON(`https://provinces.open-api.vn/api/p/${provinceCode}?depth=2`, function (data) {
                     districts = data.districts || [];
                     districts.forEach(function (district) {
                         $('#quanHuyenSelect').append($('<option>', {
                             value: district.name,
                             text: district.name
-                        }).prop('selected', district.name === currentQuanHuyen));
+                        }));
                     });
 
-                    // Nếu có quận/huyện hiện tại, load xã/phường
-                    if (currentQuanHuyen) {
-                        const district = districts.find(d => d.name === currentQuanHuyen);
-                        if (district) {
-                            loadWards(district.code);
-                        }
+                    if (curHuyen) {
+                        $('#quanHuyenSelect').val(curHuyen);
+                        const dCode = districts.find(d => d.name === curHuyen)?.code;
+                        if (dCode) loadWards(dCode, curXa);
                     }
                 });
             }
 
-            function loadWards(districtCode) {
+            function loadWards(districtCode, curXa = '') {
                 $('#xaPhuongSelect').prop('disabled', false).html('<option value="">-- Chọn Xã/Phường --</option>');
-                
+
                 $.getJSON(`https://provinces.open-api.vn/api/d/${districtCode}?depth=2`, function (data) {
                     wards = data.wards || [];
                     wards.forEach(function (ward) {
                         $('#xaPhuongSelect').append($('<option>', {
                             value: ward.name,
                             text: ward.name
-                        }).prop('selected', ward.name === currentXaPhuong));
+                        }));
                     });
+
+                    if (curXa) {
+                        $('#xaPhuongSelect').val(curXa);
+                    }
                 });
             }
 
             // Khi chọn tỉnh/thành phố
             $('#tinhSelect').on('change', function () {
                 const provinceName = $(this).val();
-                
                 if (provinceName) {
                     const province = provinces.find(p => p.name === provinceName);
                     if (province) {
@@ -345,7 +585,6 @@
             // Khi chọn quận/huyện
             $('#quanHuyenSelect').on('change', function () {
                 const districtName = $(this).val();
-                
                 if (districtName) {
                     const district = districts.find(d => d.name === districtName);
                     if (district) {
@@ -356,73 +595,96 @@
                 }
             });
 
-            // Set địa chỉ chi tiết nếu có
-            if (currentDiaChiChiTiet) {
-                $('#DiaChi').val(currentDiaChiChiTiet);
+            // Hàm cập nhật năm sinh (phải định nghĩa trước khi dùng)
+            function updateNamSinh() {
+                const ngay = $('#ngaySelect').val();
+                const thang = $('#thangSelect').val();
+                const nam = $('#namSelect').val();
+                // Format: YYYY-MM-DD (ISO format cho DateTime parsing)
+                if (ngay && thang && nam) {
+                    const dateStr = `${nam}-${thang.padStart(2, '0')}-${ngay.padStart(2, '0')}`;
+                    $('#namSinhInput').val(dateStr);
+                } else {
+                    $('#namSinhInput').val('');
+                }
             }
 
-            // Khi submit form - ghép địa chỉ
-            $('form').on('submit', function () {
+            // Dropdown Ngày tháng năm
+            for (let day = 1; day <= 31; day++) $('#ngaySelect').append(new Option(day, day.toString().padStart(2, '0')));
+            const mths = ['Tháng 1','Tháng 2','Tháng 3','Tháng 4','Tháng 5','Tháng 6','Tháng 7','Tháng 8','Tháng 9','Tháng 10','Tháng 11','Tháng 12'];
+            mths.forEach((m, i) => $('#thangSelect').append(new Option(m, (i + 1).toString().padStart(2, '0'))));
+            for (let year = new Date().getFullYear(); year >= 1950; year--) $('#namSelect').append(new Option(year, year));
+
+            // Pre-select giá trị hiện tại nếu có
+            const currentNamSinh = '@(Model.NamSinh?.ToString("yyyy-MM-dd"))';
+            if (currentNamSinh) {
+                const dateParts = currentNamSinh.split('-');
+                if (dateParts.length === 3) {
+                    $('#namSelect').val(dateParts[0]);
+                    $('#thangSelect').val(dateParts[1]);
+                    $('#ngaySelect').val(dateParts[2]);
+                    $('#namSinhInput').val(currentNamSinh);
+                }
+            }
+
+            $('#ngaySelect, #thangSelect, #namSelect').on('change', updateNamSinh);
+
+            // KHÔI PHỤC LOGIC GHÉP ĐỊA CHỈ KHI SUBMIT
+            $('form').on('submit', function (e) {
+                // Không preventDefault - để form submit bình thường
+                try {
+                    // Ghép địa chỉ
                 const tinh = $('#tinhSelect').val() || '';
                 const quanHuyen = $('#quanHuyenSelect').val() || '';
                 const xaPhuong = $('#xaPhuongSelect').val() || '';
-                const diaChiChiTiet = $('#DiaChi').val() || '';
-                
+                    const diaChiChiTiet = $('#DiaChiChiTiet').val() || '';
+
                 const diaChiFull = [diaChiChiTiet, xaPhuong, quanHuyen, tinh].filter(x => x).join(', ');
-                $('#DiaChi').val(diaChiFull);
-            });
+                    $('#DiaChiChiTiet').val(diaChiFull);
 
-            // Toggle password visibility - Edit
-            $('#togglePasswordEdit').on('click', function (e) {
-                e.preventDefault();
-                const passwordField = $('#matKhauEdit');
-                const eyeIcon = $('#eyeIconEdit');
-                if (passwordField.attr('type') === 'password') {
-                    passwordField.attr('type', 'text');
-                    eyeIcon.removeClass('fa-eye').addClass('fa-eye-slash');
-                    $(this).attr('title', 'Ẩn mật khẩu');
-                } else {
-                    passwordField.attr('type', 'password');
-                    eyeIcon.removeClass('fa-eye-slash').addClass('fa-eye');
-                    $(this).attr('title', 'Hiển thị mật khẩu');
+                    // Đảm bảo NamSinh được set trước khi submit
+                    updateNamSinh();
+                } catch (error) {
+                    console.error('Lỗi khi xử lý form submit:', error);
+                    // Vẫn cho form submit để server xử lý validation
                 }
             });
-            
-            // Đảm bảo icon hiển thị
-            if ($('#eyeIconEdit').length && !$('#eyeIconEdit').hasClass('fa-eye') && !$('#eyeIconEdit').hasClass('fa-eye-slash')) {
-                $('#eyeIconEdit').addClass('fa-eye');
-            }
 
-            // Disable client-side validation cho mật khẩu khi để trống
-            $('#matKhauEdit').on('input blur', function () {
-                if ($(this).val() === '') {
-                    $(this).removeAttr('data-val-required');
-                    $(this).removeAttr('data-val-length');
-                    $(this).removeAttr('data-val-length-min');
-                    $(this).removeAttr('data-val-length-max');
-                    $(this).removeClass('input-validation-error');
-                    $(this).next('.field-validation-error').remove();
-                } else {
-                    // Nếu có nhập, validate lại
-                    const val = $(this).val();
-                    if (val.length < 8 || val.length > 11) {
-                        $(this).addClass('input-validation-error');
-                    } else {
-                        $(this).removeClass('input-validation-error');
+            // PREVIEW ẢNH GIỮ NGUYÊN TỈ LỆ
+            $('#HinhAnhFileEdit').change(function(e){
+                var file = e.target.files[0];
+                if (file) {
+                    // Kiểm tra kích thước file (2MB = 2 * 1024 * 1024 bytes)
+                    if (file.size > 2 * 1024 * 1024) {
+                        alert('File ảnh không được vượt quá 2MB. Vui lòng chọn file khác.');
+                        $(this).val('');
+                        return;
                     }
+
+                    // Kiểm tra định dạng file
+                    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Chỉ chấp nhận file ảnh (JPG, PNG, GIF). Vui lòng chọn file khác.');
+                        $(this).val('');
+                        return;
+                    }
+
+                    $('#file-name').text("Tệp: " + file.name);
+                    var reader = new FileReader();
+                    reader.onload = function(e) {
+                        $('#imgPreview').attr('src', e.target.result).show();
+                        $('.photo-empty-state').hide();
+                        $('.photo-render-zone').css('border-color', '#800020');
+                    }
+                    reader.readAsDataURL(file);
                 }
             });
 
-            // Khi form submit, nếu mật khẩu trống thì bỏ qua validation
-            $('form').on('submit', function (e) {
-                const matKhau = $('#matKhauEdit').val();
-                if (matKhau === '') {
-                    $('#matKhauEdit').removeAttr('data-val');
-                    $('#matKhauEdit').removeAttr('data-val-required');
-                    $('#matKhauEdit').removeAttr('data-val-length');
-                }
+            $('#togglePasswordEdit').on('click', function () {
+                const field = $('#matKhauEdit');
+                field.attr('type', field.attr('type') === 'password' ? 'text' : 'password');
+                $('#eyeIconEdit').toggleClass('fa-eye fa-eye-slash');
             });
         });
     </script>
 }
-

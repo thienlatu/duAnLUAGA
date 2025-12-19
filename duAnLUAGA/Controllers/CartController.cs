@@ -41,7 +41,9 @@ namespace duAnLUAGA.Controllers
             Response.Cookies.Append("Cart", JsonSerializer.Serialize(cart), options);
         }
 
-        private int GetCartCountFromCookie() => GetCartFromCookie().Values.Sum();
+        // Đếm số sản phẩm khác nhau trong giỏ (không cộng dồn số lượng)
+        // Áp dụng cho trường hợp CHƯA ĐĂNG NHẬP để badge hiển thị số sản phẩm giống với khi đã đăng nhập
+        private int GetCartCountFromCookie() => GetCartFromCookie().Count;
 
         private void MergeCartFromCookieToDatabase(int userId)
         {
@@ -397,7 +399,15 @@ namespace duAnLUAGA.Controllers
         public IActionResult GetCartCount()
         {
             var currentUserId = GetCurrentUserId();
-            if (currentUserId == null) return Json(new { count = GetCartCountFromCookie() });
+            if (currentUserId == null)
+            {
+                // Chưa đăng nhập: đếm theo giỏ trong cookie (số sản phẩm khác nhau)
+                return Json(new { count = GetCartCountFromCookie() });
+            }
+
+            // Đã đăng nhập: luôn gom giỏ trong cookie (nếu còn) vào database
+            // để số lượng hiển thị trên badge đúng ngay sau khi đăng nhập
+            MergeCartFromCookieToDatabase(currentUserId.Value);
 
             var gioHang = _context.Giohangs.FirstOrDefault(g => g.MaKh == currentUserId);
             var count = (gioHang == null) ? 0 : _context.Chitietgiohangs.Count(ct => ct.MaGh == gioHang.MaGh);

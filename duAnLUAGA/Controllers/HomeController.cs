@@ -140,6 +140,13 @@ namespace duAnLUAGA.Controllers
 
         public IActionResult Login()
         {
+            // Nếu tài khoản bị khóa và bị chuyển hướng về trang đăng nhập,
+            // Filter sẽ truyền query ?locked=1. Khi đó hiển thị thông báo bảo mật.
+            if (Request.Query.ContainsKey("locked"))
+            {
+                ViewBag.LockedMessage = "Hệ thống phát hiện tài khoản của bạn có dấu hiệu sử dụng phần mềm thứ ba can thiệp vào hệ thống, vì lý do an toàn tài khoản đã bị khóa và bạn sẽ được đăng xuất.";
+            }
+
             return View();
         }
         public IActionResult ConfirmPass(string email)

@@ -1,4 +1,18 @@
-﻿<!DOCTYPE html>
+﻿@using duAnLUAGA.Infrastructure.Data
+@inject DuanLuagaContext DbContext
+@{
+    string userAvatar = null;
+    if (User?.Identity?.IsAuthenticated == true)
+    {
+        var userIdClaim = User.FindFirst("UserId") ?? User.FindFirst("MaKh");
+        if (userIdClaim != null && int.TryParse(userIdClaim.Value, out var uid))
+        {
+            var kh = DbContext.Khachhangs.FirstOrDefault(k => k.MaKh == uid);
+            userAvatar = kh?.HinhAnh;
+        }
+    }
+}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -53,6 +67,15 @@
             flex-shrink: 0; /* Footer không bị co lại */
         }
         /* --- [KẾT THÚC] CSS CỐ ĐỊNH FOOTER --- */
+
+        /* Avatar in header */
+        .header-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 6px;
+        }
 
         /* Cart Badge Styles */
         .cart-badge {
@@ -560,8 +583,16 @@
                 @if (User.Identity.IsAuthenticated)
                 {
                     <div class="dropdown">
-                        <button class="btn btn-outline-secondary dropdown-toggle" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
-                            <i class="fa-solid fa-user"></i> @User.Identity.Name
+                        <button class="btn btn-outline-secondary dropdown-toggle d-flex align-items-center" type="button" id="userDropdown" data-bs-toggle="dropdown" aria-expanded="false">
+                            @if (!string.IsNullOrEmpty(userAvatar))
+                            {
+                                <img src="~/img/@userAvatar" class="header-avatar" alt="avatar" asp-append-version="true" />
+                            }
+                            else
+                            {
+                                <i class="fa-solid fa-user me-1"></i>
+                            }
+                            <span>@User.Identity.Name</span>
                         </button>
                         <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userDropdown">
                             <li><a class="dropdown-item" asp-controller="Address" asp-action="Index">Profile</a></li>
@@ -865,19 +896,9 @@
                 .then(response => response.json())
                 .then(data => {
                     if (data && data.success) {
-                        // Cập nhật badge nếu server trả về cartCount
-                        if (typeof data.cartCount !== 'undefined') {
-                            const badge = document.getElementById('cart-badge');
-                            if (badge) {
-                                if (data.cartCount > 0) {
-                                    badge.textContent = data.cartCount > 99 ? '99+' : data.cartCount;
-                                    badge.style.display = 'flex';
-                                } else {
-                                    badge.style.display = 'none';
-                                }
-                            }
-                        } else if (window.updateCartBadge) {
-                            // fallback: gọi lại API đếm
+                        // Sau khi thêm giỏ hàng (kể cả CHƯA đăng nhập), luôn gọi API đếm lại
+                        // để badge nhảy ngay theo số sản phẩm hiện có trong giỏ
+                        if (window.updateCartBadge) {
                             window.updateCartBadge();
                         }
 
@@ -992,12 +1013,9 @@
                         // Dừng polling
                         clearInterval(intervalId);
 
-                        // Hiển thị thông báo
-                        var message = data.message || 'Tài khoản của bạn đã bị khóa. Bạn sẽ được đăng xuất.';
-                        alert(message);
-
-                        // Đăng xuất và redirect về login
-                        window.location.href = '/Home/Logout?returnUrl=' + encodeURIComponent('/Home/Login?message=' + encodeURIComponent(message));
+                        // Thay vì dùng alert, chuyển hướng về trang đăng nhập
+                        // Trang Login sẽ tự hiển thị popup "Thông báo bảo mật"
+                        window.location.href = '/Home/Logout?returnUrl=' + encodeURIComponent('/Home/Login?locked=1');
                     }
                 })
                 .catch(error => {

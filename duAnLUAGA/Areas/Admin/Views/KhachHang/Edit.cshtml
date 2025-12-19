@@ -55,16 +55,44 @@
 
             <div class="mb-3">
                 <label asp-for="HinhAnhFile" class="form-label"></label>
-                @if (!string.IsNullOrEmpty(Model.HinhAnh))
-                {
-                    <div class="mb-2">
-                        <img src="~/img/@Model.HinhAnh" alt="Ảnh hiện tại" style="max-width: 150px; max-height: 150px;" class="img-thumbnail" />
-                        <p class="text-muted small mt-1">Ảnh hiện tại</p>
+                <div class="kh-photo-wrapper text-center">
+                    <div class="kh-photo-display">
+                        @{
+                            var khEditImageUrl = string.IsNullOrEmpty(Model.HinhAnh)
+                                ? string.Empty
+                                : Url.Content($"~/img/{Model.HinhAnh}");
+                        }
+                        @if (!string.IsNullOrEmpty(khEditImageUrl))
+                        {
+                            <img id="khEditImgPreview" src="@khEditImageUrl" alt="Ảnh khách hàng" />
+                            <div class="kh-photo-empty d-none">
+                                <i class="fa fa-image"></i>
+                                <p>HÌNH ẢNH KHÁCH HÀNG</p>
+                            </div>
+                        }
+                        else
+                        {
+                            <img id="khEditImgPreview" src="#" alt="Ảnh khách hàng" style="display:none;" />
+                            <div class="kh-photo-empty">
+                                <i class="fa fa-image"></i>
+                                <p>HÌNH ẢNH KHÁCH HÀNG</p>
+                            </div>
+                        }
                     </div>
-                }
-                <input asp-for="HinhAnhFile" class="form-control" type="file" accept="image/*" />
-                <span asp-validation-for="HinhAnhFile" class="text-danger"></span>
-                <small class="form-text text-muted">Chọn file ảnh mới để thay thế (JPG, PNG, GIF)</small>
+                    <div class="mt-3">
+                        <label asp-for="HinhAnhFile" class="btn btn-outline-light kh-photo-button" for="HinhAnhFileEditInput">
+                            <i class="fa fa-camera me-2"></i> CHỌN ẢNH TỪ MÁY
+                        </label>
+                        <input asp-for="HinhAnhFile" id="HinhAnhFileEditInput" class="d-none" type="file" accept="image/*" />
+                        <p id="khEditFileName" class="kh-photo-info text-muted small mb-0">
+                            @(!string.IsNullOrEmpty(Model.HinhAnh) ? $"Ảnh hiện tại: {Model.HinhAnh}" : "Chưa chọn tệp")
+                        </p>
+                        <span asp-validation-for="HinhAnhFile" class="text-danger d-block mt-1"></span>
+                        <small class="form-text text-muted">
+                            Chọn file ảnh mới để thay thế (JPG, JPEG, PNG, GIF), dung lượng tối đa 5MB
+                        </small>
+                    </div>
+                </div>
             </div>
 
             <div class="mb-3">
@@ -140,7 +168,152 @@
                     $('#matKhauEditKH').removeAttr('data-val-length');
                 }
             });
+
+            var originalImgUrl = '@(string.IsNullOrEmpty(Model.HinhAnh) ? "" : Url.Content($"~/img/{Model.HinhAnh}"))';
+
+            // Preview ảnh khách hàng (Edit)
+            $('#HinhAnhFileEditInput').on('change', function (e) {
+                const file = e.target.files[0];
+                const $preview = $('#khEditImgPreview');
+                const $empty = $('.kh-photo-empty');
+                const $fileName = $('#khEditFileName');
+
+                if (file) {
+                    // Kiểm tra dung lượng tối đa 5MB
+                    if (file.size > 5 * 1024 * 1024) {
+                        alert('File ảnh không được vượt quá 5MB. Vui lòng chọn file khác.');
+                        $(this).val('');
+                        if (originalImgUrl) {
+                            $preview.attr('src', originalImgUrl).show();
+                            $empty.addClass('d-none');
+                        } else {
+                            $preview.hide();
+                            $empty.removeClass('d-none');
+                        }
+                        $fileName.text(originalImgUrl ? 'Ảnh hiện tại: ' + '@Model.HinhAnh' : 'Chưa chọn tệp');
+                        return;
+                    }
+
+                    // Kiểm tra định dạng file
+                    const validTypes = ['image/jpeg', 'image/jpg', 'image/png', 'image/gif'];
+                    if (!validTypes.includes(file.type)) {
+                        alert('Chỉ chấp nhận file ảnh (JPG, JPEG, PNG, GIF). Vui lòng chọn file khác.');
+                        $(this).val('');
+                        if (originalImgUrl) {
+                            $preview.attr('src', originalImgUrl).show();
+                            $empty.addClass('d-none');
+                        } else {
+                            $preview.hide();
+                            $empty.removeClass('d-none');
+                        }
+                        $fileName.text(originalImgUrl ? 'Ảnh hiện tại: ' + '@Model.HinhAnh' : 'Chưa chọn tệp');
+                        return;
+                    }
+
+                    $fileName.text('Tệp: ' + file.name);
+
+                    const reader = new FileReader();
+                    reader.onload = function (ev) {
+                        $preview.attr('src', ev.target.result).show();
+                        $empty.addClass('d-none');
+                    };
+                    reader.readAsDataURL(file);
+                } else {
+                    if (originalImgUrl) {
+                        $preview.attr('src', originalImgUrl).show();
+                        $empty.addClass('d-none');
+                        $fileName.text('Ảnh hiện tại: ' + '@Model.HinhAnh');
+                    } else {
+                        $preview.hide();
+                        $empty.removeClass('d-none');
+                        $fileName.text('Chưa chọn tệp');
+                    }
+                }
+            });
         });
     </script>
+
+    <style>
+        /* Tông chữ trắng cho form Sửa Khách hàng */
+        .bg-secondary.rounded.p-4 {
+            color: #fff;
+        }
+
+        .bg-secondary.rounded.p-4 h3,
+        .bg-secondary.rounded.p-4 label.form-label,
+        .bg-secondary.rounded.p-4 small,
+        .bg-secondary.rounded.p-4 .form-check-label {
+            color: #fff !important;
+        }
+
+        .bg-secondary.rounded.p-4 .form-control,
+        .bg-secondary.rounded.p-4 .form-select {
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.3);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .bg-secondary.rounded.p-4 .form-control::placeholder {
+            color: rgba(255, 255, 255, 0.8);
+        }
+
+        .bg-secondary.rounded.p-4 .form-select option {
+            color: #000;
+        }
+
+        .bg-secondary.rounded.p-4 .text-muted {
+            color: rgba(255, 255, 255, 0.75) !important;
+        }
+
+        .kh-photo-wrapper {
+            display: inline-block;
+            max-width: 100%;
+        }
+
+        .kh-photo-display {
+            background: #000;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            min-height: 220px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 10px;
+        }
+
+        .kh-photo-display img {
+            max-width: 100%;
+            max-height: 360px;
+            border: 1px solid #800020;
+            object-fit: contain;
+        }
+
+        .kh-photo-empty {
+            color: rgba(255, 255, 255, 0.25);
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            font-size: 11px;
+        }
+
+        .kh-photo-empty i {
+            font-size: 3rem;
+            margin-bottom: 8px;
+        }
+
+        .kh-photo-button {
+            border-radius: 0;
+            border-color: #800020;
+            color: #fff;
+        }
+
+        .kh-photo-button:hover {
+            background-color: #800020;
+            color: #fff;
+        }
+
+        .kh-photo-info {
+            margin-top: 8px;
+        }
+    </style>
 }
 

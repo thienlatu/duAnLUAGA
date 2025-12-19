@@ -11,7 +11,7 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
 
         [Required(ErrorMessage = "Vui lòng nhập họ và tên")]
         [StringLength(100, ErrorMessage = "Họ và tên không được vượt quá 100 ký tự")]
-        [RegularExpression(@"^[A-Za-zÀ-ỹ\s]+$", ErrorMessage = "Họ và tên chỉ được chứa chữ cái và khoảng trắng")]
+        [RegularExpression(@"^[A-Za-zÀ-ỹ\s]+$", ErrorMessage = "Họ và tên chỉ được chứa chữ cái")]
         [Display(Name = "Họ và tên")]
         public string HoVaTen { get; set; } = null!;
 

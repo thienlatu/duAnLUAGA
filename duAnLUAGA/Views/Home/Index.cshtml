@@ -1256,6 +1256,10 @@
                 const data = await res.json();
                 if (data.success) {
                     renderMessageText(`✅ Đã thêm vào giỏ! (Tổng: ${data.cartCount})`, 'bot');
+                    // Cập nhật badge số lượng trên icon giỏ hàng ở header
+                    if (window.updateCartBadge) {
+                        window.updateCartBadge();
+                    }
                     // Không lưu thông báo hệ thống vào Storage để tránh rác
                 } else {
                     renderMessageText(`❌ ${data.message || "Lỗi."}`, 'bot');
