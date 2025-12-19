@@ -1,6 +1,7 @@
 using duAnLUAGA.Areas.Admin.ViewModels;
 using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,7 @@ using System.Linq;
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class NhanVienController : Controller
     {
         private readonly DuanLuagaContext _context;

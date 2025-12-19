@@ -7,6 +7,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Utils\**" />
+    <Content Remove="Utils\**" />
+    <EmbeddedResource Remove="Utils\**" />
+    <None Remove="Utils\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Google.Cloud.AIPlatform.V1" Version="3.59.0" />
     <PackageReference Include="Google.GenAI" Version="0.8.0" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.Google" Version="8.0.22" />
@@ -23,7 +30,6 @@
   <ItemGroup>
     <Folder Include="Infrastructure\Interfaces\" />
     <Folder Include="Infrastructure\Repository\" />
-    <Folder Include="Utils\" />
   </ItemGroup>
 
 </Project>

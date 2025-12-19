@@ -59,10 +59,10 @@
                     <a asp-area="Employee" asp-controller="KhachHang" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "KhachHang" ? "active" : "")">
                         <i class="fa fa-users me-2"></i>Khách Hàng
                     </a>
-                    <a asp-area="Employee" asp-controller="KhachHang" asp-action="Index" class="nav-item nav-link"><i class="fa fa-keyboard me-2"></i>Khách Hàng </a>
+                 
 
-                    <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Đơn Hàng</a>
-                    <a href="" class="nav-item nav-link"><i class="fa fa-table me-2"></i>Đánh Giá</a>
+                    <a asp-area="Employee" asp-controller="Order" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Order" ? "active" : "")"><i class="fa fa-table me-2"></i>Đơn Hàng</a>
+                    <a asp-area="Employee" asp-controller="QLDanhGia" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "QLDanhGia" ? "active" : "")"><i class="fa fa-table me-2"></i>Đánh Giá</a>
                 </div>
         </div>
         </nav>

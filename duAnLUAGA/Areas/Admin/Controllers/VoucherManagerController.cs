@@ -6,11 +6,13 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using System.Text.RegularExpressions; // Thư viện dùng cho Regex
+using System.Text.RegularExpressions;
+using Microsoft.AspNetCore.Authorization; // Thư viện dùng cho Regex
 
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class VoucherManagerController : Controller
     {
         private readonly DuanLuagaContext _context;

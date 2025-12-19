@@ -1,6 +1,7 @@
 ﻿using duAnLUAGA.Areas.Admin.ViewModels;
 using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
@@ -11,6 +12,7 @@ using System.Linq;
 namespace duAnLUAGA.Areas.Employee.Controllers
 {
     [Area("Employee")]
+    [Authorize(Policy = "EmployeeOnly")]
     public class DiaChiController : Controller
     {
         private readonly DuanLuagaContext _context;

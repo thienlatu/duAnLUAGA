@@ -6,10 +6,12 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.EntityFrameworkCore;
 using duAnLUAGA.Domain.Entitie;
+using Microsoft.AspNetCore.Authorization;
 
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class QLSanPhamController : Controller
     {
         private readonly DuanLuagaContext _context;

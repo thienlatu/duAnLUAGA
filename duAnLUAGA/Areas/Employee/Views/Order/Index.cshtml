@@ -1,0 +1,359 @@
+﻿@model IEnumerable<duAnLUAGA.Domain.Entitie.Hoadon>
+@{
+    ViewData["Title"] = "Quản Lý Đơn Hàng";
+    var formatMoney = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
+    var currentStatus = ViewBag.StatusFilter as string;
+    var currentPage = (int)ViewBag.CurrentPage;
+    var totalPages = (int)ViewBag.TotalPages;
+
+    string GetBadgeClass(string status)
+    {
+        return status switch
+        {
+            "ChoXacNhan" => "v-warning",
+            "ChoLayHang" => "v-info",
+            "DangGiao" => "v-primary",
+            "DaGiao" => "v-success",
+            "DaHuy" => "v-danger",
+            "DaThanhToan" => "v-success",
+            "ChuaThanhToan" => "v-warning",
+            _ => "v-locked"
+        };
+    }
+
+    string GetStatusName(string status)
+    {
+        var s = status?.Trim().ToLower();
+        return s switch
+        {
+            "choxacnhan" => "Chờ xác nhận",
+            "cholayhang" => "Chờ lấy hàng",
+            "danggiao" => "Đang giao",
+            "dagiao" => "Hoàn thành",
+            "dahuy" => "Đã hủy",
+            "dathanhtoan" => "Đã thanh toán",
+            "chuathanhtoan" => "Chưa thanh toán",
+            _ => status
+        };
+    }
+}
+
+<style>
+    /* Tổng thể nền đen sâu */
+    .bg-dark-main {
+        background-color: #000;
+        color: #fff;
+        min-height: 100vh;
+        padding: 30px;
+    }
+
+    /* Tiêu đề trang có vạch đỏ */
+    .page-title {
+        border-left: 4px solid #ff0000;
+        padding-left: 15px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    /* Tabs Trạng Thái kiểu hiện đại */
+    .status-tabs {
+        display: flex;
+        gap: 8px;
+        overflow-x: auto;
+        padding-bottom: 10px;
+        margin-bottom: 20px;
+    }
+
+    .tab-btn {
+        padding: 6px 15px;
+        border-radius: 4px;
+        color: #fff;
+        text-decoration: none;
+        font-size: 13px;
+        background: #111;
+        border: 1px solid #333;
+        transition: 0.3s;
+        white-space: nowrap;
+    }
+
+        .tab-btn:hover {
+            border-color: #ff0000;
+            color: #ff0000;
+        }
+
+        .tab-btn.active {
+            background: #ff0000;
+            border-color: #ff0000;
+            color: #fff;
+        }
+
+    /* Filter & Search Box */
+    .search-container {
+        background: #111;
+        padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #333;
+    }
+
+    .custom-input {
+        background: #000 !important;
+        border: 1px solid #444 !important;
+        color: #fff !important;
+        border-radius: 4px;
+    }
+
+        .custom-input:focus {
+            border-color: #ff0000 !important;
+            box-shadow: none;
+        }
+
+    /* Bảng LUAGA Style */
+    .table-luaga {
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        background: transparent;
+    }
+
+        .table-luaga thead tr {
+            border-bottom: 2px solid #ff0000;
+        }
+
+        .table-luaga th {
+            color: #ff0000 !important;
+            text-transform: uppercase;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+
+        .table-luaga tbody tr {
+            background: #111;
+            transition: 0.3s;
+        }
+
+            .table-luaga tbody tr:hover {
+                background: #1a1a1a;
+            }
+
+        .table-luaga td {
+            color: #fff !important;
+            border: none;
+            padding: 15px;
+            vertical-align: middle;
+        }
+
+    /* Nút hành động ô vuông */
+    .btn-action {
+        background: #222;
+        border: 1px solid #444;
+        color: #fff;
+        width: auto;
+        height: 35px;
+        padding: 0 12px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5px;
+        transition: 0.2s;
+        font-size: 12px;
+        border-radius: 2px;
+    }
+
+        .btn-action:hover {
+            background: #ff0000;
+            color: #fff;
+            border-color: #ff0000;
+        }
+
+    .btn-action-view {
+        background: #007bff;
+        border-color: #007bff;
+    }
+
+    /* Badge Trạng thái */
+    .v-badge {
+        padding: 4px 10px;
+        border-radius: 2px;
+        font-size: 11px;
+        font-weight: bold;
+        text-transform: uppercase;
+    }
+
+    .v-warning {
+        background: #ffc107;
+        color: #000;
+    }
+
+    .v-info {
+        background: #17a2b8;
+        color: #fff;
+    }
+
+    .v-primary {
+        background: #007bff;
+        color: #fff;
+    }
+
+    .v-success {
+        background: #28a745;
+        color: #fff;
+    }
+
+    .v-danger {
+        background: #dc3545;
+        color: #fff;
+    }
+
+    .v-locked {
+        background: #6c757d;
+        color: #fff;
+    }
+
+    /* Pagination */
+    .pagination .page-link {
+        background: #111;
+        border-color: #333;
+        color: #fff;
+    }
+
+    .pagination .page-item.active .page-link {
+        background: #ff0000;
+        border-color: #ff0000;
+    }
+</style>
+
+<div class="container-fluid bg-dark-main">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <div>
+            <h2 class="page-title text-white m-0">Quản Lý Đơn Hàng</h2>
+            <p class="text-muted small ms-3">Theo dõi và xử lý đơn hàng hệ thống</p>
+        </div>
+        <form method="get" class="d-flex">
+            <input type="hidden" name="statusFilter" value="@currentStatus" />
+            <input type="text" name="searchString" class="form-control custom-input me-2" placeholder="Tìm Mã HĐ hoặc Tên khách..." value="@ViewBag.SearchString">
+            <button type="submit" class="btn btn-danger"><i class="fa fa-search"></i></button>
+        </form>
+    </div>
+
+    <div class="status-tabs">
+        <a href="@Url.Action("Index", new { statusFilter = "all" })" class="tab-btn @(string.IsNullOrEmpty(currentStatus) || currentStatus == "all" ? "active" : "")">Tất cả</a>
+        <a href="@Url.Action("Index", new { statusFilter = "ChoXacNhan" })" class="tab-btn @(currentStatus == "ChoXacNhan" ? "active" : "")">Chờ xác nhận</a>
+        <a href="@Url.Action("Index", new { statusFilter = "ChoLayHang" })" class="tab-btn @(currentStatus == "ChoLayHang" ? "active" : "")">Chờ lấy hàng</a>
+        <a href="@Url.Action("Index", new { statusFilter = "DangGiao" })" class="tab-btn @(currentStatus == "DangGiao" ? "active" : "")">Đang giao</a>
+        <a href="@Url.Action("Index", new { statusFilter = "DaGiao" })" class="tab-btn @(currentStatus == "DaGiao" ? "active" : "")">Hoàn thành</a>
+        <a href="@Url.Action("Index", new { statusFilter = "DaHuy" })" class="tab-btn @(currentStatus == "DaHuy" ? "active" : "")">Đã hủy</a>
+    </div>
+
+    <div class="table-responsive">
+        <table class="table table-luaga">
+            <thead>
+                <tr>
+                    <th>Mã HĐ</th>
+                    <th>Khách hàng</th>
+                    <th>Ngày đặt</th>
+                    <th>Tổng tiền</th>
+                    <th>Thanh toán</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Any())
+                {
+                    foreach (var item in Model)
+                    {
+                        <tr>
+                            <td><strong class="text-white">#@item.MaHd</strong></td>
+                            <td>
+                                <div class="text-white fw-bold">@(item.MaKhNavigation?.HoVaTen ?? "Khách lẻ")</div>
+                                <small class="text-muted">ID: @item.MaKh</small>
+                            </td>
+                            <td>@item.NgayXuatHoaDon.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td><span class="text-white fw-bold">@item.ThanhTien.ToString("N0")₫</span></td>
+                            <td><span class="v-badge v-locked">@item.Httt</span></td>
+                            <td>
+                                <span class="v-badge @GetBadgeClass(item.TrangThai)">@GetStatusName(item.TrangThai)</span>
+                            </td>
+                            <td class="text-end">
+                                @if (item.TrangThai == "ChoXacNhan" || item.TrangThai == "DaThanhToan")
+                                {
+                                    <button class="btn-action" onclick="updateStatus(@item.MaHd, 'ChoLayHang')"> Duyệt</button>
+                                    <button class="btn-action" onclick="updateStatus(@item.MaHd, 'DaHuy')"> Hủy</button>
+                                }
+                                else if (item.TrangThai == "ChoLayHang")
+                                {
+                                    <button class="btn-action" onclick="updateStatus(@item.MaHd, 'DangGiao')">Giao hàng</button>
+                                }
+                                else if (item.TrangThai == "DangGiao")
+                                {
+                                    <button class="btn-action" onclick="updateStatus(@item.MaHd, 'DaGiao')">Xong</button>
+                                }
+
+                                <a href="/Admin/Order/Details/@item.MaHd" class="btn-action" style="background:#007bff"><i class="fa fa-eye"></i></a>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr><td colspan="7" class="text-center py-5 text-muted">Không tìm thấy đơn hàng nào.</td></tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (totalPages > 1)
+    {
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                @for (int i = 1; i <= totalPages; i++)
+                {
+                    <li class="page-item @(i == currentPage ? "active" : "")">
+                        <a class="page-link" href="@Url.Action("Index", new { page = i, statusFilter = currentStatus, searchString = ViewBag.SearchString })">@i</a>
+                    </li>
+                }
+            </ul>
+        </nav>
+    }
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        const Toast = Swal.mixin({
+            toast: true,
+            position: 'top-end',
+            showConfirmButton: false,
+            timer: 1500,
+            background: '#111',
+            color: '#fff'
+        });
+
+        function updateStatus(id, status) {
+            Swal.fire({
+                title: 'Xác nhận?',
+                text: `Chuyển đơn hàng #${id} sang trạng thái này?`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#ff0000',
+                cancelButtonColor: '#444',
+                confirmButtonText: 'Đồng ý',
+                background: '#111',
+                color: '#fff'
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    $.post('/Admin/Order/UpdateStatus', { id: id, newStatus: status }, function(res) {
+                        if(res.success) {
+                            Toast.fire({ icon: 'success', title: 'Cập nhật thành công!' });
+                            setTimeout(() => { location.reload(); }, 1500);
+                        } else {
+                            Swal.fire({ icon: 'error', title: 'Lỗi', text: res.message, background: '#111', color: '#fff' });
+                        }
+                    });
+                }
+            });
+        }
+    </script>
+}

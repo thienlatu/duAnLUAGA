@@ -69,6 +69,6 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
         public DateTime NgayTao { get; set; } = DateTime.Now;
 
         [Display(Name = "Trạng thái")]
-        public bool TrangThai { get; set; } = true;
+        public bool TrangThai { get; set; } = false;
     }
 }

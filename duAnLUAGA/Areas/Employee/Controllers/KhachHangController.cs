@@ -1,6 +1,7 @@
 ﻿using duAnLUAGA.Areas.Admin.ViewModels;
 using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +13,8 @@ using System.Linq;
 namespace duAnLUAGA.Areas.Employee.Controllers
 {
     [Area("Employee")]
+
+    [Authorize(Policy = "EmployeeOnly")]
     public class KhachHangController : Controller
     {
         private readonly DuanLuagaContext _context;
@@ -23,7 +26,7 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             _env = env;
         }
 
-        // GET: Employee/KhachHang
+        // GET: Admin/KhachHang
         public IActionResult Index(string trangThai)
         {
             var query = _context.Khachhangs.AsQueryable();
@@ -41,24 +44,28 @@ namespace duAnLUAGA.Areas.Employee.Controllers
                 }
             }
 
-            var khachHangs = query.OrderByDescending(kh => kh.MaKh).ToList();
-            var viewModels = khachHangs.Select(kh => new KhachHangVM
-            {
-                MaKh = kh.MaKh,
-                HoVaTen = kh.HoVaTen,
-                GioiTinh = kh.GioiTinh,
-                Email = kh.Email,
-                MatKhau = kh.MatKhau,
-                HinhAnh = kh.HinhAnh,
-                NgayTao = kh.NgayTao,
-                TrangThai = kh.TrangThai
-            }).ToList();
+       
+            var viewModels = query
+                .AsNoTracking()
+                .OrderByDescending(kh => kh.MaKh)
+                .Select(kh => new KhachHangVM
+                {
+                    MaKh = kh.MaKh,
+                    HoVaTen = kh.HoVaTen,
+                    GioiTinh = kh.GioiTinh,
+                    Email = kh.Email,
+                    MatKhau = kh.MatKhau,
+                    HinhAnh = kh.HinhAnh,
+                    NgayTao = kh.NgayTao,
+                    TrangThai = kh.TrangThai
+                })
+                .ToList();
 
             ViewBag.TrangThaiFilter = trangThai;
             return View(viewModels);
         }
 
-        // GET: Employee/KhachHang/Details/5
+        // GET: Admin/KhachHang/Details/5
         public IActionResult Details(int? id)
         {
             if (id == null) return NotFound();
@@ -90,13 +97,13 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             return View(viewModel);
         }
 
-        // GET: Employee/KhachHang/Create
+        // GET: Admin/KhachHang/Create
         public IActionResult Create()
         {
             return View();
         }
 
-        // POST: Employee/KhachHang/Create
+        // POST: Admin/KhachHang/Create
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Create(KhachHangVM viewModel)
@@ -151,7 +158,7 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             return View(viewModel);
         }
 
-        // GET: Employee/KhachHang/Edit/5
+        // GET: Admin/KhachHang/Edit/5
         public IActionResult Edit(int? id)
         {
             if (id == null) return NotFound();
@@ -174,7 +181,7 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             return View(viewModel);
         }
 
-        // POST: Employee/KhachHang/Edit/5
+        // POST: Admin/KhachHang/Edit/5
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, KhachHangVM viewModel)
@@ -257,7 +264,7 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             return View(viewModel);
         }
 
-        // GET: Employee/KhachHang/Delete/5
+        // GET: Admin/KhachHang/Delete/5
         public IActionResult Delete(int? id)
         {
             if (id == null) return NotFound();
@@ -285,14 +292,13 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             return View(viewModel);
         }
 
-        // POST: Employee/KhachHang/Delete/5
+        // POST: Admin/KhachHang/Delete/5
         [HttpPost, ActionName("Delete")]
         [ValidateAntiForgeryToken]
         public IActionResult DeleteConfirmed(int id)
         {
             var khachHang = _context.Khachhangs
                 .Include(kh => kh.Hoadons)
-                .Include(kh => kh.Diachis)
                 .Include(kh => kh.Danhgia)
                 .Include(kh => kh.Magiamgia)
                 .FirstOrDefault(kh => kh.MaKh == id);
@@ -302,7 +308,7 @@ namespace duAnLUAGA.Areas.Employee.Controllers
             // Không cho xóa nếu đã có ĐƠN HÀNG, ĐÁNH GIÁ hoặc MÃ GIẢM GIÁ liên quan
             if (khachHang.Hoadons.Any() || khachHang.Danhgia.Any() || khachHang.Magiamgia.Any())
             {
-                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì đã có đơn hàng / đánh giá / mã giảm giá liên quan.";
+                TempData["ErrorMessage"] = "Không thể xóa khách hàng này vì có liên quan đến cơ sở dữ liệu";
                 return RedirectToAction(nameof(Index));
             }
 
@@ -314,11 +320,12 @@ namespace duAnLUAGA.Areas.Employee.Controllers
 
             _context.Khachhangs.Remove(khachHang);
             _context.SaveChanges();
+
             TempData["SuccessMessage"] = "Xóa khách hàng thành công.";
             return RedirectToAction(nameof(Index));
         }
 
-        // POST: Employee/KhachHang/ToggleStatus/5
+        // POST: Admin/KhachHang/ToggleStatus/5
         [HttpPost]
         public IActionResult ToggleStatus(int id)
         {

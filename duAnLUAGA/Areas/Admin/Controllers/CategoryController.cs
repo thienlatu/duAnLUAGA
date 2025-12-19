@@ -9,10 +9,12 @@ using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Authorization;
 
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class CategoryController : Controller
     {
         private readonly DuanLuagaContext _context;

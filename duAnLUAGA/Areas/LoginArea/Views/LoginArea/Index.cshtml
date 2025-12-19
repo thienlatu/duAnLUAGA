@@ -97,10 +97,10 @@
 </head>
 <body>
     <div class="login-container">
-        <h2>LUAGA ACCESS</h2>
+        <h2>LOGIN LUAGA MANAGER</h2>
         @* Form gửi đến đúng Area và Action *@
         <form asp-area="LoginArea" asp-controller="LoginArea" asp-action="Index" method="post">
-            @* Giữ lại ReturnUrl để sau khi login xong quay lại đúng trang *@
+
             <input type="hidden" name="returnUrl" value="@ViewBag.ReturnUrl" />
 
             <div class="form-group">

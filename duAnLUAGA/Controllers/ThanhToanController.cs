@@ -154,6 +154,9 @@ namespace duAnLUAGA.Controllers
         // ==================================================================================
         // ACTION: ĐẶT HÀNG  XỬ LÝ  VNPAY VÀ MOMO
         // ==================================================================================
+        // ==================================================================================
+        // ACTION: ĐẶT HÀNG  XỬ LÝ  VNPAY, MOMO VÀ COD
+        // ==================================================================================
         [HttpPost]
         public async Task<IActionResult> DatHang([FromBody] DatHangRequest request)
         {
@@ -188,46 +191,127 @@ namespace duAnLUAGA.Controllers
                     {
                         if (voucher.SoTienGiam > 0) tienGiamGia = (decimal)voucher.SoTienGiam;
                         else if (voucher.PhanTramGiam > 0) tienGiamGia = tongTienHang * ((decimal)voucher.PhanTramGiam / 100);
-                        if (request.MaVoucher.Contains("_")) request.MaVoucher = request.MaVoucher.Substring(0, request.MaVoucher.LastIndexOf('_'));
                     }
                 }
                 decimal tongThanhToan = (tongTienHang + phiVanChuyen) - tienGiamGia;
                 if (tongThanhToan < 0) tongThanhToan = 0;
 
-                // --- LƯU SESSION ---
-                string orderRefId = DateTime.Now.Ticks.ToString();
                 string cleanMaVoucher = string.IsNullOrEmpty(request.MaVoucher) ? null : request.MaVoucher;
 
-                var tempOrder = new TempOrderData
+                // --- PHÂN LOẠI XỬ LÝ THEO PHƯƠNG THỨC ---
+                if (request.PhuongThucThanhToan == "VnPay" || request.PhuongThucThanhToan == "MOMO")
                 {
-                    UserId = currentUserId,
-                    MaDc = request.MaDc,
-                    MaVoucher = cleanMaVoucher,
-                    Items = finalItems,
-                    TongTien = tongTienHang,
-                    PhiShip = phiVanChuyen,
-                    GiamGia = tienGiamGia,
-                    TongThanhToan = tongThanhToan
-                };
-                HttpContext.Session.Set("TempOrder_" + orderRefId, tempOrder);
+                    // LOGIC THANH TOÁN ONLINE (GIỮ NGUYÊN SESSION)
+                    string orderRefId = DateTime.Now.Ticks.ToString();
+                    var tempOrder = new TempOrderData
+                    {
+                        UserId = currentUserId,
+                        MaDc = request.MaDc,
+                        MaVoucher = cleanMaVoucher,
+                        Items = finalItems,
+                        TongTien = tongTienHang,
+                        PhiShip = phiVanChuyen,
+                        GiamGia = tienGiamGia,
+                        TongThanhToan = tongThanhToan
+                    };
+                    HttpContext.Session.Set("TempOrder_" + orderRefId, tempOrder);
 
-                // --- PHÂN LOẠI VNPAY / MOMO ---
-                if (request.PhuongThucThanhToan == "VnPay")
-                {
-                    string vnpUrl = CreateVnPayUrlInternal(orderRefId, (double)tongThanhToan);
-                    return Json(new { success = true, redirectUrl = vnpUrl });
+                    if (request.PhuongThucThanhToan == "VnPay")
+                    {
+                        string vnpUrl = CreateVnPayUrlInternal(orderRefId, (double)tongThanhToan);
+                        return Json(new { success = true, redirectUrl = vnpUrl });
+                    }
+                    else
+                    {
+                        string momoUrl = await CreateMomoUrlInternal(orderRefId, (long)tongThanhToan);
+                        if (string.IsNullOrEmpty(momoUrl)) return Json(new { success = false, message = "Lỗi tạo giao dịch MoMo." });
+                        return Json(new { success = true, redirectUrl = momoUrl });
+                    }
                 }
-                else if (request.PhuongThucThanhToan == "MOMO")
+                else if (request.PhuongThucThanhToan == "COD")
                 {
-                    // Gọi hàm tạo URL MoMo
-                    string momoUrl = await CreateMomoUrlInternal(orderRefId, (long)tongThanhToan);
-                    if (string.IsNullOrEmpty(momoUrl)) return Json(new { success = false, message = "Lỗi tạo giao dịch MoMo." });
+                    // LOGIC THANH TOÁN COD (LƯU THẲNG DATABASE)
+                    using (var transaction = _context.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            // 1. Tạo Hóa Đơn
+                            var hoadon = new Hoadon
+                            {
+                                MaKh = currentUserId,
+                                Id = request.MaDc,
+                                MaCode = cleanMaVoucher,
+                                NgayXuatHoaDon = DateTime.Now,
+                                TongTien = tongTienHang,
+                                PhiVanChuyen = phiVanChuyen,
+                                TienGiamGia = tienGiamGia,
+                                ThanhTien = tongThanhToan,
+                                Httt = "COD",
+                                TrangThai = "ChoXacNhan",
+                                LyDoHuy = ""
+                            };
+                            _context.Hoadons.Add(hoadon);
+                            await _context.SaveChangesAsync();
 
-                    return Json(new { success = true, redirectUrl = momoUrl });
+                            // 2. Lưu Chi tiết & Trừ FlashSale
+                            foreach (var item in finalItems)
+                            {
+                                _context.Chitiethoadons.Add(new Chitiethoadon
+                                {
+                                    MaHd = hoadon.MaHd,
+                                    MaSp = item.MaSp,
+                                    SoLuong = item.SoLuong,
+                                    DonGia = item.Gia
+                                });
+
+                                if (item.IsFlashSale)
+                                {
+                                    var fsItem = await _context.Flashsaleitems.Include(f => f.IdflsNavigation).FirstOrDefaultAsync(f => f.MaSp == item.MaSp && f.IdflsNavigation.NgayKetThuc >= DateTime.Now && f.IdflsNavigation.TrangThai == true);
+                                    if (fsItem != null)
+                                    {
+                                        int suatCon = fsItem.SoLuong - fsItem.SoLuongDaBan;
+                                        int soLuongTru = (item.SoLuong <= suatCon) ? item.SoLuong : suatCon;
+                                        if (soLuongTru > 0)
+                                        {
+                                            fsItem.SoLuongDaBan += soLuongTru; _context.Update(fsItem);
+                                            if (fsItem.SoLuongDaBan >= fsItem.SoLuong)
+                                            {
+                                                bool conMonKhac = await _context.Flashsaleitems.AnyAsync(x => x.Idfls == fsItem.Idfls && x.MaSp != fsItem.MaSp && x.SoLuong > x.SoLuongDaBan);
+                                                if (!conMonKhac) { fsItem.IdflsNavigation.TrangThai = false; _context.Update(fsItem.IdflsNavigation); }
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+
+                            // 3. Trừ Voucher
+                            if (!string.IsNullOrEmpty(cleanMaVoucher))
+                            {
+                                var voucherDb = await _context.Magiamgia.FirstOrDefaultAsync(v => v.MaCode == cleanMaVoucher && v.MaKh == currentUserId);
+                                if (voucherDb != null) { voucherDb.SoLuongDaDung += 1; voucherDb.SoLuong -= 1; _context.Update(voucherDb); }
+                            }
+
+                            // 4. Xóa Giỏ hàng
+                            var idSps = finalItems.Select(x => x.MaSp).ToList();
+                            var cartDel = await _context.Chitietgiohangs.Include(c => c.MaGhNavigation).Where(c => c.MaGhNavigation.MaKh == currentUserId && idSps.Contains(c.MaSp)).ToListAsync();
+                            _context.Chitietgiohangs.RemoveRange(cartDel);
+
+                            await _context.SaveChangesAsync();
+                            transaction.Commit();
+
+                            // Trả về URL để AJAX chuyển hướng về trang lịch sử đơn hàng
+                            return Json(new { success = true, redirectUrl = "/Address/Index#orders" });
+                        }
+                        catch (Exception ex)
+                        {
+                            transaction.Rollback();
+                            return Json(new { success = false, message = "Lỗi lưu đơn hàng COD: " + (ex.InnerException?.Message ?? ex.Message) });
+                        }
+                    }
                 }
                 else
                 {
-                    return Json(new { success = false, message = "Phương thức COD chưa hỗ trợ ở Demo AJAX này." });
+                    return Json(new { success = false, message = "Phương thức thanh toán không hợp lệ." });
                 }
             }
             catch (Exception ex)

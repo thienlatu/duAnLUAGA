@@ -1,12 +1,14 @@
 ﻿using duAnLUAGA.Areas.Admin.ViewModels;
 using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class FlashSaleController : Controller
     {
         private readonly DuanLuagaContext _context;

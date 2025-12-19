@@ -1,6 +1,7 @@
 ﻿using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
 using duAnLUAGA.ViewModel;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 namespace duAnLUAGA.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     [Route("Admin/ThongKe")]
     public class ThongKeController : Controller
     {

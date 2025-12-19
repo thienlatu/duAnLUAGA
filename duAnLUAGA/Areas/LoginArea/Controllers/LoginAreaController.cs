@@ -64,7 +64,7 @@ namespace duAnLUAGA.Areas.LoginArea.Controllers
                 return RedirectToAction("Index", "Home", new { area = "Admin" });
 
             if (user.Role == "Employee")
-                return RedirectToAction("Index", "KhachHang", new { area = "Employee" });
+                return RedirectToAction("Index", "Home", new { area = "Employee" });
 
             return View(model);
         }

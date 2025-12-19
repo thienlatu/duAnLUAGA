@@ -1,5 +1,6 @@
 ﻿using duAnLUAGA.Domain.Entitie;
 using duAnLUAGA.Infrastructure.Data;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -9,6 +10,7 @@ using System.Threading.Tasks;
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
     [Area("Admin")]
+    [Authorize(Policy = "AdminOnly")]
     public class OrderController : Controller
     {
         private readonly DuanLuagaContext _context;
