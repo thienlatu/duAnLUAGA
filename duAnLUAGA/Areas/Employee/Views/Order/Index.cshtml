@@ -291,7 +291,7 @@
                                     <button class="btn-action" onclick="updateStatus(@item.MaHd, 'DaGiao')">Xong</button>
                                 }
 
-                                <a href="/Admin/Order/Details/@item.MaHd" class="btn-action" style="background:#007bff"><i class="fa fa-eye"></i></a>
+                                <a href="/Employee/Order/Details/@item.MaHd" class="btn-action" style="background:#007bff"><i class="fa fa-eye"></i></a>
                             </td>
                         </tr>
                     }
@@ -320,6 +320,7 @@
 </div>
 
 @section Scripts {
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         const Toast = Swal.mixin({
@@ -344,7 +345,7 @@
                 color: '#fff'
             }).then((result) => {
                 if (result.isConfirmed) {
-                    $.post('/Admin/Order/UpdateStatus', { id: id, newStatus: status }, function(res) {
+                    $.post('/Employee/Order/UpdateStatus', { id: id, newStatus: status }, function(res) {
                         if(res.success) {
                             Toast.fire({ icon: 'success', title: 'Cập nhật thành công!' });
                             setTimeout(() => { location.reload(); }, 1500);
