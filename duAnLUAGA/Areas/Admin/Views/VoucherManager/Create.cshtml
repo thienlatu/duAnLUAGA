@@ -1,107 +1,217 @@
 ﻿@model duAnLUAGA.Domain.Entitie.Magiamgium
 @{
-    ViewData["Title"] = Model == null ? "Tạo Voucher Mới" : "Sửa Voucher";
+    ViewData["Title"] = "Tạo Mã Giảm Giá Mới";
 }
 
-<div class="container-fluid pt-4 px-4">
-    <div class="bg-secondary rounded h-100 p-4" style="max-width: 800px; margin: 0 auto;">
-        <h4 class="mb-4 text-white">@ViewData["Title"]</h4>
-        <form asp-action="@(Model == null ? "Create" : "Edit")" method="post">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+<div class="page-wrapper">
+    <div class="content-wrapper">
+        <style>
+            /* Cấu trúc Flexbox để đẩy Footer xuống cuối trang */
+            .page-wrapper {
+                display: flex;
+                flex-direction: column;
+                min-height: 100vh;
+                background-color: #000; /* Nền đen sâu LUAGA */
+            }
 
-            <div class="mb-3">
-                <label class="form-label text-white">Mã Voucher (Code)</label>
-                @if (Model == null)
-                {
-                    <input asp-for="MaCode" class="form-control bg-dark text-white" placeholder="VD: TET2025" required />
+            .content-wrapper {
+                flex: 1;
+            }
+
+            /* Giao diện Form Card */
+            .form-card {
+                background: #191c24;
+                border: 1px solid #2c2e33;
+                border-radius: 8px;
+                box-shadow: 0 4px 6px rgba(0,0,0,0.3);
+            }
+
+            .form-label {
+                color: #ffffff !important; /* Chữ trắng toàn bộ */
+                font-weight: 600;
+                margin-bottom: 8px;
+            }
+
+            .form-control {
+                background-color: #2a3038 !important;
+                border: 1px solid #2c2e33 !important;
+                color: #ffffff !important;
+            }
+
+                /* Hiệu ứng focus màu đỏ đặc trưng */
+                .form-control:focus {
+                    border-color: #ff0000 !important;
+                    box-shadow: none;
                 }
-                else
-                {
-                    <input asp-for="MaCode" class="form-control bg-dark text-white" readonly />
+
+            .text-danger {
+                font-size: 0.85em;
+                margin-top: 4px;
+                display: block;
+                color: #ff6b6b !important;
+            }
+
+            /* Footer LUAGA */
+            .footer-luaga {
+                background: #191c24;
+                border-top: 1px solid #2c2e33;
+                padding: 20px 0;
+                color: #6c7293;
+                font-size: 13px;
+                margin-top: 40px;
+            }
+
+                .footer-luaga a {
+                    color: #ff0000;
+                    text-decoration: none;
                 }
-                <span asp-validation-for="MaCode" class="text-danger"></span>
+        </style>
+
+        <div class="container-fluid pt-4 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h2 style="border-left: 4px solid #ff0000; padding-left: 15px; text-transform: uppercase; font-weight: 700;" class="text-white m-0">Thêm Voucher Mới</h2>
+                <a asp-action="Index" class="btn btn-outline-secondary btn-sm"><i class="fa fa-arrow-left me-1"></i> Quay lại</a>
             </div>
 
-            <div class="mb-3">
-                <label class="form-label text-white">Mô tả ngắn</label>
-                <input asp-for="MoTa" class="form-control bg-dark text-white" placeholder="VD: Giảm 50k cho đơn từ 200k" />
+            <div class="form-card p-4">
+                <form asp-action="Create" method="post" id="createVoucherForm">
+                    <div asp-validation-summary="ModelOnly" class="alert alert-danger mb-4"></div>
+
+                    <div class="row">
+                        <div class="col-md-6 border-end border-secondary">
+                            <h5 class="text-info mb-3">Thông tin mã</h5>
+
+                            <div class="mb-3">
+                                <label class="form-label">Mã Voucher <span class="text-danger">*</span></label>
+                                <input asp-for="MaCode" id="MaCode" class="form-control" placeholder="VD: TET2025" required
+                                       style="text-transform: uppercase;" />
+                                <small class="text-muted">Chỉ nhập chữ cái không dấu và số.</small>
+                                <span asp-validation-for="MaCode" class="text-danger"></span>
+                            </div>
+
+                            <div class="mb-3">
+                                <label class="form-label d-block text-white">Loại giảm giá</label>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="discountType" id="typeMoney" value="money" checked onchange="toggleType()">
+                                    <label class="form-check-label text-white" for="typeMoney">Tiền mặt (VNĐ)</label>
+                                </div>
+                                <div class="form-check form-check-inline">
+                                    <input class="form-check-input" type="radio" name="discountType" id="typePercent" value="percent" onchange="toggleType()">
+                                    <label class="form-check-label text-white" for="typePercent">Phần trăm (%)</label>
+                                </div>
+                            </div>
+
+                            <div class="row">
+                                <div class="col-md-12 mb-3" id="moneyInput">
+                                    <label class="form-label text-white">Số tiền giảm</label>
+                                    <input asp-for="SoTienGiam" id="SoTienGiam" class="form-control" type="number" placeholder="Nhập số tiền..." />
+                                    <span asp-validation-for="SoTienGiam" class="text-danger"></span>
+                                </div>
+
+                                <div class="col-md-12 mb-3" id="percentInput" style="display:none;">
+                                    <label class="form-label text-white">Phần trăm giảm (%)</label>
+                                    <input asp-for="PhanTramGiam" id="PhanTramGiam" class="form-control" type="number" placeholder="VD: 10" />
+                                    <span asp-validation-for="PhanTramGiam" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="col-md-6 ps-md-4">
+                            <h5 class="text-info mb-3">Điều kiện & Thời gian</h5>
+                            <div class="mb-3">
+                                <label class="form-label text-white">Đơn tối thiểu <span class="text-danger">*</span></label>
+                                <input asp-for="DonHangToiThieu" class="form-control" type="number" required />
+                                <span asp-validation-for="DonHangToiThieu" class="text-danger"></span>
+                            </div>
+                            <div class="mb-3">
+                                <label class="form-label text-white">Số lượng</label>
+                                <input asp-for="SoLuong" class="form-control" type="number" min="1" />
+                                <span asp-validation-for="SoLuong" class="text-danger"></span>
+                            </div>
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày bắt đầu</label>
+                                    <input asp-for="NgayBatDau" class="form-control" type="datetime-local"
+                                           min="2020-01-01T00:00"
+                                           max="@DateTime.Now.AddDays(5).ToString("yyyy-MM-ddTHH:mm")" />
+                                    <span asp-validation-for="NgayBatDau" class="text-danger"></span>
+                                </div>
+                                <div class="col-md-6 mb-3">
+                                    <label class="form-label">Ngày kết thúc</label>
+                                    <input asp-for="NgayKetThuc" class="form-control" type="datetime-local" min="2020-01-01T00:00" />
+                                    <span asp-validation-for="NgayKetThuc" class="text-danger"></span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-end gap-2 mt-4 pt-3 border-top border-secondary">
+                        <button type="submit" class="btn btn-danger px-4" style="background-color: #ff0000; border: none;">Lưu Voucher</button>
+                    </div>
+                </form>
             </div>
-
-            <div class="mb-3">
-                <label class="form-label text-white d-block">Loại giảm giá</label>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="discountType" id="typeMoney" value="money" checked onchange="toggleType()">
-                    <label class="form-check-label text-muted" for="typeMoney">Giảm tiền mặt (VNĐ)</label>
-                </div>
-                <div class="form-check form-check-inline">
-                    <input class="form-check-input" type="radio" name="discountType" id="typePercent" value="percent" onchange="toggleType()">
-                    <label class="form-check-label text-muted" for="typePercent">Giảm theo phần trăm (%)</label>
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-6 mb-3" id="moneyInput">
-                    <label class="form-label text-white">Số tiền giảm (VNĐ)</label>
-                    <input asp-for="SoTienGiam" class="form-control bg-dark text-white" type="number" />
-                </div>
-                <div class="col-md-6 mb-3" id="percentInput" style="display:none;">
-                    <label class="form-label text-white">Phần trăm giảm (%)</label>
-                    <input asp-for="PhanTramGiam" class="form-control bg-dark text-white" type="number" max="100" />
-                </div>
-
-                <div class="col-md-6 mb-3">
-                    <label class="form-label text-white">Đơn tối thiểu</label>
-                    <input asp-for="DonHangToiThieu" class="form-control bg-dark text-white" type="number" value="0" />
-                </div>
-            </div>
-
-            <div class="row">
-                <div class="col-md-4 mb-3">
-                    <label class="form-label text-white">Số lượng phát hành</label>
-                    <input asp-for="SoLuong" class="form-control bg-dark text-white" type="number" value="100" />
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label text-white">Ngày bắt đầu</label>
-                    <input asp-for="NgayBatDau" class="form-control bg-dark text-white" type="datetime-local" />
-                </div>
-                <div class="col-md-4 mb-3">
-                    <label class="form-label text-white">Ngày kết thúc</label>
-                    <input asp-for="NgayKetThuc" class="form-control bg-dark text-white" type="datetime-local" />
-                </div>
-            </div>
-
-            <div class="form-check mb-4">
-                <input class="form-check-input" asp-for="TrangThai" type="checkbox" checked />
-                <label class="form-check-label text-white">Kích hoạt ngay</label>
-            </div>
-
-            <button type="submit" class="btn btn-primary w-100">Lưu Voucher</button>
-            <a asp-action="Index" class="btn btn-outline-secondary w-100 mt-2">Quay lại</a>
-        </form>
+        </div>
     </div>
 </div>
 
-<script>
-    function toggleType() {
-        var isMoney = document.getElementById("typeMoney").checked;
-        if (isMoney) {
-            document.getElementById("moneyInput").style.display = "block";
-            document.getElementById("percentInput").style.display = "none";
-            document.getElementById("PhanTramGiam").value = ""; // Reset
-        } else {
-            document.getElementById("moneyInput").style.display = "none";
-            document.getElementById("percentInput").style.display = "block";
-            document.getElementById("SoTienGiam").value = ""; // Reset
-        }
+@section Scripts {
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
     }
+    <script>
+        $(document).ready(function () {
+            if ($.validator) {
+                // 1. Việt hóa thông báo lỗi
+                $.extend($.validator.messages, {
+                    required: "Trường này không được để trống.",
+                    number: "Vui lòng nhập số hợp lệ.",
+                    max: jQuery.validator.format("Giá trị không được vượt quá {0}."),
+                    min: jQuery.validator.format("Giá trị phải lớn hơn hoặc bằng {0}.")
+                });
 
-    // Logic để check đúng radio khi vào trang Edit
-    window.onload = function() {
-        var money = document.getElementById("SoTienGiam").value;
-        var percent = document.getElementById("PhanTramGiam").value;
-        if(percent && percent > 0) {
-            document.getElementById("typePercent").checked = true;
-            toggleType();
+                // 2. Tách biệt lỗi validate
+                $("#createVoucherForm").validate();
+
+                $("#SoTienGiam").rules("add", {
+                    max: 1000000000,
+                    messages: { max: "Số tiền giảm tối đa là 1 tỷ VNĐ." }
+                });
+
+                $("#PhanTramGiam").rules("add", {
+                    max: 100,
+                    messages: { max: "Phần trăm giảm tối đa là 100%." }
+                });
+            }
+
+            // 3. Tự động chuyển mã hoa và xóa dấu
+            $('#MaCode').on('input', function() {
+                this.value = this.value.toUpperCase()
+                    .normalize('NFD').replace(/[\u0300-\u036f]/g, "")
+                    .replace(/[^A-Z0-9]/g, "");
+            });
+
+            // 4. Chặn ký tự đặc biệt ở ô số
+            $('input[type="number"]').on('keydown', function(e) {
+                if (['-', 'e', '+', 'E'].includes(e.key)) e.preventDefault();
+            });
+        });
+
+        // Hàm chuyển đổi loại giảm giá
+        function toggleType(isInit) {
+            var isMoney = document.getElementById("typeMoney").checked;
+            var moneyDiv = document.getElementById("moneyInput");
+            var percentDiv = document.getElementById("percentInput");
+
+            if (isMoney) {
+                moneyDiv.style.display = "block";
+                percentDiv.style.display = "none";
+                if (!isInit) document.getElementById("PhanTramGiam").value = "";
+            } else {
+                moneyDiv.style.display = "none";
+                percentDiv.style.display = "block";
+                if (!isInit) document.getElementById("SoTienGiam").value = "";
+            }
         }
-    };
-</script>
+        window.onload = function() { toggleType(true); };
+    </script>
+}

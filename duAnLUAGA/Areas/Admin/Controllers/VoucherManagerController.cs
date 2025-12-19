@@ -3,8 +3,10 @@ using duAnLUAGA.Infrastructure.Data;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Text.RegularExpressions; // Thư viện dùng cho Regex
 
 namespace duAnLUAGA.Areas.Admin.Controllers
 {
@@ -18,115 +20,151 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             _context = context;
         }
 
-        // 1. DANH SÁCH VOUCHER
+        // 1. Trang danh sách Voucher
         public async Task<IActionResult> Index(string searchString, string statusFilter)
         {
-            // Chỉ lấy Voucher hệ thống (MaKh == null) để quản lý, tránh bị lẫn voucher cá nhân
             var query = _context.Magiamgia.Where(v => v.MaKh == null).AsQueryable();
 
-            // Tìm kiếm
             if (!string.IsNullOrEmpty(searchString))
-            {
                 query = query.Where(v => v.MaCode.Contains(searchString) || v.MoTa.Contains(searchString));
-            }
 
-            // Lọc trạng thái
-            if (statusFilter == "active") query = query.Where(v => v.TrangThai && v.NgayKetThuc >= DateTime.Now);
-            else if (statusFilter == "expired") query = query.Where(v => v.NgayKetThuc < DateTime.Now);
-            else if (statusFilter == "locked") query = query.Where(v => !v.TrangThai);
+            if (statusFilter == "active")
+                query = query.Where(v => v.TrangThai && v.NgayKetThuc >= DateTime.Now);
+            else if (statusFilter == "expired")
+                query = query.Where(v => v.NgayKetThuc < DateTime.Now);
+            else if (statusFilter == "locked")
+                query = query.Where(v => !v.TrangThai);
 
             var list = await query.OrderByDescending(v => v.NgayKetThuc).ToListAsync();
-
             ViewBag.SearchString = searchString;
             ViewBag.StatusFilter = statusFilter;
-
             return View(list);
         }
 
-        // 2. TẠO MỚI (GET)
-        public IActionResult Create()
+        // 2. API lấy lịch sử sử dụng Voucher
+        [HttpGet]
+        public async Task<IActionResult> GetUsageHistory(string code)
         {
-            return View();
+            try
+            {
+                if (string.IsNullOrEmpty(code)) return Json(new List<object>());
+
+                var history = await _context.Hoadons
+                    .Include(x => x.MaKhNavigation)
+                    .Where(x => x.MaCode == code)
+                    .OrderByDescending(x => x.NgayXuatHoaDon)
+                    .Select(x => new {
+                        tenKhach = x.MaKhNavigation != null ? x.MaKhNavigation.HoVaTen : "Khách vãng lai",
+                        ngayDung = x.NgayXuatHoaDon.ToString("dd/MM/yyyy HH:mm"),
+                        maHd = x.MaHd
+                    })
+                    .ToListAsync();
+
+                return Json(history);
+            }
+            catch
+            {
+                return Json(new List<object>());
+            }
         }
 
-        // 2. TẠO MỚI (POST)
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Create(Magiamgium model)
+        // 3. Trang chi tiết Voucher
+        [HttpGet]
+        public async Task<IActionResult> Details(string id)
         {
-            // Kiểm tra mã trùng
-            if (await _context.Magiamgia.AnyAsync(x => x.MaCode == model.MaCode))
-            {
-                ModelState.AddModelError("MaCode", "Mã voucher này đã tồn tại!");
-            }
+            if (string.IsNullOrEmpty(id)) return NotFound();
 
-            if (ModelState.IsValid)
-            {
-                model.MaKh = null; // Đảm bảo là voucher hệ thống
-                model.SoLuongDaDung = 0;
-                model.TrangThai = true; // Mặc định kích hoạt
-
-                // Nếu không nhập ngày, tự set mặc định
-                if (model.NgayBatDau == DateTime.MinValue) model.NgayBatDau = DateTime.Now;
-                if (model.NgayKetThuc == DateTime.MinValue) model.NgayKetThuc = DateTime.Now.AddDays(30);
-
-                _context.Add(model);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(model);
-        }
-
-        // 3. SỬA (GET)
-        public async Task<IActionResult> Edit(string id)
-        {
-            if (id == null) return NotFound();
-            var voucher = await _context.Magiamgia.FindAsync(id);
+            var voucher = await _context.Magiamgia.FirstOrDefaultAsync(m => m.MaCode == id);
             if (voucher == null) return NotFound();
+
+            var usageHistory = await _context.Hoadons
+                .Include(h => h.MaKhNavigation)
+                .Where(h => h.MaCode == id)
+                .OrderByDescending(h => h.NgayXuatHoaDon)
+                .Select(h => new {
+                    TenKhachHang = h.MaKhNavigation.HoVaTen,
+                    NgayDung = h.NgayXuatHoaDon,
+                    MaHoaDon = h.MaHd,
+                    TongTien = h.TongTien
+                })
+                .ToListAsync();
+
+            ViewBag.UsageHistory = usageHistory;
             return View(voucher);
         }
 
-        // 3. SỬA (POST)
+        [HttpGet]
+        public IActionResult Create() => View();
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Edit(string id, Magiamgium model)
+        public async Task<IActionResult> Create(Magiamgium model, string discountType)
         {
-            // Nếu ID trên URL khác với Mã mới nhập -> Người dùng muốn đổi mã
-            if (id != model.MaCode)
+            // Gán giá trị dựa trên loại được chọn
+            if (discountType == "percent")
             {
-                // 1. Kiểm tra mã mới đã tồn tại chưa
-                if (await _context.Magiamgia.AnyAsync(x => x.MaCode == model.MaCode))
-                {
-                    ModelState.AddModelError("MaCode", "Mã voucher mới này đã tồn tại!");
-                    return View(model);
-                }
-
-                // 2. Xóa voucher cũ (Nếu chưa ai dùng)
-                var oldVoucher = await _context.Magiamgia.FindAsync(id);
-                if (oldVoucher != null)
-                {
-                    // Nếu đã có người dùng thì không cho đổi mã để tránh lỗi dữ liệu
-                    if (oldVoucher.SoLuongDaDung > 0)
-                    {
-                        ModelState.AddModelError("MaCode", "Mã này đã có người sử dụng, không thể đổi tên mã! Chỉ có thể sửa thông tin khác.");
-                        return View(model);
-                    }
-                    _context.Magiamgia.Remove(oldVoucher);
-                }
-
-                // 3. Thêm voucher mới với mã mới
-                _context.Magiamgia.Add(model);
-                await _context.SaveChangesAsync();
-                return RedirectToAction(nameof(Index));
+                model.SoTienGiam = null; // Bắt buộc null tiền mặt khi chọn phần trăm
+            }
+            else
+            {
+                model.PhanTramGiam = null; // Bắt buộc null phần trăm khi chọn tiền mặt
             }
 
-            // Nếu không đổi mã, chỉ update thông tin bình thường
+            ValidateVoucherLogic(model);
+
             if (ModelState.IsValid)
             {
                 try
                 {
-                    var existing = await _context.Magiamgia.FindAsync(id);
-                    // Cập nhật từng trường để tránh lỗi tracking
+                    // Kiểm tra trùng mã
+                    if (await _context.Magiamgia.AnyAsync(x => x.MaCode == model.MaCode))
+                    {
+                        ModelState.AddModelError("MaCode", "Mã voucher này đã tồn tại!");
+                        return View(model);
+                    }
+
+                    model.SoLuongDaDung = 0;
+                    model.TrangThai = true;
+                    _context.Add(model);
+                    await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
+                }
+                catch (Exception ex)
+                {
+                    // Thông báo lỗi cụ thể để Admin biết lý do (thường do nhập quá 100%)
+                    ModelState.AddModelError("", "Lỗi hệ thống: Vui lòng đảm bảo phần trăm giảm không quá 100.");
+                }
+            }
+            return View(model);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(string id)
+        {
+            if (string.IsNullOrEmpty(id)) return NotFound();
+            var v = await _context.Magiamgia.FindAsync(id);
+            if (v == null) return NotFound();
+            return View(v);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(string id, Magiamgium model, string discountType)
+        {
+            string key = id ?? model.MaCode;
+            if (discountType == "money") model.PhanTramGiam = null;
+            else model.SoTienGiam = null;
+
+            HandleBindingErrors();
+            ValidateVoucherLogic(model);
+
+            if (ModelState.IsValid)
+            {
+                try
+                {
+                    var existing = await _context.Magiamgia.FindAsync(key);
+                    if (existing == null) return NotFound();
+
                     existing.MoTa = model.MoTa;
                     existing.SoTienGiam = model.SoTienGiam;
                     existing.PhanTramGiam = model.PhanTramGiam;
@@ -137,67 +175,114 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                     existing.TrangThai = model.TrangThai;
 
                     await _context.SaveChangesAsync();
+                    return RedirectToAction(nameof(Index));
                 }
-                catch (DbUpdateConcurrencyException)
+                catch (Exception)
                 {
-                    if (!_context.Magiamgia.Any(e => e.MaCode == id)) return NotFound();
-                    else throw;
+                    ModelState.AddModelError("", "Lỗi lưu dữ liệu: Vui lòng kiểm tra lại các trường nhập liệu.");
                 }
-                return RedirectToAction(nameof(Index));
             }
             return View(model);
         }
 
-        // 4. XÓA (AJAX)
+        // Chuyển lỗi hệ thống sang tiếng Việt
+        private void HandleBindingErrors()
+        {
+            var numericFields = new Dictionary<string, string>
+            {
+                { "SoLuong", "Số lượng phải là số nguyên dương." },
+                { "SoTienGiam", "Số tiền giảm không đúng định dạng số." },
+                { "DonHangToiThieu", "Đơn hàng tối thiểu không đúng định dạng số." },
+                { "PhanTramGiam", "Phần trăm phải là số từ 1-100." }
+            };
+
+            foreach (var field in numericFields)
+            {
+                if (ModelState.ContainsKey(field.Key) && ModelState[field.Key].Errors.Any())
+                {
+                    ModelState[field.Key].Errors.Clear();
+                    ModelState.AddModelError(field.Key, field.Value);
+                }
+            }
+        }
+
+        private void ValidateVoucherLogic(Magiamgium model)
+        {
+            if (model.PhanTramGiam.HasValue)
+            {
+                if (model.PhanTramGiam > 100)
+                    ModelState.AddModelError("PhanTramGiam", "Phần trăm giảm giá tối đa là 100%.");
+                else if (model.PhanTramGiam <= 0)
+                    ModelState.AddModelError("PhanTramGiam", "Phần trăm giảm phải lớn hơn 0.");
+            }
+
+            // 1. Xóa các thông báo lỗi tiếng Anh mặc định của hệ thống cho các trường bắt buộc
+            string[] requiredFields = { "MaCode", "DonHangToiThieu", "NgayBatDau", "NgayKetThuc" };
+            foreach (var field in requiredFields)
+            {
+                if (ModelState.ContainsKey(field) && ModelState[field].Errors.Any(e => e.ErrorMessage.Contains("required")))
+                {
+                    ModelState[field].Errors.Clear();
+                    string friendlyName = field == "MaCode" ? "Mã Voucher" :
+                                         field == "DonHangToiThieu" ? "Đơn hàng tối thiểu" :
+                                         field == "NgayBatDau" ? "Ngày bắt đầu" : "Ngày kết thúc";
+                    ModelState.AddModelError(field, $"Vui lòng nhập {friendlyName}.");
+                }
+            }
+
+            // 2. Validate logic Mã (Không dấu, không khoảng trắng)
+            if (!string.IsNullOrEmpty(model.MaCode))
+            {
+                var codeRegex = new System.Text.RegularExpressions.Regex(@"^[a-zA-Z0-9]+$");
+                if (!codeRegex.IsMatch(model.MaCode))
+                    ModelState.AddModelError("MaCode", "Mã giảm giá không được chứa dấu hoặc ký tự đặc biệt.");
+            }
+
+            // 3. Validate giá trị giảm (TÁCH RIÊNG THÔNG BÁO CHO PHẦN TRĂM VÀ TIỀN MẶT)
+            if (model.PhanTramGiam.HasValue)
+            {
+                if (model.PhanTramGiam > 100)
+                    ModelState.AddModelError("PhanTramGiam", "Phần trăm giảm giá tối đa là 100%.");
+                else if (model.PhanTramGiam <= 0)
+                    ModelState.AddModelError("PhanTramGiam", "Phần trăm giảm phải lớn hơn 0.");
+            }
+            else if (model.SoTienGiam.HasValue)
+            {
+                if (model.SoTienGiam > 1000000000)
+                    ModelState.AddModelError("SoTienGiam", "Số tiền giảm không được vượt quá 1 tỷ VNĐ.");
+                else if (model.SoTienGiam <= 0)
+                    ModelState.AddModelError("SoTienGiam", "Số tiền giảm phải lớn hơn 0.");
+            }
+
+            // 4. Validate ngày tháng
+            if (model.NgayBatDau > DateTime.Now.AddDays(5))
+                ModelState.AddModelError("NgayBatDau", "Ngày bắt đầu không được sau ngày hôm nay quá 5 ngày.");
+
+            if (model.NgayKetThuc <= model.NgayBatDau)
+                ModelState.AddModelError("NgayKetThuc", "Ngày kết thúc phải diễn ra sau ngày bắt đầu.");
+        }
+
         [HttpPost]
         public async Task<IActionResult> Delete(string id)
         {
-            var voucher = await _context.Magiamgia.FindAsync(id);
-            if (voucher != null)
+            var v = await _context.Magiamgia.FindAsync(id);
+            if (v != null && v.SoLuongDaDung == 0)
             {
-                // Xóa cứng (Cẩn thận nếu đã có đơn hàng dùng mã này thì sẽ lỗi khóa ngoại)
-                // Tốt nhất là nên check xem đã dùng chưa
-                if (voucher.SoLuongDaDung > 0)
-                {
-                    return Json(new { success = false, message = "Mã này đã có người dùng, không thể xóa! Hãy tắt trạng thái thay vì xóa." });
-                }
-
-                _context.Magiamgia.Remove(voucher);
+                _context.Magiamgia.Remove(v);
                 await _context.SaveChangesAsync();
-                return Json(new { success = true, message = "Đã xóa thành công!" });
+                return Json(new { success = true });
             }
-            return Json(new { success = false, message = "Không tìm thấy mã." });
+            return Json(new { success = false, message = "Không thể xóa mã đã được sử dụng." });
         }
 
-        // 5. KHÓA NHANH (Toggle Status)
         [HttpPost]
         public async Task<IActionResult> ToggleStatus(string id)
         {
-            var voucher = await _context.Magiamgia.FindAsync(id);
-            if (voucher == null) return Json(new { success = false });
-
-            voucher.TrangThai = !voucher.TrangThai;
+            var v = await _context.Magiamgia.FindAsync(id);
+            if (v == null) return Json(new { success = false });
+            v.TrangThai = !v.TrangThai;
             await _context.SaveChangesAsync();
-            return Json(new { success = true, newState = voucher.TrangThai });
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetUsageHistory(string code)
-        {
-            // Tìm trong bảng Hoadon xem ai đã dùng mã này (Mã gốc hoặc mã clone)
-            // Lưu ý: Hoadon lưu mã gốc (VD: SALE10)
-            var history = await _context.Hoadons
-                .Include(h => h.MaKhNavigation)
-                .Where(h => h.MaCode == code)
-                .OrderByDescending(h => h.NgayXuatHoaDon)
-                .Select(h => new {
-                    tenKhach = h.MaKhNavigation.HoVaTen,
-                    ngayDung = h.NgayXuatHoaDon.ToString("dd/MM/yyyy HH:mm"),
-                    maHd = h.MaHd
-                })
-                .ToListAsync();
-
-            return Json(history);
+            return Json(new { success = true });
         }
     }
 }

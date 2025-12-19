@@ -1,132 +1,243 @@
 ﻿@model IEnumerable<duAnLUAGA.Domain.Entitie.Magiamgium>
 @{
     ViewData["Title"] = "Quản Lý Voucher";
-    var formatMoney = System.Globalization.CultureInfo.GetCultureInfo("vi-VN");
 }
 
 <style>
-    .bg-dark-custom {
-        background-color: #191C24;
-        color: #a0a0a0;
-        min-height: 100vh;
-        padding: 20px;
-    }
-
-    .table-custom th {
-        border-bottom: 1px solid #444;
+    /* Tổng thể nền đen sâu */
+    .bg-dark-main {
+        background-color: #000;
         color: #fff;
+        min-height: 100vh;
+        padding: 30px;
+    }
+
+    /* Tiêu đề trang */
+    .page-title {
+        border-left: 4px solid #ff0000;
+        padding-left: 15px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 1px;
+    }
+
+    /* Bảng tùy chỉnh theo ảnh mẫu */
+    .table-luaga {
+        border-collapse: separate;
+        border-spacing: 0 10px;
+        background: transparent;
+    }
+
+        .table-luaga thead tr {
+            border-bottom: 2px solid #ff0000; /* Đường kẻ đỏ đặc trưng */
+        }
+
+        .table-luaga th {
+            color: #ff0000 !important; /* Chữ đỏ ở header */
+            text-transform: uppercase;
+            font-size: 13px;
+            font-weight: 600;
+            border: none;
+            padding: 15px;
+        }
+
+        .table-luaga tbody tr {
+            background: #111; /* Nền tối nhẹ cho mỗi hàng */
+            transition: all 0.3s;
+        }
+
+            .table-luaga tbody tr:hover {
+                background: #1a1a1a;
+            }
+
+        .table-luaga td {
+            color: #fff !important; /* Chữ trắng toàn bộ */
+            border: none;
+            padding: 20px 15px;
+            vertical-align: middle;
+        }
+
+    /* Input & Search */
+    .search-container {
+        background: #111;
         padding: 15px;
+        border-radius: 4px;
+        border: 1px solid #333;
     }
 
-    .table-custom td {
-        border-bottom: 1px solid #333;
-        padding: 12px 15px;
-        vertical-align: middle;
-    }
-
-    .search-box {
+    .custom-input {
         background: #000;
         border: 1px solid #444;
         color: #fff;
         border-radius: 4px;
-        padding: 6px 12px;
     }
 
-    /* Badge trạng thái */
+        .custom-input:focus {
+            background: #050505;
+            border-color: #ff0000;
+            color: #fff;
+            box-shadow: none;
+        }
+
+    /* Nút bấm kiểu Square */
+    .btn-action {
+        background: #222;
+        border: 1px solid #444;
+        color: #fff;
+        width: 35px;
+        height: 35px;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        margin-left: 5px;
+        transition: 0.2s;
+    }
+
+        .btn-action:hover {
+            background: #ff0000;
+            color: #fff;
+            border-color: #ff0000;
+        }
+
+    .btn-create {
+        background-color: #ff0000;
+        border: none;
+        font-weight: bold;
+        text-transform: uppercase;
+        padding: 10px 20px;
+    }
+
+    /* Badge trạng thái nổi bật trên nền đen */
     .v-badge {
-        padding: 5px 10px;
-        border-radius: 4px;
-        font-size: 11px;
+        padding: 4px 12px;
+        border-radius: 2px;
+        font-size: 12px;
         font-weight: bold;
     }
 
     .v-active {
-        background: rgba(25, 135, 84, 0.2);
-        color: #198754;
-        border: 1px solid #198754;
+        background: #198754;
+        color: #fff;
     }
 
     .v-expired {
-        background: rgba(220, 53, 69, 0.2);
-        color: #dc3545;
-        border: 1px solid #dc3545;
+        background: #dc3545;
+        color: #fff;
     }
 
     .v-locked {
-        background: rgba(108, 117, 125, 0.2);
-        color: #adb5bd;
-        border: 1px solid #6c757d;
+        background: #6c757d;
+        color: #fff;
+    }
+
+    .v-exhausted {
+        background: #ffc107;
+        color: #000;
+    }
+
+    /* Custom scrollbar cho table */
+    .table-responsive::-webkit-scrollbar {
+        height: 5px;
+    }
+
+    .table-responsive::-webkit-scrollbar-thumb {
+        background: #ff0000;
     }
 </style>
 
-<div class="container-fluid bg-dark-custom">
+<div class="container-fluid bg-dark-main">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="text-white m-0">Quản Lý Mã Giảm Giá</h3>
-        <a asp-action="Create" class="btn btn-primary"><i class="fa fa-plus"></i> Tạo Mã Mới</a>
+        <div>
+            <h2 class="page-title text-white m-0">Danh Sách Voucher</h2>
+            <p class="text-muted small ms-3">Quản lý các mã giảm giá hệ thống</p>
+        </div>
+        <a asp-action="Create" class="btn btn-create text-white">
+            <i class="fa fa-plus-circle me-1"></i> Tạo Mã Mới
+        </a>
     </div>
 
-    <div class="bg-secondary rounded p-3 mb-4 d-flex justify-content-between align-items-center">
-        <form method="get" class="d-flex gap-2">
-            <select name="statusFilter" class="form-select form-select-sm bg-dark text-white border-secondary" style="width:150px;" onchange="this.form.submit()">
-                <option value="">-- Tất cả --</option>
-                <!option value="active" @(ViewBag.StatusFilter == "active" ? "selected" : "")>Đang chạy</!option>
-                <!option value="expired" @(ViewBag.StatusFilter == "expired" ? "selected" : "")>Hết hạn</!option>
-                <!option value="locked" @(ViewBag.StatusFilter == "locked" ? "selected" : "")>Đang khóa</!option>
-            </select>
-            <input type="text" name="searchString" class="search-box" placeholder="Tìm mã voucher..." value="@ViewBag.SearchString">
-            <button type="submit" class="btn btn-sm btn-danger"><i class="fa fa-search"></i></button>
+    <div class="search-container mb-4">
+        <form method="get" class="row g-2 align-items-center">
+            <div class="col-auto">
+                <select name="statusFilter" class="form-select custom-input" onchange="this.form.submit()">
+                    <option value="">-- Trạng thái --</option>
+                    <!option value="active" @(ViewBag.StatusFilter == "active" ? "selected" : "")>Đang chạy</!option>
+                    <!option value="expired" @(ViewBag.StatusFilter == "expired" ? "selected" : "")>Hết hạn</!option>
+                    <!option value="locked" @(ViewBag.StatusFilter == "locked" ? "selected" : "")>Đang khóa</!option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <input type="text" name="searchString" class="form-control custom-input" placeholder="Tìm tên hoặc mã voucher..." value="@ViewBag.SearchString">
+            </div>
+            <div class="col-auto">
+                <button type="submit" class="btn btn-danger px-4"><i class="fa fa-search"></i></button>
+            </div>
         </form>
     </div>
 
-    <div class="bg-secondary rounded p-4">
-        <div class="table-responsive">
-            <table class="table table-dark-custom w-100">
-                <thead>
-                    <tr>
-                        <th>Mã Code</th>
-                        <th>Giảm giá</th>
-                        <th>Đơn tối thiểu</th>
-                        <th>SL (Tổng/Đã dùng)</th>
-                        <th>Hạn sử dụng</th>
-                        <th>Trạng thái</th>
-                        <th class="text-end">Hành động</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    @foreach (var item in Model)
-                    {
-                        var isExpired = item.NgayKetThuc < DateTime.Now;
-                        var badgeClass = item.TrangThai ? (isExpired ? "v-expired" : "v-active") : "v-locked";
-                        var statusText = item.TrangThai ? (isExpired ? "Hết hạn" : "Đang chạy") : "Đang khóa";
+    <div class="table-responsive">
+        <table class="table table-luaga">
+            <thead>
+                <tr>
+                    <th>Mã Voucher</th>
+                    <th>Mức giảm</th>
+                    <th>Đơn tối thiểu</th>
+                    <th>Số lượng</th>
+                    <th>Thời gian</th>
+                    <th>Trạng thái</th>
+                    <th class="text-end">Hành động</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    int tongSo = item.SoLuong ?? 0;
+                    int daDung = item.SoLuongDaDung;
+                    double percent = tongSo > 0 ? (double)daDung / tongSo * 100 : 0;
 
-                        <tr>
-                            <td><strong class="text-white">@item.MaCode</strong><br><small>@item.MoTa</small></td>
-                            <td class="text-danger fw-bold">
-                                @(item.SoTienGiam > 0 ? item.SoTienGiam?.ToString("N0") + "đ" : item.PhanTramGiam + "%")
-                            </td>
-                            <td>@(item.DonHangToiThieu?.ToString("N0") ?? "0")đ</td>
-                            <td>
-                                <span class="text-white">@item.SoLuong</span> / <span class="text-muted">@item.SoLuongDaDung</span>
-                            </td>
-                            <td>
-                                @item.NgayBatDau.ToString("dd/MM") - @item.NgayKetThuc.ToString("dd/MM/yyyy")
-                            </td>
-                            <td><span class="v-badge @badgeClass">@statusText</span></td>
-                            <td class="text-end">
-                                <a asp-action="Edit" asp-route-id="@item.MaCode" class="btn btn-sm btn-outline-info me-1"><i class="fa fa-edit"></i></a>
-                                <button class="btn btn-sm btn-outline-warning me-1" onclick="toggleStatus('@item.MaCode')" title="Khóa/Mở"><i class="fa fa-lock"></i></button>
-                                <button class="btn btn-sm btn-outline-danger" onclick="deleteVoucher('@item.MaCode')"><i class="fa fa-trash"></i></button>
-                            </td>
-                            <td class="text-end">
-                                <button class="btn btn-sm btn-outline-light me-1" onclick="viewHistory('@item.MaCode')" title="Xem ai đã dùng">
-                                    <i class="fa fa-history"></i>
-                                </button>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        </div>
+                    bool isExhausted = tongSo > 0 && daDung >= tongSo;
+                    bool isExpired = item.NgayKetThuc < DateTime.Now;
+
+                    string badgeClass, statusText;
+                    if (!item.TrangThai) { badgeClass = "v-locked"; statusText = "Đã tắt"; }
+                    else if (isExhausted) { badgeClass = "v-exhausted"; statusText = "Hết lượt"; }
+                    else if (isExpired) { badgeClass = "v-expired"; statusText = "Hết hạn"; }
+                    else { badgeClass = "v-active"; statusText = "Đang chạy"; }
+
+                    <tr>
+                        <td>
+                            <strong style="font-size: 16px;">@item.MaCode</strong>
+                            <div style="color: #aaa; font-size: 12px;">@item.MoTa</div>
+                        </td>
+                        <td class="fw-bold text-white">
+                            @(item.SoTienGiam > 0 ? item.SoTienGiam?.ToString("N0") + "đ" : item.PhanTramGiam + "%")
+                        </td>
+                        <td>@item.DonHangToiThieu?.ToString("N0")đ</td>
+                        <td style="min-width: 150px;">
+                            <div class="d-flex justify-content-between mb-1 small">
+                                <span>@daDung / @tongSo</span>
+                            </div>
+                            <div class="progress" style="height: 4px; background: #333;">
+                                <div class="progress-bar @(isExhausted ? "bg-warning" : "bg-danger")" style="width: @percent%"></div>
+                            </div>
+                        </td>
+                        <td>
+                            <div class="small">
+                                <i class="fa fa-calendar-check text-success me-1"></i> @item.NgayBatDau.ToString("dd/MM/yy")<br />
+                                <i class="fa fa-calendar-times text-danger me-1"></i> @item.NgayKetThuc.ToString("dd/MM/yy")
+                            </div>
+                        </td>
+                        <td><span class="v-badge @badgeClass">@statusText</span></td>
+                        <td class="text-end">
+                            <a asp-action="Edit" asp-route-id="@item.MaCode" class="btn-action" title="Chỉnh sửa"><i class="fa fa-edit"></i></a>
+                            <button class="btn-action" onclick="viewDetails('@item.MaCode')" title="Xem chi tiết"><i class="fa fa-eye"></i></button>
+                            <button class="btn-action" onclick="toggleStatus('@item.MaCode')" title="Khóa/Mở"><i class="fa fa-power-off"></i></button>
+                            <button class="btn-action text-danger" onclick="deleteVoucher('@item.MaCode')" title="Xóa"><i class="fa fa-trash"></i></button>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -135,19 +246,19 @@
     <script>
         function deleteVoucher(id) {
             Swal.fire({
-                title: 'Xóa voucher này?',
-                text: "Hành động này không thể hoàn tác!",
+                title: 'Xác nhận xóa?',
+                text: "Dữ liệu voucher sẽ biến mất vĩnh viễn!",
                 icon: 'warning',
                 showCancelButton: true,
-                confirmButtonColor: '#d33',
-                cancelButtonColor: '#6c757d',
-                confirmButtonText: 'Xóa luôn!',
-                background: '#262b36', color: '#fff'
+                confirmButtonColor: '#ff0000',
+                cancelButtonColor: '#444',
+                confirmButtonText: 'Xóa ngay',
+                background: '#111', color: '#fff'
             }).then((result) => {
                 if (result.isConfirmed) {
                     $.post('/Admin/VoucherManager/Delete', { id: id }, function(res) {
                         if(res.success) { location.reload(); }
-                        else { Swal.fire({ icon: 'error', title: 'Lỗi', text: res.message, background: '#262b36', color: '#fff' }); }
+                        else { Swal.fire({ icon: 'error', title: 'Lỗi', text: res.message, background: '#111', color: '#fff' }); }
                     });
                 }
             })
@@ -159,39 +270,21 @@
             });
         }
 
-                function viewHistory(code) {
-            // Hiện popup loading
-            Swal.fire({ title: 'Đang tải...', didOpen: () => Swal.showLoading(), background: '#262b36', color: '#fff' });
-
+        function viewDetails(code) {
+            Swal.fire({ title: 'Đang lấy dữ liệu...', didOpen: () => Swal.showLoading(), background: '#111', color: '#fff' });
             $.get('/Admin/VoucherManager/GetUsageHistory?code=' + code, function(res) {
-                Swal.close(); // Tắt loading
-
-                // Tạo HTML danh sách
-                let html = `<table class="table table-dark table-bordered table-sm text-start">
-                                <thead><tr><th>Khách hàng</th><th>Ngày dùng</th><th>Đơn hàng</th></tr></thead>
-                                <tbody>`;
-
+                Swal.close();
+                let html = `<div class="table-responsive"><table class="table table-dark table-sm text-start">
+                            <thead><tr><th>Khách hàng</th><th>Ngày</th><th>Đơn</th></tr></thead><tbody>`;
                 if (res.length > 0) {
                     res.forEach(item => {
-                        html += `<tr>
-                                    <td>${item.tenKhach}</td>
-                                    <td>${item.ngayDung}</td>
-                                    <td><a href="/Admin/Order/Details/${item.maHd}" target="_blank">#${item.maHd}</a></td>
-                                 </tr>`;
+                        html += `<tr><td>${item.tenKhach}</td><td>${item.ngayDung}</td><td><a href="/Admin/Order/Details/${item.maHd}" target="_blank" class="text-danger">#${item.maHd}</a></td></tr>`;
                     });
                 } else {
-                    html += `<tr><td colspan="3" class="text-center">Chưa có ai sử dụng mã này.</td></tr>`;
+                    html += `<tr><td colspan="3" class="text-center p-3">Chưa có lịch sử sử dụng.</td></tr>`;
                 }
-                html += `</tbody></table>`;
-
-                // Hiện Popup kết quả
-                Swal.fire({
-                    title: `Lịch sử dùng mã ${code}`,
-                    html: html,
-                    width: '600px',
-                    background: '#262b36', color: '#fff',
-                    confirmButtonColor: '#EB1616'
-                });
+                html += `</tbody></table></div>`;
+                Swal.fire({ title: `Sử dụng mã: ${code}`, html: html, width: '600px', background: '#111', color: '#fff', confirmButtonColor: '#ff0000' });
             });
         }
     </script>

@@ -35,7 +35,7 @@ namespace duAnLUAGA.Areas.Admin.Controllers
 
             if (s == "dathanhtoan") return "Đã thanh toán";
             if (s == "dahuy") return "Đã hủy";
-            if (s == "deogiao") return "Giao thất bại";
+            if (s == "giaothatbai") return "Giao thất bại";
 
             return status; // Mặc định
         }

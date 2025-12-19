@@ -74,7 +74,7 @@
                             "dathanhtoan" => "Đã thanh toán",
                             "chuathanhtoan" => "Chưa thanh toán",
                             "dahuy" => "Đã hủy",
-                            "deogiao" => "Giao thất bại",
+                            "giaothatbai" => "Giao thất bại",
                             _ => Model.TrangThai
                         };
                     }
@@ -109,7 +109,6 @@
                     @if (stt == "danggiao")
                     {
                         <button class="btn btn-success" onclick="updateStatus('DaGiao')">Xác nhận giao thành công</button>
-                        <button class="btn btn-warning text-dark" onclick="updateStatus('DeoGiao')">Báo giao thất bại</button>
                     }
 
                     @if (stt == "deogiao")
