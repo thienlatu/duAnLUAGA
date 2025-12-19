@@ -1,4 +1,7 @@
-﻿<!DOCTYPE html>
+﻿@{
+    var hinhAnh = User.FindFirst("HinhAnh")?.Value ?? "user.jpg";
+}
+<!DOCTYPE html>
 <html lang="en">
 
 <head>
@@ -40,12 +43,13 @@
                 </a>
                 <div class="d-flex align-items-center ms-4 mb-4">
                     <div class="position-relative">
-                        <img class="rounded-circle" src="~/templateAdmin/img/user.jpg" alt="" style="width: 40px; height: 40px;">
+                        <img class="rounded-circle" src="~/img/@hinhAnh" alt="" style="width: 40px; height: 40px; object-fit: cover;">
                         <div class="bg-success rounded-circle border border-2 border-white position-absolute end-0 bottom-0 p-1"></div>
                     </div>
                     <div class="ms-3">
-                        <h6 class="mb-0">Admin</h6>
-                        <span>Quản trị viên</span>
+                        <h6 class="mb-0">@User.Identity?.Name</h6>
+
+                        <span>@User.FindFirst(System.Security.Claims.ClaimTypes.Role)?.Value</span>
                     </div>
                 </div>
                 <div class="navbar-nav w-100">
@@ -53,11 +57,11 @@
                         <i class="fa fa-tachometer-alt me-2"></i>Dashboard
                     </a>
 
-                    <a asp-area="Admin" asp-controller="QLSanPham" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "SanPham" ? "active" : "")">
+                    <a asp-area="Admin" asp-controller="QLSanPham" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "QLSanPham" ? "active" : "")">
                         <i class="fa fa-box me-2"></i>Sản Phẩm
                     </a>
-                   
-                    <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "DanhMuc" ? "active" : "")">
+
+                    <a asp-area="Admin" asp-controller="Category" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "Category" ? "active" : "")">
                         <i class="fa fa-table me-2"></i>Danh Mục
                     </a>
 
@@ -73,11 +77,18 @@
                         <i class="fa fa-ticket-alt me-2"></i>Mã Giảm Giá
                     </a>
 
-                    <a asp-area="Admin"asp-controller="NhanVien" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "NhanVien" ? "active" : "")"> 
-                       <i class="fa fa-chart-bar me-2"></i>Nhân Viên
+                    <a asp-area="Admin" asp-controller="NhanVien" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "NhanVien" ? "active" : "")">
+                        <i class="fa fa-chart-bar me-2"></i>Nhân Viên
                     </a>
 
-                    <a asp-area="Admin" asp-controller="FlashSale" asp-action="Index" class="nav-item nav-link"><i class="fa fa-bolt me-2"></i>Flash Sale</a>
+
+                    <a asp-area="Admin" asp-controller="FlashSale" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "FlashSale" ? "active" : "")">
+                        <i class="fa fa-bolt me-2"></i>
+
+                        Flash Sale
+                    </a>
+
+
                     <a asp-area="Admin" asp-controller="QLDanhGia" asp-action="Index" class="nav-item nav-link @(ViewContext.RouteData.Values["controller"]?.ToString() == "QLDanhGia" ? "active" : "")">
                         <i class="fa fa-star me-2"></i>Đánh Giá
                     </a>
@@ -98,13 +109,10 @@
                 <div class="navbar-nav align-items-center ms-auto">
                     <div class="nav-item dropdown">
                         <a href="#" class="nav-link dropdown-toggle" data-bs-toggle="dropdown">
-                            <img class="rounded-circle me-lg-2" src="~/templateAdmin/img/user.jpg" alt="" style="width: 40px; height: 40px;">
-                            <span class="d-none d-lg-inline-flex">Admin</span>
+                            <img class="rounded-circle me-lg-2" src="~/img/@hinhAnh" alt="" style="width: 40px; height: 40px; object-fit: cover;">
+                            <span class="d-none d-lg-inline-flex">@User.Identity?.Name</span>
                         </a>
                         <div class="dropdown-menu dropdown-menu-end bg-secondary border-0 rounded-0 rounded-bottom m-0">
-                            <a href="#" class="dropdown-item">Hồ sơ</a>
-                            <a href="#" class="dropdown-item">Cài đặt</a>
-                            <a asp-area="" asp-controller="Home" asp-action="Index" class="dropdown-item">Về trang chủ</a>
                             <div class="dropdown-divider"></div>
                             <a asp-area="LoginArea" asp-controller="LoginArea" asp-action="Logout" class="dropdown-item text-danger">Đăng Xuất</a>
                         </div>

@@ -1,13 +1,23 @@
-﻿using Microsoft.AspNetCore.Authentication;
+﻿using duAnLUAGA.Infrastructure.Data;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using Microsoft.EntityFrameworkCore;
+using duAnLUAGA.Areas.Login.ViewModels;
 
 namespace duAnLUAGA.Areas.LoginArea.Controllers
 {
     [Area("LoginArea")]
     public class LoginAreaController : Controller
     {
+        private readonly DuanLuagaContext _context;
+
+        public LoginAreaController(DuanLuagaContext context)
+        {
+            _context = context;
+        }
+
         public IActionResult Index(string? returnUrl)
         {
             ViewBag.ReturnUrl = returnUrl;
@@ -15,60 +25,55 @@ namespace duAnLUAGA.Areas.LoginArea.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> Index(string username, string password, string? returnUrl)
+        public async Task<IActionResult> Index(LoginAreaVM model, string? returnUrl)
         {
-            ClaimsIdentity identity = null;
+            if (!ModelState.IsValid) return View(model);
 
-            // ADMIN
-            if (username == "admin" && password == "1")
+            var user = await _context.Nhanviens
+                .FirstOrDefaultAsync(u => u.TenDangNhap == model.Username
+                                       && u.MatKhau == model.Password
+                                       && u.TrangThai == false); 
+
+            if (user == null)
             {
-                identity = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, "admin"),
-                    new Claim(ClaimTypes.Role, "Admin")
-                }, CookieAuthenticationDefaults.AuthenticationScheme);
+                ViewBag.Error = "Tài khoản, mật khẩu không đúng hoặc đã bị khóa!";
+                return View(model);
             }
 
-            // EMPLOYEE
-            if (username == "employee" && password == "1")
+            // Thiết lập các quyền (Claims) từ dữ liệu thật trong DB
+            var claims = new List<Claim>
             {
-                identity = new ClaimsIdentity(new[]
-                {
-                    new Claim(ClaimTypes.Name, "employee"),
-                    new Claim(ClaimTypes.Role, "Employee")
-                }, CookieAuthenticationDefaults.AuthenticationScheme);
-            }
+                new Claim(ClaimTypes.Name, user.TenNhanVien),
+                new Claim(ClaimTypes.Role, user.Role), 
+                new Claim("MaNv", user.MaNv.ToString()),
+                new Claim("HinhAnh", user.HinhAnh ?? "user.jpg")
+            };
 
-            if (identity == null)
-            {
-                ViewBag.Error = "Sai tài khoản hoặc mật khẩu!";
-                return View();
-            }
-
-            // SIGN IN
+            var identity = new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);
             var principal = new ClaimsPrincipal(identity);
+
+            // Đăng nhập vào hệ thống Cookie
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme, principal);
 
-            // Nếu có returnUrl thì quay lại đúng chỗ
-            if (!string.IsNullOrEmpty(returnUrl))
+            // Điều hướng quay lại trang cũ nếu có returnUrl
+            if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
                 return Redirect(returnUrl);
 
-            // Redirect theo role
-            if (identity.HasClaim(ClaimTypes.Role, "Admin"))
+            // Điều hướng mặc định dựa trên Role
+            if (user.Role == "Admin")
                 return RedirectToAction("Index", "Home", new { area = "Admin" });
 
-            if (identity.HasClaim(ClaimTypes.Role, "Employee"))
-                return RedirectToAction("Index", "Home", new { area = "Employee" });
+            if (user.Role == "Employee")
+                return RedirectToAction("Index", "KhachHang", new { area = "Employee" });
 
-            return View();
+            return View(model);
         }
 
         [HttpGet]
         public async Task<IActionResult> Logout()
         {
-            HttpContext.Session.Clear();
             await HttpContext.SignOutAsync(CookieAuthenticationDefaults.AuthenticationScheme);
-            return RedirectToAction("Index", "LoginArea", new {area = "LoginArea" });
+            return RedirectToAction("Index", "LoginArea", new { area = "LoginArea" });
         }
     }
 }
