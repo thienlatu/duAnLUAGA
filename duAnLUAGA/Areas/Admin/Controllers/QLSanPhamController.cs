@@ -56,14 +56,6 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             ViewBag.CurrentSort = sort;
 
             int totalFilteredItems = sanPhams.Count();
-            int totalProductsInDB = _context.Sanphams.Count();
-            int stockProducts = sanPhams.Count(sp => sp.TrangThai == "Còn hàng");
-            int lowStockProducts = sanPhams.Count(sp => sp.TrangThai == "Sắp hết" || sp.TrangThai == "Ngừng bán");
-            int outOfStockProducts = sanPhams.Count(sp => sp.TrangThai == "Hết hàng");
-
-            decimal stockRatio = (totalFilteredItems > 0) ? ((decimal)stockProducts * 100 / totalFilteredItems) : 0m;
-            ViewBag.TotalProductsInDB = totalProductsInDB;
-
             int totalPages = (int)Math.Ceiling((double)totalFilteredItems / pageSize);
 
             if (page < 1) page = 1;
@@ -92,11 +84,6 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             ViewBag.TotalFilteredItems = totalFilteredItems;
             ViewBag.TotalProducts = _context.Sanphams.Count();
 
-
-            ViewBag.StockProductsCount = stockProducts;
-            ViewBag.LowStockProductsCount = lowStockProducts;
-            ViewBag.StockRatio = stockRatio;
-
             ViewBag.PageSize = pageSize;
             ViewBag.CurrentPage = page;
             ViewBag.TotalPages = totalPages;
@@ -112,6 +99,7 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                     PhanTramGiam = sp.PhanTramGiam,
                     SoLuong = sp.SoLuong,
                     TrangThai = sp.TrangThai,
+                    TacGia = sp.TacGia,
                 })
                 .ToList();
 
@@ -134,67 +122,70 @@ namespace duAnLUAGA.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Them(SanPhamUploadVM sanPhamVM)
         {
-            if (ModelState.IsValid)
+            if (!ModelState.IsValid)
             {
-                string tenHinhDaiDien = null;
-                if (sanPhamVM.AnhChinh != null)
-                {
-                    tenHinhDaiDien = UploadFile(sanPhamVM.AnhChinh);
-                }
-                var sanPhamEntity = new Sanpham
-                {
-                    MaDm = sanPhamVM.MaDm,
-                    TenSanPham = sanPhamVM.TenSanPham,
-                    Mota = sanPhamVM.Mota,
-                    HinhDaiDien = tenHinhDaiDien,
-                    Gia = sanPhamVM.Gia,
-                    PhanTramGiam = sanPhamVM.PhanTramGiam,
-                    TacGia = sanPhamVM.TacGia,
-                    Nxb = sanPhamVM.Nxb,
-                    NamXb = sanPhamVM.NamXb,
-                    NgonNgu = sanPhamVM.NgonNgu,
-                    TrongLuong = sanPhamVM.TrongLuong,
-                    KichThuoc = sanPhamVM.KichThuoc,
-                    SoTrang = sanPhamVM.SoTrang,
-                    HinhThuc = sanPhamVM.HinhThuc,
-                    SoLuong = sanPhamVM.SoLuong,
-                    TrangThai = sanPhamVM.TrangThai,
-                };
+                var danhMucList = _context.Danhmucs
+                    .OrderBy(dm => dm.TenDanhMuc)
+                    .ToList();
 
-                _context.Add(sanPhamEntity);
-                _context.SaveChanges();
+                ViewBag.DanhSachDanhMuc = new SelectList(
+                    danhMucList,
+                    "MaDm",
+                    "TenDanhMuc",
+                    sanPhamVM.MaDm
+                );
 
-                var anhPhuFiles = new List<IFormFile?> { sanPhamVM.AnhPhu1, sanPhamVM.AnhPhu2, sanPhamVM.AnhPhu3 };
+                return View(sanPhamVM);
+            }
+            string tenHinhDaiDien = null;
+            if (sanPhamVM.AnhChinh != null)
+            {
+                tenHinhDaiDien = UploadFile(sanPhamVM.AnhChinh);
+            }
 
-                foreach (var file in anhPhuFiles)
+            var sanPhamEntity = new Sanpham
+            {
+                MaDm = sanPhamVM.MaDm,
+                TenSanPham = sanPhamVM.TenSanPham,
+                Mota = sanPhamVM.Mota,
+                HinhDaiDien = tenHinhDaiDien,
+                Gia = sanPhamVM.Gia,
+                PhanTramGiam = sanPhamVM.PhanTramGiam,
+                TacGia = sanPhamVM.TacGia,
+                Nxb = sanPhamVM.Nxb,
+                NamXb = sanPhamVM.NamXb,
+                NgonNgu = sanPhamVM.NgonNgu,
+                TrongLuong = sanPhamVM.TrongLuong,
+                KichThuoc = sanPhamVM.KichThuoc,
+                SoTrang = sanPhamVM.SoTrang,
+                HinhThuc = sanPhamVM.HinhThuc,
+                SoLuong = sanPhamVM.SoLuong,
+                TrangThai = sanPhamVM.TrangThai,
+            };
+
+            _context.Sanphams.Add(sanPhamEntity);
+            _context.SaveChanges();
+            if (sanPhamVM.DanhSachAnhPhu != null && sanPhamVM.DanhSachAnhPhu.Any())
+            {
+                foreach (var file in sanPhamVM.DanhSachAnhPhu)
                 {
-                    if (file != null)
+                    if (file.Length > 0)
                     {
                         string tenHinhPhu = UploadFile(file);
-                        var hinhAnhEntity = new Hinhanh
+                        _context.Hinhanhs.Add(new Hinhanh
                         {
                             MaSp = sanPhamEntity.MaSp,
                             TenHinhAnh = tenHinhPhu
-                        };
-                        _context.Hinhanhs.Add(hinhAnhEntity);
+                        });
                     }
                 }
                 _context.SaveChanges();
-
-                var danhMucList = _context.Danhmucs
-                              .OrderBy(dm => dm.TenDanhMuc)
-                              .ToList();
-
-                ViewBag.DanhSachDanhMuc = new SelectList(danhMucList,
-                                                         "MaDm",
-                                                         "TenDanhMuc");
-
-                TempData["SuccessMessage"] = "Bạn đã thêm sản phẩm thành công!";
-                return RedirectToAction(nameof(Index));
             }
 
-            return View(sanPhamVM);
+            TempData["SuccessMessage"] = "Bạn đã thêm sản phẩm thành công!";
+            return RedirectToAction(nameof(Index));
         }
+
         [HttpGet]
         public IActionResult XemCTSP(int id)
         {
@@ -285,6 +276,10 @@ namespace duAnLUAGA.Areas.Admin.Controllers
             var anhPhuHienTai = _context.Hinhanhs.Where(h => h.MaSp == id).Select(h => h.TenHinhAnh).ToList();
             ViewBag.AnhPhuHienTai = anhPhuHienTai;
 
+            ViewBag.ListAnhPhu = _context.Hinhanhs
+               .Where(h => h.MaSp == id)
+               .Select(h => new { h.MaHa, h.TenHinhAnh })
+               .ToList();
             return View("Sua", model);
         }
 
@@ -293,12 +288,9 @@ namespace duAnLUAGA.Areas.Admin.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Sua(int id, SanPhamUploadVM sanPhamVM)
         {
-
             sanPhamVM.MaSp = id;
+
             ModelState.Remove(nameof(sanPhamVM.AnhChinh));
-            ModelState.Remove(nameof(sanPhamVM.AnhPhu1));
-            ModelState.Remove(nameof(sanPhamVM.AnhPhu2));
-            ModelState.Remove(nameof(sanPhamVM.AnhPhu3));
 
             if (ModelState.IsValid)
             {
@@ -331,31 +323,28 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                     sanPhamEntity.HinhThuc = sanPhamVM.HinhThuc;
                     sanPhamEntity.SoLuong = sanPhamVM.SoLuong;
                     sanPhamEntity.TrangThai = sanPhamVM.TrangThai;
-
-                    var anhPhuFiles = new List<IFormFile?> {
-                sanPhamVM.AnhPhu1,
-                sanPhamVM.AnhPhu2,
-                sanPhamVM.AnhPhu3
-            };
-
-                    bool coAnhPhuMoi = anhPhuFiles.Any(f => f != null);
-
-                    if (coAnhPhuMoi)
+                    if (sanPhamVM.IdsAnhPhuCanXoa != null && sanPhamVM.IdsAnhPhuCanXoa.Any())
                     {
-                        var anhPhuCu = sanPhamEntity.Hinhanhs.ToList();
-                        foreach (var hinhAnhCu in anhPhuCu)
+                        var anhCanXoa = _context.Hinhanhs
+                            .Where(h => sanPhamVM.IdsAnhPhuCanXoa.Contains(h.MaHa))
+                            .ToList();
+
+                        foreach (var item in anhCanXoa)
                         {
-                            DeleteFile(hinhAnhCu.TenHinhAnh);
-                            _context.Hinhanhs.Remove(hinhAnhCu);
+                            DeleteFile(item.TenHinhAnh);
+                            _context.Hinhanhs.Remove(item);
                         }
-                        foreach (var file in anhPhuFiles)
+                    }
+                    if (sanPhamVM.DanhSachAnhPhu != null && sanPhamVM.DanhSachAnhPhu.Count > 0)
+                    {
+                        foreach (var file in sanPhamVM.DanhSachAnhPhu)
                         {
-                            if (file != null)
+                            if (file.Length > 0)
                             {
                                 string tenHinhPhu = UploadFile(file);
                                 var hinhAnhEntity = new Hinhanh
                                 {
-                                    MaSp = sanPhamEntity.MaSp,
+                                    MaSp = id,
                                     TenHinhAnh = tenHinhPhu
                                 };
                                 _context.Hinhanhs.Add(hinhAnhEntity);
@@ -377,6 +366,7 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                     ModelState.AddModelError("", "LỖI HỆ THỐNG: " + ex.Message);
                 }
             }
+
             var danhMucList = _context.Danhmucs.OrderBy(dm => dm.TenDanhMuc).ToList();
             ViewBag.DanhSachDanhMuc = new SelectList(danhMucList, "MaDm", "TenDanhMuc", sanPhamVM.MaDm);
 
@@ -390,12 +380,12 @@ namespace duAnLUAGA.Areas.Admin.Controllers
                     ? "/image/default.jpg"
                     : $"/image/{sanPhamEntityLai.HinhDaiDien}";
                 ViewBag.AnhChinhUrlHienTai = anhChinhUrlHienTai;
-
-                var anhPhuHienTai = sanPhamEntityLai.Hinhanhs
-                    .Select(h => h.TenHinhAnh)
+                ViewBag.ListAnhPhu = _context.Hinhanhs
+                    .Where(h => h.MaSp == id)
+                    .Select(h => new { h.MaHa, h.TenHinhAnh })
                     .ToList();
-                ViewBag.AnhPhuHienTai = anhPhuHienTai;
             }
+
             return View("Sua", sanPhamVM);
         }
 

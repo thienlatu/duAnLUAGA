@@ -106,7 +106,22 @@ namespace duAnLUAGA.Controllers
                 { 2, danhSachBinhLuan.Count(x => x.SoSao == 2) },
                 { 1, danhSachBinhLuan.Count(x => x.SoSao == 1) }
             };
+            bool daDanhGia = false;
+            // 1. Kiểm tra xem user có đăng nhập không
+            if (User.Identity.IsAuthenticated)
+            {
+                // Lấy UserId từ Claims 
+                var userIdStr = User.FindFirst("UserId")?.Value;
 
+                if (!string.IsNullOrEmpty(userIdStr) && int.TryParse(userIdStr, out int userId))
+                {
+                    // 2. Query DB xem user này đã đánh giá sản phẩm (id) chưa
+                    daDanhGia = await _context.Danhgia
+                        .AnyAsync(dg => dg.MaSp == id && dg.MaKh == userId);
+                }
+            }
+
+            ViewBag.DaDanhGia = daDanhGia;
             ViewBag.DiemTrungBinh = diemTrungBinh;
             ViewBag.TongSoDanhGia = tongSoDanhGia;
             ViewBag.StarCount = starCount;
@@ -136,6 +151,14 @@ namespace duAnLUAGA.Controllers
             }
 
             int makhachhang = int.Parse(userIdStr);
+            bool daTonTai = await _context.Danhgia
+                .AnyAsync(x => x.MaSp == binhLuan.MaSp && x.MaKh == makhachhang);
+
+            if (daTonTai)
+            {
+                TempData["ErrorMessage"] = "Bạn đã đánh giá sản phẩm này rồi, không thể đánh giá thêm.";
+                return RedirectToAction("Index", new { id = binhLuan.MaSp });
+            }
 
             // Validate đơn giản
             bool hasError = false;

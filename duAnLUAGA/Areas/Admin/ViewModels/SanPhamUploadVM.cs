@@ -7,11 +7,11 @@ using static Microsoft.EntityFrameworkCore.DbLoggerCategory.Model;
 
 namespace duAnLUAGA.Areas.Admin.ViewModels
 {
-   public class SanPhamUploadVM
-        {
-        private const string VietnameseTextAndNumbersRegex = @"^[a-zA-Z0-9\s\.\-ĐđÁáÀàẢảẠạÃãĂăẰằẮắẲẳẶặÂâẦầẤấẨẩẬậẼẽÉéÈèẺẻẸẹÊêỄễỀềẾếỂểỆệÍíÌìỈỉỊịĨĩÓóÒòỎỏỌọÕõÔôỒồỐốỔổỘộƠơỜờỚớỞởỢợÚúÙùỦủỤụŨũƯưỪừỨứỬửỰựÝýỲỳỶỷỴỵỸỹ]+$";
+    public class SanPhamUploadVM
+    {
+        private const string VietnameseTextAndNumbersRegex = @"^[a-z0-9A-ZÀ-ỹ\s]+$";
+        private const string LoiTacGia = @"^[a-z0-9A-ZÀ-ỹ\s,._-]+$";
         public int MaSp { get; set; }
-
 
 
         [Required(ErrorMessage = "Vui lòng chọn danh mục.")]
@@ -25,9 +25,6 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
 
 
         [Required(ErrorMessage = "Vui lòng nhập mô tả.")]
-        [MaxLength(150, ErrorMessage = "Số lượng ký tự tối đa là 150")]
-        [RegularExpression(VietnameseTextAndNumbersRegex,
-        ErrorMessage = "Mô tả không được chứa ký tự đặc biệt.")]
         public string? Mota { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập Giá.")]
@@ -35,12 +32,12 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
         public decimal Gia { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập phân trăm giảm.")]
-        [Range(0, 100, ErrorMessage = "Giá giảm phải từ 0 đến 100.")]
+        [Range(0, 99, ErrorMessage = "Giá giảm phải từ 0 đến 99.")]
         public int? PhanTramGiam { get; set; }
 
         [Required(ErrorMessage = "Vui lòng nhập tác giả.")]
         [MaxLength(100, ErrorMessage = "Số lượng ký tự tối đa là 100")]
-        [RegularExpression(VietnameseTextAndNumbersRegex,
+        [RegularExpression(LoiTacGia,
         ErrorMessage = "Tác giả không được chứa ký tự đặc biệt.")]
         public string? TacGia { get; set; }
 
@@ -88,10 +85,12 @@ namespace duAnLUAGA.Areas.Admin.ViewModels
 
         [Required(ErrorMessage = "Vui lòng chọn trạng thái.")]
         public string TrangThai { get; set; } = null!;
-    
+
         public IFormFile? AnhChinh { get; set; }
-        public IFormFile? AnhPhu1 { get; set; }
-        public IFormFile? AnhPhu2 { get; set; }
-        public IFormFile? AnhPhu3 { get; set; }
-   }
+
+        [Display(Name = "Ảnh phụ (Tối đa 20 ảnh)")]
+        public List<IFormFile>? DanhSachAnhPhu { get; set; }
+
+        public List<int>? IdsAnhPhuCanXoa { get; set; }
+    }
 }

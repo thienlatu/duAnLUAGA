@@ -430,6 +430,14 @@
             color: white;
             border-color: var(--primary-red);
         }
+    /* Màu vàng cho ngôi sao */
+    .text-yellow-400 {
+        color: #ffc107; /* Màu vàng chuẩn Bootstrap/Star */
+    }
+
+    .text-gray-300 {
+        color: #e0e0e0; /* Màu xám cho sao rỗng */
+    }
 
     @@media (max-width: 992px) {
         .sidebar {
@@ -459,61 +467,100 @@
         }
     }
 </style>
+<style>
+    /* 1. Tùy chỉnh thanh trượt (đường kẻ ngang) */
+    .noUi-target {
+        height: 6px !important; /* Độ dày thanh ngang */
+        border: none !important; /* Bỏ viền mặc định */
+        background: #E5E7EB !important; /* Màu nền xám nhạt */
+        box-shadow: none !important; /* Bỏ bóng đổ */
+        margin-top: 10px; /* Khoảng cách so với ô nhập liệu */
+    }
+
+    /* 2. Màu của đoạn đã chọn (Màu đỏ Fahasa) */
+    .noUi-connect {
+        background: #C92127 !important;
+    }
+
+    /* 3. Tùy chỉnh nút kéo (Hình tròn) */
+    .noUi-horizontal .noUi-handle {
+        width: 20px !important; /* Chiều rộng cố định */
+        height: 20px !important; /* Chiều cao cố định (bằng chiều rộng để tròn) */
+        right: -10px !important; /* Căn giữa tâm nút (bằng 1/2 chiều rộng) */
+        top: -7px !important; /* Căn chỉnh chiều dọc cho cân đối với thanh ngang */
+
+        background: #C92127 !important; /* Nền đỏ */
+        border: 2px solid white !important; /* Viền trắng bao quanh */
+        border-radius: 50% !important; /* Bo tròn 100% */
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important; /* Bóng đổ nhẹ cho đẹp */
+        cursor: pointer;
+    }
+
+    /* 4. Ẩn 2 vạch kẻ sọc mặc định xấu xí trên nút kéo */
+    .noUi-handle:before, .noUi-handle:after {
+        display: none !important;
+    }
+
+    .hhh {
+        color: var(--primary-red);
+        font-size: 18px;
+        font-weight: 700;
+    }
+</style>
 <div class="container">
     <aside class="sidebar">
         <div class="filter-header">
             <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm
         </div>
+
         <div class="filter-group mb-4">
-            <div class="filter-title font-bold mb-2 flex justify-between items-center">
-                Mức giá <i class="fa-solid fa-chevron-up"></i>
+            <div class="filter-title font-bold mb-2 flex justify-between items-center toggle-filter" style="cursor: pointer;">
+                Mức giá <i class="fa-solid fa-chevron-up transition-transform duration-200"></i>
             </div>
 
-            <p style="margin-top: 10px; font-size: 12px; color: #666;">Nhập khoảng giá:</p>
+            <div class="filter-content">
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">Nhập khoảng giá:</p>
 
-            <div class="price-inputs flex items-center gap-2 mb-4">
-                <input type="number" id="input-min" class="border rounded px-2 py-1 w-full text-sm" placeholder="Thấp nhất">
-                <span>-</span>
-                <input type="number" id="input-max" class="border rounded px-2 py-1 w-full text-sm" placeholder="Cao nhất">
+                <div class="price-inputs flex items-center gap-2 mb-4">
+                    <input type="number" id="input-min" class="border rounded px-2 py-1 w-full text-sm" placeholder="Thấp nhất">
+                    <span>-</span>
+                    <input type="number" id="input-max" class="border rounded px-2 py-1 w-full text-sm" placeholder="Cao nhất">
+                </div>
+
+                <div id="slider-price" class="mb-4 mx-2"></div>
+
+                <button onclick="applyFilter()"
+                        class="w-full bg-[#C92127] text-white py-1.5 rounded text-sm font-bold hover:bg-red-700 transition">
+                    Áp dụng
+                </button>
             </div>
-
-            <div id="slider-price" class="mb-4 mx-2"></div>
-
-            <button onclick="applyFilter()"
-                    class="w-full bg-[#C92127] text-white py-1.5 rounded text-sm font-bold hover:bg-red-700 transition">
-                Áp dụng
-            </button>
         </div>
 
-
-
-        <!-- Danh mục (Đã thay thế cho Nhà xuất bản) -->
         <div class="filter-group">
-            <div class="filter-title">
-                Danh mục <i class="fa-solid fa-chevron-up"></i>
+            <div class="filter-title flex justify-between items-center toggle-filter" style="cursor: pointer;">
+                Danh mục <i class="fa-solid fa-chevron-up transition-transform duration-200"></i>
             </div>
 
-            <ul class="filter-list">
-                @if (Model.DanhSachDanhMuc != null)
-                {
-                    foreach (var item in Model.DanhSachDanhMuc)
+            <div class="filter-content">
+                <ul class="filter-list">
+                    @if (Model.DanhSachDanhMuc != null)
                     {
-                        bool isChecked = (ViewData["CurrentDm"] as int?) == item.MaDm;
-
-                        <li>
-                            <input type="checkbox"
-                                   id="dm-@item.MaDm"
-                                   value="@item.MaDm"
-                                   @(isChecked ? "checked" : "")
-                                   onchange="filterByCategory(this)">
-
-                            <label for="dm-@item.MaDm" style="cursor: pointer;">@item.TenDanhMuc</label>
-
-                            <span class="count">(@item.Sanphams.Count)</span>
-                        </li>
+                        foreach (var item in Model.DanhSachDanhMuc)
+                        {
+                            bool isChecked = (ViewData["CurrentDm"] as int?) == item.MaDm;
+                            <li>
+                                <input type="checkbox"
+                                       id="dm-@item.MaDm"
+                                       value="@item.MaDm"
+                                       @(isChecked ? "checked" : "")
+                                       onchange="filterByCategory(this)">
+                                <label for="dm-@item.MaDm" style="cursor: pointer;">@item.TenDanhMuc</label>
+                                <span class="count">(@item.Sanphams.Count)</span>
+                            </li>
+                        }
                     }
-                }
-            </ul>
+                </ul>
+            </div>
         </div>
     </aside>
 
@@ -599,7 +646,7 @@
                         </a>
 
                         @* Nút giỏ hàng để dưới, không nằm trong <a> *@
-                        @if (sanpham.SoLuong == 0 && sanpham.TrangThai == "Hết hàng")
+                        @if (sanpham.SoLuong == 0 || sanpham.TrangThai == "Hết hàng")
                         {
                             <span class="text-danger">Hết hàng</span>
                         }
@@ -611,7 +658,46 @@
                                 <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
                             </button>
                         }
+                        <div class="card-footer" style="display: flex; align-items: center; justify-content: space-between; margin-top: auto; padding-top: 8px; border-top: 1px solid #f5f5f5;">
 
+                            <div class="rating" style="font-size: 13px; display: flex; align-items: center;">
+                                @{
+                                    double diem = (double)sanpham.SaoTrungBinh;
+                                    double diemLamTron = Math.Round(diem * 2, MidpointRounding.AwayFromZero) / 2;
+
+                                    int saoDay = (int)diemLamTron;
+                                    bool coSaoRuoi = (diemLamTron - saoDay) > 0;
+                                }
+
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= saoDay)
+                                    {
+                                        // Sao đầy (Vàng)
+                                        <i class="fa-solid fa-star text-yellow-400"></i>
+                                    }
+                                    else if (i == saoDay + 1 && coSaoRuoi)
+                                    {
+                                        // Sao rưỡi (Vàng một nửa)
+                                        <i class="fa-solid fa-star-half-stroke text-yellow-400"></i>
+                                    }
+                                    else
+                                    {
+                                        // Sao rỗng (Xám)
+                                        <i class="fa-solid fa-star text-gray-300"></i>
+                                    }
+                                }
+
+                                @if (diem > 0)
+                                {
+                                    <span style="font-weight: bold; color: #333; margin-left: 6px; font-size: 13px;">@diem.ToString("0.0")</span>
+                                }
+                            </div>
+
+                            <div class="sold-count" style="font-size: 12px; color: #888;">
+                                (@sanpham.SoLuotDanhGia đánh giá)
+                            </div>
+                        </div>
                     </div>
 
                 }
@@ -639,46 +725,7 @@
         }
     }
 </script>
-<style>
-    /* 1. Tùy chỉnh thanh trượt (đường kẻ ngang) */
-    .noUi-target {
-        height: 6px !important; /* Độ dày thanh ngang */
-        border: none !important; /* Bỏ viền mặc định */
-        background: #E5E7EB !important; /* Màu nền xám nhạt */
-        box-shadow: none !important; /* Bỏ bóng đổ */
-        margin-top: 10px; /* Khoảng cách so với ô nhập liệu */
-    }
 
-    /* 2. Màu của đoạn đã chọn (Màu đỏ Fahasa) */
-    .noUi-connect {
-        background: #C92127 !important;
-    }
-
-    /* 3. Tùy chỉnh nút kéo (Hình tròn) */
-    .noUi-horizontal .noUi-handle {
-        width: 20px !important; /* Chiều rộng cố định */
-        height: 20px !important; /* Chiều cao cố định (bằng chiều rộng để tròn) */
-        right: -10px !important; /* Căn giữa tâm nút (bằng 1/2 chiều rộng) */
-        top: -7px !important; /* Căn chỉnh chiều dọc cho cân đối với thanh ngang */
-
-        background: #C92127 !important; /* Nền đỏ */
-        border: 2px solid white !important; /* Viền trắng bao quanh */
-        border-radius: 50% !important; /* Bo tròn 100% */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important; /* Bóng đổ nhẹ cho đẹp */
-        cursor: pointer;
-    }
-
-    /* 4. Ẩn 2 vạch kẻ sọc mặc định xấu xí trên nút kéo */
-    .noUi-handle:before, .noUi-handle:after {
-        display: none !important;
-    }
-
-    .hhh {
-        color: var(--primary-red);
-        font-size: 18px;
-        font-weight: 700;
-    }
-</style>
 <script>
     document.addEventListener("DOMContentLoaded", function () {
         var slider = document.getElementById('slider-price');
@@ -787,10 +834,40 @@
         });
     });
     @functions {
-                        public string ShortText(string text, int length = 20)
-                        {
-                                            if (string.IsNullOrEmpty(text)) return "";
-                                            return text.Length > length ? text.Substring(0, length) + "..." : text;
-                        }
+            public string ShortText(string text, int length = 20)
+            {
+                   if (string.IsNullOrEmpty(text)) return "";
+                   return text.Length > length ? text.Substring(0, length) + "..." : text;
+            }
     }
+</script>
+
+
+<script>
+    // Chức năng đóng/mở bộ lọc
+    document.addEventListener("DOMContentLoaded", function () {
+        // Lấy tất cả các tiêu đề bộ lọc
+        const toggles = document.querySelectorAll(".toggle-filter");
+
+        toggles.forEach(toggle => {
+            toggle.addEventListener("click", function () {
+                // 1. Tìm nội dung bên dưới (filter-content)
+                const content = this.nextElementSibling;
+
+                // 2. Tìm icon mũi tên bên trong
+                const icon = this.querySelector("i");
+
+                // 3. Kiểm tra trạng thái và đóng/mở
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                    // Xoay mũi tên lên (mặc định)
+                    icon.style.transform = "rotate(0deg)";
+                } else {
+                    content.style.display = "none";
+                    // Xoay mũi tên xuống
+                    icon.style.transform = "rotate(180deg)";
+                }
+            });
+        });
+    });
 </script>

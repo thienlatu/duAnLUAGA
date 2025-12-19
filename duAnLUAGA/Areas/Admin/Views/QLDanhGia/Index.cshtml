@@ -92,6 +92,7 @@
             background: #1d4ed8;
             color: white;
         }
+
     .thumb-img {
         width: 50px;
         height: 50px;
@@ -213,6 +214,7 @@
             <th>Trạng thái</th>
             <th>Thao tác</th>
             <th>Chức Năng</th>
+            <th>Xóa</th>
         </tr>
     </thead>
 
@@ -231,10 +233,24 @@
                 <td><span>@ShortText(item.ShopPhanHoi, 20)</span></td>
                 <td>@item.NgayPhanHoi</td>
                 <td>
+                <td>
                     @if (!string.IsNullOrEmpty(item.HinhAnh))
                     {
-                        <img src="/images/reviews/@item.HinhAnh" class="thumb-img" />
+                        @* Trường hợp 1: Có tên ảnh trong DB -> Thử hiện ảnh *@
+                        @* Thêm sự kiện onerror: Nếu ảnh lỗi (không tìm thấy file), tự ẩn ảnh đi và hiện chữ "Không có" *@
+                        <img src="/images/reviews/@item.HinhAnh"
+                             class="thumb-img"
+                             onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-block';" />
+
+                        @* Thẻ span này mặc định ẩn, chỉ hiện lên khi ảnh bị lỗi *@
+                        <span style="display:none; color: #999; font-style: italic; font-size: 13px;">Không có</span>
                     }
+                    else
+                    {
+                        @* Trường hợp 2: Dữ liệu trong DB là Null hoặc Rỗng *@
+                        <span style="color: #999; font-style: italic; font-size: 13px;">Không có</span>
+                    }
+                </td>
                 </td>
                 <td>
                     @if (item.TrangThai)
@@ -261,7 +277,7 @@
                        asp-action="Xoa"
                        asp-route-id="@item.Id"
                        class="btn btn-sm btn-danger
-                               ">
+                                   ">
                         Xóa
                     </a>
                 </td>
@@ -331,11 +347,11 @@
 
 <script>
         @functions {
-                    public string ShortText(string text, int length = 20)
-                    {
-                                    if (string.IsNullOrEmpty(text)) return "";
-                                    return text.Length > length ? text.Substring(0, length) + "..." : text;
-                    }
+                        public string ShortText(string text, int length = 20)
+                        {
+                                            if (string.IsNullOrEmpty(text)) return "";
+                                            return text.Length > length ? text.Substring(0, length) + "..." : text;
+                        }
     }
 
 </script>

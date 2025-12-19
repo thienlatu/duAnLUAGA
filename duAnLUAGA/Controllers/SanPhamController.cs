@@ -15,9 +15,10 @@ namespace duAnLUAGA.Controllers
         {
             _context = context;
         }
-
+        // Hàm tính toán giá sau khi giảm.
         private static decimal GiamGia(decimal giaBanGoc, int? phanTramGiam)
         {
+            // Kiểm tra: Nếu không có % giảm, hoặc % <= 0, hoặc % >= 100 (vô lý) thì giữ nguyên giá gốc
             if (!phanTramGiam.HasValue || phanTramGiam.Value <= 0 || phanTramGiam.Value >= 100)
             {
                 return giaBanGoc;
@@ -30,7 +31,7 @@ namespace duAnLUAGA.Controllers
             var sanPhamsQuery = _context.Sanphams.AsQueryable();
             sanPhamsQuery = sanPhamsQuery.Where(s => s.TrangThai == "Còn hàng" || s.TrangThai == "Hết Hàng");
 
-
+            // 2. XỬ LÝ CÁC BỘ LỌC
             if (!string.IsNullOrEmpty(searchString))
             {
                 sanPhamsQuery = sanPhamsQuery.Where(s => s.TenSanPham.Contains(searchString));
@@ -49,6 +50,7 @@ namespace duAnLUAGA.Controllers
                 sanPhamsQuery = sanPhamsQuery.Where(s => s.Gia <= max.Value);
             }
 
+            // 3. XỬ LÝ SẮP XẾP
             ViewData["CurrentSort"] = sortOrder;
             ViewData["PriceSortParm"] = sortOrder == "GiaTang" ? "GiaGiam" : "GiaTang";
             switch (sortOrder)
@@ -63,7 +65,7 @@ namespace duAnLUAGA.Controllers
                     sanPhamsQuery = sanPhamsQuery.OrderByDescending(s => s.MaSp);
                     break;
             }
-
+            // 4. CHỌN LỌC DỮ LIỆU ĐỂ HIỂN THỊ
             var sanPhamsViewModelQuery = sanPhamsQuery
                 .Select(s => new
                 {
@@ -76,11 +78,15 @@ namespace duAnLUAGA.Controllers
                     s.MaDm,
                     s.SoLuong,
                     s.TrangThai,
-                    GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam)
+                    GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam),
+                    SaoTrungBinh = s.Danhgia.Any() ? s.Danhgia.Average(dg => (double?)dg.SoSao) ?? 0 : 0,
+                    SoLuotDanhGia = s.Danhgia.Count()
                 });
+            // 5. THỰC THI TRUY VẤN
             var sanPhamsViewModel = await sanPhamsViewModelQuery.ToListAsync();
             ViewBag.DanhSachSanPhamHienThi = sanPhamsViewModel;
-            // Phần Danh Mục giữ nguyên
+
+            // 6. LẤY DỮ LIỆU PHỤ (DANH MỤC)
             var danhMucs = await _context.Danhmucs
                 .Select(d => new duAnLUAGA.ViewModel.DanhMucVM
                 {
@@ -93,42 +99,13 @@ namespace duAnLUAGA.Controllers
             {
                 DanhSachDanhMuc = danhMucs
             };
-
+            // 7. LƯU TRẠNG THÁI HIỆN TẠI (STATE)
             ViewData["CurrentDm"] = madm;
             ViewData["CurrentSearch"] = searchString;
             ViewBag.MinPrice = min;
             ViewBag.MaxPrice = max;
 
             return View(viewModel);
-        }
-        [HttpGet]
-        public async Task<IActionResult> SearchLive(string query)
-        {
-            
-            if (string.IsNullOrEmpty(query)) return Json(new { success = false });
-            var products = await _context.Sanphams
-                .Where(p => p.TenSanPham.Contains(query) && (p.TrangThai == "Còn hàng" || p.TrangThai == "Hết Hàng"))
-                .Select(p => new
-                {
-                    p.MaSp,
-                    p.TenSanPham,
-                    p.HinhDaiDien,
-                    p.Gia,
-                    p.PhanTramGiam
-                })
-                .Take(5)
-                .ToListAsync();
-
-        
-            var result = products.Select(p => new {
-                id = p.MaSp,
-                ten = p.TenSanPham,
-                hinh = p.HinhDaiDien,
-            
-                giaBan = GiamGia(p.Gia, p.PhanTramGiam)
-            });
-
-            return Json(new { success = true, data = result });
         }
     }
 }

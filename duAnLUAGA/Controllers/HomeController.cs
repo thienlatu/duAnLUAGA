@@ -96,6 +96,9 @@ namespace duAnLUAGA.Controllers
                     s.TacGia,
                     s.MaDm,
                     s.SoLuong,
+                    s.TrangThai,
+                    SaoTrungBinh = s.Danhgia.Any() ? s.Danhgia.Average(bl => bl.SoSao) : 0,
+                    SoLuotDanhGia = s.Danhgia.Count(),
                     GiaSauGiam = GiamGia(s.Gia, s.PhanTramGiam)
                 });
 
@@ -107,7 +110,7 @@ namespace duAnLUAGA.Controllers
             var sanPhamNgauNhien = await _context.Sanphams
                 .Where(s => s.TrangThai.ToLower().Equals("còn hàng"))
                 .OrderBy(s => Guid.NewGuid())
-                .Take(4)
+                .Take(8)
                 .ToListAsync();
 
             var sanPhamNgauNhientViewModel = sanPhamNgauNhien.Select(s => new

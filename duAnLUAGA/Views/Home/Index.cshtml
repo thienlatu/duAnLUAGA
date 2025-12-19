@@ -217,8 +217,6 @@
         margin-top: -0.25rem !important;
     }
 </style>
-<br />
-<hr />
 <div class="random-section-wrapper">
     <div class="random-title-container">
         <h2 class="random-title">Gợi Ý Cho Bạn</h2>
@@ -506,6 +504,7 @@
         padding: 40px;
     }
 
+    /* Container giữ nguyên để căn giữa */
     .random-btn-more-container {
         display: flex;
         justify-content: center;
@@ -514,36 +513,28 @@
         width: 100%;
     }
 
+    /* === NÚT ĐÃ CHỈNH SỬA === */
     .random-btn-more {
         display: inline-flex;
         align-items: center;
-        border: 2px solid red;
-        gap: 10px;
-        padding: 15px 40px;
+        justify-content: center;
+        gap: 8px; /* Khoảng cách giữa chữ và icon */
+        padding: 10px 25px; /* Giảm padding để nút nhỏ lại (Cũ: 15px 40px) */
         background-color: white;
-        color: red;
-        font-size: 16px;
-        font-weight: 700;
+        border: 1px solid #C92127; /* Viền mỏng hơn (1px) và màu đỏ đẹp hơn */
+        color: #C92127; /* Màu chữ đồng bộ với viền */
+        font-size: 14px; /* Chữ nhỏ lại một chút cho tinh tế */
+        font-weight: 600;
         text-decoration: none;
-        border-radius: 15px;
+        border-radius: 50px; /* Bo tròn hoàn toàn (Pill shape) */
         text-transform: uppercase;
-        letter-spacing: 0.5px;
-        box-shadow: none !important; /* ✔ XÓA BÓNG */
+        transition: all 0.3s ease; /* Hiệu ứng chuyển động mượt */
     }
 
         .random-btn-more:hover {
-            background: var(--primary-red);
+            background: #C92127; /* Đổi nền khi di chuột */
             color: white;
-            transform: translateY(-3px);
-            box-shadow: none !important; /* ✔ XÓA BÓNG */
-        }
-
-        .random-btn-more i {
-            transition: transform 0.3s ease;
-        }
-
-        .random-btn-more:hover i {
-            transform: translateX(5px);
+            transform: translateY(-2px); /* Nút nảy lên nhẹ */
         }
 
 

@@ -79,25 +79,40 @@
                         </div>
                     }
                 </div>
-                <div class="grid grid-cols-5 gap-2 mb-6 px-2">
-                    <div class="cursor-pointer border border-fahasa-red rounded-sm p-1 active-thumb"
-                         onclick="changeImage(this, '/image/@sanpham.HinhDaiDien')">
-                        <img src="~/image/@sanpham.HinhDaiDien"
-                             class="w-full h-full object-cover"
-                             alt="Ảnh đại diện @sanpham.TenSanPham">
-                    </div>
-                    @foreach (var hinh in Model.DanhSachHinhAnh)
-                    {
-                        <div class="cursor-pointer border border-transparent hover:border-gray-300 rounded-sm p-1"
-                             onclick="changeImage(this, '/image/@hinh.TenHinhAnh')">
-                            <img src="/image/@hinh.TenHinhAnh"
+                <div class="relative group mt-4">
+                    <button onclick="navigateGallery(-1)"
+                            class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-gray-400 hover:bg-gray-500 text-white p-2 rounded-full shadow-lg transition-opacity duration-300">
+                        <i class="fa-solid fa-chevron-left"></i>
+                    </button>
+                    <div id="thumbSlider"
+                         class="flex gap-2 px-1 overflow-x-auto scroll-smooth hide-scrollbar pb-2">
+                        <div class="cursor-pointer border border-fahasa-red rounded-sm p-1 active-thumb flex-shrink-0 w-20 h-20 transition-all hover:opacity-80"
+                             onclick="changeImage(this, '/image/@sanpham.HinhDaiDien')">
+                            <img src="~/image/@sanpham.HinhDaiDien"
                                  class="w-full h-full object-cover"
-                                 alt="">
+                                 alt="Ảnh đại diện @sanpham.TenSanPham">
                         </div>
-                    }
+                        @foreach (var hinh in Model.DanhSachHinhAnh)
+                        {
+                            <div class="cursor-pointer border border-transparent hover:border-gray-300 rounded-sm p-1 flex-shrink-0 w-20 h-20 transition-all hover:opacity-80"
+                                 onclick="changeImage(this)">
+                                <img src="/image/@hinh.TenHinhAnh"
+                                     class="w-full h-full object-cover"
+                                     alt="">
+                            </div>
+                        }
+                    </div>
+                    <button onclick="navigateGallery(1)"
+                            class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-gray-400 hover:bg-gray-500 text-white p-2 rounded-full shadow-lg transition-opacity duration-300">
+                        <i class="fa-solid fa-chevron-right"></i>
+                    </button>
                 </div>
 
-                @if (sanpham.SoLuong > 0 && sanpham.TrangThai != "Hết hàng")
+                @if (sanpham.SoLuong == 0 || sanpham.TrangThai == "Hết hàng")
+                {
+                    <span class="text-danger nnn">Hết hàng</span>
+                }
+                else
                 {
                     <div class="grid grid-cols-2 gap-3 mb-6">
                         <button id="btnAddToCartDetail"
@@ -106,14 +121,10 @@
                                 class="flex items-center justify-center space-x-2 border-2 border-fahasa-red text-fahasa-red font-bold py-3 rounded-lg bg-white hover:bg-red-50">
                             <i class="fa-solid fa-cart-shopping text-xl"></i> <span>Thêm giỏ hàng</span>
                         </button>
-                        <button onclick="globalBuyNow(event, @sanpham.MaSp)" class="bg-fahasa-red text-white font-bold py-3 rounded-lg hover:bg-red-700 shadow-md">
+                        <button class="bg-fahasa-red text-white font-bold py-3 rounded-lg hover:bg-red-700 shadow-md">
                             Mua ngay
                         </button>
                     </div>
-                }
-                else
-                {
-                    <span class="text-danger nnn">Hết hàng</span>
                 }
             </div>
 
@@ -271,10 +282,19 @@
             <div class="mt-4 flex justify-end">
                 @if (User.Identity.IsAuthenticated)
                 {
-                    <button onclick="openModal()"
-                            class="px-6 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition shadow-md">
-                        📝 Viết đánh giá của bạn
-                    </button>
+                    if (ViewBag.DaDanhGia == true)
+                    {
+                        <div class="px-6 py-2 bg-gray-100 text-gray-500 rounded font-semibold border border-gray-300 cursor-not-allowed">
+                            Bạn đã đánh giá sản phẩm này
+                        </div>
+                    }
+                    else
+                    {
+                        <button onclick="openModal()"
+                                class="px-6 py-2 bg-blue-600 text-white rounded font-semibold hover:bg-blue-700 transition shadow-md">
+                            Viết đánh giá của bạn
+                        </button>
+                    }
                 }
                 else
                 {
@@ -320,27 +340,31 @@
 
                     @* ẢNH ĐÍNH KÈM *@
                     @{
-                        if (!string.IsNullOrEmpty(binhluan.HinhAnh))
+                        // 1. Xử lý và lọc danh sách ảnh hợp lệ
+                        var validImages = !string.IsNullOrEmpty(binhluan.HinhAnh)
+                        ? binhluan.HinhAnh.Split(new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries)
+                        .Select(x => x.Trim())
+                        .Where(x => !string.IsNullOrEmpty(x))
+                        .ToArray()
+                        : Array.Empty<string>();
+
+                        // 2. CHỈ HIỂN THỊ KHI CÓ ẢNH (Length > 0)
+                        // Nếu không có ảnh, khối lệnh này bị bỏ qua -> Web sẽ ẩn luôn phần này.
+                        if (validImages.Length > 0)
                         {
-                            string[] arrHinhAnh = binhluan.HinhAnh.Split(
-                            new char[] { ',', ';' }, StringSplitOptions.RemoveEmptyEntries);
-
-                            if (arrHinhAnh.Length > 0)
+                            const string basePath = "/images/reviews/";
+                            foreach (var fileName in validImages)
                             {
-                                const string basePath = "/images/reviews/";
-
-                                foreach (var fileName in arrHinhAnh)
-                                {
-                                    string fullImageUrl = basePath + fileName.Trim();
-
-                                    <div class="rv-media-item mt-2">
-                                        Hình Ảnh:
-                                        <img src="@fullImageUrl"
-                                             alt="Ảnh đính kèm"
-                                             class="w-20 h-20 object-cover rounded-md border border-gray-200"
-                                             onclick="openLightbox('@fullImageUrl')">
-                                    </div>
-                                }
+                                string fullImageUrl = basePath + fileName;
+                                <div class="rv-media-item mt-2">
+                                    <div class="text-sm font-semibold text-gray-600 mb-1">Hình Ảnh:</div>
+                                    <img src="@fullImageUrl"
+                                         alt="Ảnh đính kèm"
+                                         class="w-20 h-20 object-cover rounded-md border border-gray-200 cursor-pointer hover:opacity-80 transition"
+                                         onclick="openLightbox('@fullImageUrl')"
+                                         onerror="this.parentElement.style.display='none';">
+                                    @* Thêm onerror để nếu ảnh lỗi link thì ẩn luôn cả div cha *@
+                                </div>
                             }
                         }
                     }
@@ -366,17 +390,6 @@
         <button onclick="closeModal()" class="absolute top-4 right-4 text-gray-400 hover:text-gray-600 text-xl">&times;</button>
 
         <h3 class="text-xl font-bold mb-4 text-center text-gray-800">Viết đánh giá sản phẩm</h3>
-
-        @* ALERT thành công *@
-        @if (TempData["SuccessMessage"] != null)
-        {
-            <script>
-                window.onload = function () {
-                    var msg = '@Html.Raw(TempData["SuccessMessage"])';
-                    alert(msg);
-                };
-            </script>
-        }
 
         @* Lỗi chung khác (nếu có) *@
         @if (TempData["ErrorMessage"] != null)
@@ -493,139 +506,192 @@
     </div>
 </div>
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
     <partial name="_ValidationScriptsPartial" />
 
     <script>
-        // mở modal lại khi có lỗi
-        window.addEventListener('load', () => {
-            if ('@ViewBag.OpenReviewModal' === 'True') {
-                openModal();
+        // --- 1. XỬ LÝ THÔNG BÁO (SWEETALERT2) ---
+        document.addEventListener('DOMContentLoaded', () => {
+            // Hiển thị thông báo thành công
+            var successMsg = '@Html.Raw(TempData["SuccessMessage"])';
+            if (successMsg && successMsg.length > 0) {
+                Swal.fire({
+                    title: 'Thành công!',
+                    text: successMsg,
+                    icon: 'success',
+                    confirmButtonText: 'Tuyệt vời',
+                    confirmButtonColor: '#C92127',
+                    timer: 3000,
+                    timerProgressBar: true
+                });
+            }
+
+            // Hiển thị thông báo lỗi
+            var errorMsg = '@Html.Raw(TempData["ErrorMessage"])';
+            if (errorMsg && errorMsg.length > 0) {
+                Swal.fire({
+                    title: 'Rất tiếc...',
+                    text: errorMsg,
+                    icon: 'error',
+                    confirmButtonText: 'Đóng',
+                    confirmButtonColor: '#C92127'
+                });
             }
         });
 
-        // chọn sao
-        document.querySelectorAll('#starRating i').forEach(star => {
-            star.addEventListener('click', function () {
-                let value = this.dataset.value;
+        // --- 2. LOGIC ẢNH VÀ CÁC CHỨC NĂNG KHÁC ---
+        let allImages = [];
+        let currentIndex = 0;
 
-                document.getElementById('ratingValue').value = value;
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Khởi tạo danh sách ảnh
+            const thumbDivs = document.querySelectorAll('#thumbSlider > div');
 
-                document.querySelectorAll('#starRating i').forEach((s, i) => {
-                    if (i < value) s.classList.add('text-yellow-400');
-                    else s.classList.remove('text-yellow-400');
-                });
+            thumbDivs.forEach((div, index) => {
+                const img = div.querySelector('img');
+                if (img) {
+                    allImages.push({
+                        src: img.getAttribute('src') || img.src,
+                        alt: img.alt || "",
+                        element: div
+                    });
+                    div.setAttribute('data-index', index);
+                }
             });
-        });
-    </script>
 
-    <script>
-        // JS cho tăng giảm số lượng
+            // 2. Mặc định chọn ảnh đầu tiên
+            if (allImages.length > 0) {
+                setActiveImage(0);
+            }
+
+            // 3. Khởi tạo Modal, Filter...
+            if ('@ViewBag.OpenReviewModal' === 'True') openModal();
+            initFilterButtons();
+            initStarRating();
+        });
+
+        // --- HÀM SET ACTIVE IMAGE ---
+        function setActiveImage(index) {
+            if (index < 0 || index >= allImages.length) return;
+
+            currentIndex = index;
+            const imageData = allImages[index];
+
+            // Đổi ảnh chính
+            const mainImage = document.getElementById('mainImage');
+            if (mainImage) {
+                let imgSrc = imageData.src.replace('~', '');
+                mainImage.src = imgSrc;
+                mainImage.alt = imageData.alt || "Ảnh sản phẩm";
+            }
+
+            // Xử lý viền thumbnails
+            const thumbnails = document.querySelectorAll('#thumbSlider > div');
+            thumbnails.forEach(t => {
+                t.classList.remove('active-thumb', 'border-fahasa-red');
+                t.classList.add('border-transparent', 'hover:border-gray-300');
+            });
+
+            // Active ảnh hiện tại
+            if (imageData.element) {
+                imageData.element.classList.add('active-thumb', 'border-fahasa-red');
+                imageData.element.classList.remove('border-transparent', 'hover:border-gray-300');
+
+                imageData.element.scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest',
+                    inline: 'center'
+                });
+            }
+        }
+
+        // --- SỰ KIỆN CLICK ---
+        function changeImage(thumbnailElement) {
+            const index = parseInt(thumbnailElement.getAttribute('data-index'));
+            if (!isNaN(index)) {
+                setActiveImage(index);
+            }
+        }
+
+        function navigateGallery(direction) {
+            let newIndex = currentIndex + direction;
+            if (newIndex >= allImages.length) newIndex = 0;
+            if (newIndex < 0) newIndex = allImages.length - 1;
+            setActiveImage(newIndex);
+        }
+
+        // --- CÁC HÀM TIỆN ÍCH ---
+        function openMainImage() {
+            const mainImage = document.getElementById('mainImage');
+            if(mainImage) window.open(mainImage.src, '_blank');
+        }
+
         function updateQty(change) {
             const qtyInput = document.getElementById('qty');
-            let currentQty = parseInt(qtyInput.value);
-            // Đã sử dụng Optional Chaining (?) để tránh lỗi nếu sanpham là null
+            let currentQty = parseInt(qtyInput.value) || 1;
             let maxQty = @(sanpham?.SoLuong > 0 ? sanpham.SoLuong : 1);
-
             let newQty = currentQty + change;
-
-            if (newQty < 1) {
-                newQty = 1;
-            } else if (newQty > maxQty) {
-                newQty = maxQty;
-            }
-
+            if (newQty < 1) newQty = 1;
+            if (newQty > maxQty) newQty = maxQty;
             qtyInput.value = newQty;
         }
 
-        // JS cho Modal (Giữ nguyên)
-        function openModal() {
-            document.getElementById('reviewModal').classList.remove('hidden');
-        }
+        // --- CÁC HÀM REVIEW ---
+        function openModal() { document.getElementById('reviewModal')?.classList.remove('hidden'); }
+        function closeModal() { document.getElementById('reviewModal')?.classList.add('hidden'); }
 
-        function closeModal() {
-            document.getElementById('reviewModal').classList.add('hidden');
-        }
-
-        // Logic cho Đánh giá sao trong Modal (Giữ nguyên)
-        document.getElementById('starRating').addEventListener('click', function(e) {
-            if (e.target.tagName === 'I') {
-                const rating = parseInt(e.target.dataset.value);
-                document.getElementById('ratingValue').value = rating;
-
-                this.querySelectorAll('i').forEach(star => {
-                    if (parseInt(star.dataset.value) <= rating) {
-                        star.classList.remove('text-gray-300');
-                        star.classList.add('text-yellow-400');
-                    } else {
-                        star.classList.remove('text-yellow-400');
-                        star.classList.add('text-gray-300');
-                    }
+        function initFilterButtons() {
+            document.querySelectorAll('.rv-filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.rv-filter-btn').forEach(b => b.classList.remove('rv-active'));
+                    this.classList.add('rv-active');
+                    const star = this.getAttribute("data-star");
+                    document.querySelectorAll(".rv-item").forEach(item => {
+                        const itemStar = item.getAttribute("data-star");
+                        item.style.display = (star === "0" || itemStar === star) ? "block" : "none";
+                    });
                 });
-            }
-        });
-
-
-
-        // Logic xử lý upload ảnh (Giữ nguyên)
-        function handleImageUpload(input) {
-            const files = input.files;
-            const preview = document.getElementById('imagePreview');
-            const error = document.getElementById('uploadError');
-
-            if (files.length > 3) {
-                error.classList.remove('hidden');
-                input.value = '';
-                preview.innerHTML = '';
-                return;
-            }
-            error.classList.add('hidden');
-            preview.innerHTML = '';
-
-            Array.from(files).forEach(file => {
-                const reader = new FileReader();
-                reader.onload = function (e) {
-                    const img = document.createElement('img');
-                    img.src = e.target.result;
-                    img.className = 'w-16 h-16 object-cover rounded border border-gray-200';
-                    preview.appendChild(img);
-                }
-                reader.readAsDataURL(file);
             });
         }
 
-
-        // Hàm mở Lightbox
-        function openLightbox(imageUrl) {
-            const lightbox = document.getElementById('imageLightbox');
-            const lightboxImage = document.getElementById('lightboxImage');
-
-            lightboxImage.src = imageUrl; // Đặt nguồn ảnh cho modal
-            lightbox.classList.remove('hidden'); // Hiển thị modal
-            document.body.style.overflow = 'hidden'; // Ngăn cuộn nền
+        function initStarRating() {
+            const starRating = document.getElementById('starRating');
+            if(starRating){
+                starRating.addEventListener('click', function(e) {
+                    if (e.target.tagName === 'I') {
+                        const rating = parseInt(e.target.dataset.value);
+                        document.getElementById('ratingValue').value = rating;
+                        this.querySelectorAll('i').forEach(star => {
+                            if (parseInt(star.dataset.value) <= rating) {
+                                star.classList.remove('text-gray-300'); star.classList.add('text-yellow-400');
+                            } else {
+                                star.classList.remove('text-yellow-400'); star.classList.add('text-gray-300');
+                            }
+                        });
+                    }
+                });
+            }
         }
 
-        // Hàm đóng Lightbox
-        function closeLightbox() {
-            const lightbox = document.getElementById('imageLightbox');
-            lightbox.classList.add('hidden'); // Ẩn modal
-            document.body.style.overflow = ''; // Cho phép cuộn lại
-        }
-            function previewSelectedImage(input) {
+        function previewSelectedImage(input) {
             const preview = document.getElementById("imagePreview");
-            preview.innerHTML = ""; // Xóa preview cũ
-
+            preview.innerHTML = "";
             if (input.files && input.files[0]) {
-                const file = input.files[0];
-
-                // Tạo thẻ ảnh nhỏ
                 const img = document.createElement("img");
-                img.src = URL.createObjectURL(file);
+                img.src = URL.createObjectURL(input.files[0]);
                 img.className = "w-20 h-20 object-cover rounded border";
-
                 preview.appendChild(img);
             }
         }
 
+        function openLightbox(url) {
+            const lb = document.getElementById('imageLightbox');
+            const img = document.getElementById('lightboxImage');
+            if(lb && img) { img.src = url; lb.classList.remove('hidden'); }
+        }
+        function closeLightbox() { document.getElementById('imageLightbox')?.classList.add('hidden'); }
+        function scrollToRating() { document.getElementById("ratingSection")?.scrollIntoView({ behavior: "smooth" }); }
         // --- [FLASH SALE] SCRIPT ĐẾM NGƯỢC (CHÈN THÊM) ---
         const endTimeInput = document.getElementById('fs-end-time');
         if (endTimeInput) {
@@ -659,7 +725,6 @@
         // ----------------------------------------------------
     </script>
 }
-
 @functions {
     // Hàm Helper C# để chuyển đổi số sao thành chuỗi ký tự sao (★)
     public string RenderStars(int? soSao)

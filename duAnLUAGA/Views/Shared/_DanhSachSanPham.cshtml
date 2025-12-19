@@ -7,7 +7,6 @@
 }
 
 <style>
-    /* === GIỮ NGUYÊN CSS CŨ CỦA BẠN === */
     * {
         box-sizing: border-box;
         margin: 0;
@@ -18,7 +17,7 @@
         font-family: 'Roboto', sans-serif;
         background-color: #f3f4f6;
         color: #444;
-        font-size: 25px;
+        font-size: 16px; /* Chỉnh lại font size chuẩn cho dễ đọc */
     }
 
     a {
@@ -43,11 +42,10 @@
         --border-color: #e0e0e0;
     }
 
-    /* ... (Copy toàn bộ phần CSS Style từ file cũ vào đây để đảm bảo giao diện giống hệt) ... */
-    /* Để tiết kiệm không gian tôi rút gọn phần CSS, bạn hãy paste lại đoạn CSS từ file gốc vào đây nhé */
-
+    /* === 1. CHỈNH SỬA CONTAINER CHO RỘNG RA === */
     .container {
-        max-width: 1200px;
+        /* Đã tăng từ 1200px lên 1450px để lấp đầy khoảng trống 2 bên */
+        max-width: 1450px;
         margin: 0 auto;
         padding: 20px 10px;
         display: flex;
@@ -61,7 +59,8 @@
         background: var(--bg-white);
         border-radius: 8px;
         padding: 15px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        /* Bỏ bóng mờ sidebar cho đồng bộ thiết kế phẳng */
+        border: 1px solid #eee;
     }
 
     .filter-header {
@@ -144,41 +143,6 @@
             font-weight: 500;
         }
 
-    .price-slider-bar {
-        height: 4px;
-        background: #ddd;
-        margin-top: 15px;
-        position: relative;
-        border-radius: 2px;
-    }
-
-    .price-slider-active {
-        position: absolute;
-        left: 0;
-        right: 50%;
-        height: 100%;
-        background: var(--primary-red);
-    }
-
-    .slider-knob {
-        width: 14px;
-        height: 14px;
-        background: var(--primary-red);
-        border-radius: 50%;
-        position: absolute;
-        top: -5px;
-        cursor: pointer;
-        box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-    }
-
-        .slider-knob.left {
-            left: 0;
-        }
-
-        .slider-knob.right {
-            right: 50%;
-        }
-
     .main-content {
         flex: 1;
     }
@@ -192,7 +156,7 @@
         justify-content: space-between;
         align-items: center;
         font-size: 14px;
-        box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        border: 1px solid #eee;
     }
 
     .result-text b {
@@ -221,27 +185,33 @@
     .product-grid {
         display: grid;
         grid-template-columns: repeat(4, 1fr);
-        gap: 12px;
+        gap: 15px; /* Tăng khoảng cách một chút */
     }
 
+
+    /* === PRODUCT CARD === */
     .product-card {
         background: var(--bg-white);
         border-radius: 8px;
-        padding: 12px;
+        padding: 15px;
         position: relative;
-        transition: transform 0.2s, box-shadow 0.2s;
+        /* QUAN TRỌNG: Đặt viền mặc định là trong suốt */
         border: 1px solid transparent;
         display: flex;
         flex-direction: column;
         height: 100%;
         overflow: hidden;
+        /* Hiệu ứng chuyển màu viền mượt mà trong 0.3s */
+        transition: border-color 0.3s ease;
     }
 
+        /* === HOVER EFFECT === */
         .product-card:hover {
-            box-shadow: 0 4px 15px rgba(0,0,0,0.15);
-            transform: translateY(-2px);
+            /* Khi hover: Viền đổi sang màu đỏ */
+            border-color: var(--primary-red);
+            /* Tắt bóng mờ để nhìn gọn gàng hơn (theo ý bạn) */
+            box-shadow: none;
             z-index: 10;
-            border-color: #eee;
         }
 
     .badge-discount {
@@ -250,44 +220,34 @@
         left: 0;
         background: var(--primary-red);
         color: white;
-        font-size: 11px;
-        padding: 3px 8px;
+        font-size: 12px;
+        padding: 4px 10px;
         border-bottom-right-radius: 8px;
         font-weight: bold;
         z-index: 2;
     }
 
-    .badge-installment {
-        position: absolute;
-        top: 10px;
-        right: 10px;
-        background: #f1f1f1;
-        color: #333;
-        font-size: 10px;
-        padding: 2px 6px;
-        border-radius: 4px;
-        z-index: 2;
-    }
-
     .card-img-wrapper {
-        height: 200px;
+        height: 240px; /* Tăng chiều cao khung ảnh lên để ảnh to hơn [cite: 46] */
         display: flex;
         align-items: center;
         justify-content: center;
-        margin-bottom: 10px;
-        padding: 10px;
+        margin-bottom: 15px;
+        padding: 5px;
+        overflow: hidden; /* Bắt buộc để khi zoom ảnh không bị tràn ra ngoài */
     }
 
     .card-img {
         max-height: 100%;
         max-width: 100%;
         object-fit: contain;
-        transition: transform 0.3s;
-        box-shadow: 2px 2px 8px rgba(0,0,0,0.1);
+        transition: transform 0.4s ease; /* Làm mượt hiệu ứng zoom */
+        box-shadow: none; /* Xóa bóng mờ của ảnh gốc [cite: 48] */
     }
 
+    /* HIỆU ỨNG ZOOM ẢNH: Chỉ phóng to ảnh khi hover */
     .product-card:hover .card-img {
-        transform: scale(1.05);
+        transform: scale(1.15); /* Tăng độ phóng to lên 1.15 cho rõ [cite: 49] */
     }
 
     .card-info {
@@ -297,7 +257,7 @@
     }
 
     .card-name {
-        font-size: 14px;
+        font-size: 15px; /* Tăng font chữ tên sách */
         font-weight: 500;
         color: #333;
         margin-bottom: 5px;
@@ -305,7 +265,7 @@
         display: -webkit-box;
         -webkit-box-orient: vertical;
         overflow: hidden;
-        height: 40px;
+        height: 42px;
         transition: color 0.2s;
     }
 
@@ -314,9 +274,9 @@
     }
 
     .card-author {
-        font-size: 12px;
+        font-size: 13px;
         color: #777;
-        margin-bottom: 8px;
+        margin-bottom: 10px;
         white-space: nowrap;
         overflow: hidden;
         text-overflow: ellipsis;
@@ -326,54 +286,39 @@
         margin-bottom: 8px;
         display: flex;
         align-items: baseline;
-        gap: 8px;
+        gap: 10px;
     }
 
     .price-current {
         color: var(--primary-red);
-        font-size: 16px;
+        font-size: 18px; /* Giá to hơn */
         font-weight: 700;
     }
 
     .price-old {
-        font-size: 12px;
+        font-size: 13px;
         color: #999;
         text-decoration: line-through;
     }
-
-    .promo-box {
-        background: #f8f9fa;
-        border: 1px solid #eee;
-        border-radius: 4px;
-        padding: 5px;
-        font-size: 11px;
-        color: #555;
-        margin-bottom: 10px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-    }
-
-        .promo-box i {
-            color: var(--primary-red);
-        }
 
     .card-footer {
         margin-top: auto;
         display: flex;
         justify-content: space-between;
         align-items: center;
-        padding-top: 8px;
+        padding-top: 10px;
         border-top: 1px solid #f5f5f5;
     }
 
     .rating {
-        font-size: 11px;
+        font-size: 12px;
         color: #ffc107;
+        display: flex;
+        align-items: center;
     }
 
     .sold-count {
-        font-size: 11px;
+        font-size: 12px;
         color: #888;
     }
 
@@ -382,12 +327,12 @@
         background: white;
         border: 1px solid var(--primary-red);
         color: var(--primary-red);
-        padding: 6px;
+        padding: 8px; /* Nút to hơn xíu */
         border-radius: 4px;
-        font-weight: 500;
-        font-size: 13px;
+        font-weight: 600;
+        font-size: 14px;
         cursor: pointer;
-        margin-top: 8px;
+        margin-top: 10px;
         transition: all 0.2s;
         display: flex;
         align-items: center;
@@ -400,282 +345,36 @@
             color: white;
         }
 
-    .pagination {
-        margin-top: 30px;
-        display: flex;
-        justify-content: center;
-        gap: 5px;
-    }
-
-    .page-btn {
-        width: 32px;
-        height: 32px;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        border: 1px solid #ddd;
-        border-radius: 4px;
-        background: white;
-        cursor: pointer;
-        color: #555;
-    }
-
-        .page-btn.active {
-            background: var(--primary-red);
-            color: white;
-            border-color: var(--primary-red);
-        }
-
-    @@media (max-width: 992px) {
-        .sidebar {
-            display: none;
-        }
-
-        .product-grid {
-            grid-template-columns: repeat(3, 1fr);
-        }
-    }
-
-    @@media (max-width: 576px) {
-        .product-grid {
-            grid-template-columns: repeat(2, 1fr);
-        }
-
-        .sort-bar {
-            flex-direction: column;
-            align-items: flex-start;
-            gap: 10px;
-        }
-
-        .sort-options {
-            flex-wrap: wrap;
-            width: 100%;
-            justify-content: space-between;
-        }
-    }
-</style>
-<div class="container">
-    <aside class="sidebar">
-        <div class="filter-header">
-            <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm
-        </div>
-        <div class="filter-group mb-4">
-            <div class="filter-title font-bold mb-2 flex justify-between items-center">
-                Mức giá <i class="fa-solid fa-chevron-up"></i>
-            </div>
-
-            <p style="margin-top: 10px; font-size: 12px; color: #666;">Nhập khoảng giá:</p>
-
-            <div class="price-inputs flex items-center gap-2 mb-4">
-                <input type="number" id="input-min" class="border rounded px-2 py-1 w-full text-sm" placeholder="Thấp nhất">
-                <span>-</span>
-                <input type="number" id="input-max" class="border rounded px-2 py-1 w-full text-sm" placeholder="Cao nhất">
-            </div>
-
-            <div id="slider-price" class="mb-4 mx-2"></div>
-
-            <button onclick="applyFilter()"
-                    class="w-full bg-[#C92127] text-white py-1.5 rounded text-sm font-bold hover:bg-red-700 transition">
-                Áp dụng
-            </button>
-        </div>
-
-
-
-        <!-- Danh mục (Đã thay thế cho Nhà xuất bản) -->
-        <div class="filter-group">
-            <div class="filter-title">
-                Danh mục <i class="fa-solid fa-chevron-up"></i>
-            </div>
-
-            <ul class="filter-list">
-                @if (ViewBag.DanhSachDanhMuc != null)
-                {
-                    foreach (var item in ViewBag.DanhSachDanhMuc)
-                    {
-                        bool isChecked = (ViewData["CurrentDm"] as int?) == item.MaDm;
-
-                        <li>
-                            <input type="checkbox"
-                                   id="dm-@item.MaDm"
-                                   value="@item.MaDm"
-                                   @(isChecked ? "checked" : "")
-                                   onchange="filterByCategory(this)">
-
-                            <label for="dm-@item.MaDm" style="cursor: pointer;">@item.TenDanhMuc</label>
-
-                            <span class="count">(@item.Sanphams.Count)</span>
-                        </li>
-                    }
-                }
-            </ul>
-        </div>
-    </aside>
-
-    <main class="main-content">
-        <div class="sort-bar">
-            <div class="sort-options">
-                @{
-                    string currentSort = ViewData["CurrentSort"]?.ToString();
-                }
-
-                <span class="sort-item @(currentSort == "GiaTang" ? "active" : "")"
-                      onclick="sortProducts('GiaTang')">
-                    Giá thấp đến cao
-                </span>
-
-                <span class="sort-item @(currentSort == "GiaGiam" ? "active" : "")"
-                      onclick="sortProducts('GiaGiam')">
-                    Giá cao đến thấp
-                </span>
-
-                <span class="sort-item @(string.IsNullOrEmpty(currentSort) ? "active" : "")"
-                      onclick="sortProducts('')">
-                    Mới nhất
-                </span>
-            </div>
-        </div>
-
-        <div class="product-grid" id="productGrid">
-            @if (ViewBag.DanhSachSanPhamHienThi != null)
-            {
-                @foreach (var sanpham in ViewBag.DanhSachSanPhamHienThi)
-                {
-                    bool coGiamGia = sanpham.PhanTramGiam > 0;
-
-                    string hinhAnh = !string.IsNullOrEmpty(sanpham.HinhDaiDien)
-                    ? sanpham.HinhDaiDien
-                    : "https://placehold.co/300x450/f0f0f0/333?text=No+Image";
-
-                    <div class="product-card">
-
-                        <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@sanpham.MaSp" class="card-link">
-
-                            <div class="card-img-wrapper">
-                                <img src="~/image/@hinhAnh" alt="@ShortText(@sanpham.TenSanPham, 20)" class="card-img">
-
-                                @if (coGiamGia)
-                                {
-                                    <div class="badge-discount">
-                                        -@sanpham.PhanTramGiam%
-                                    </div>
-                                }
-                            </div>
-
-                            <div class="card-info">
-                                <h3 class="card-name" title="@sanpham.TenSanPham"><span>@ShortText(@sanpham.TenSanPham, 20)</span></h3>
-
-                                <div class="card-author">Tác giả: @sanpham.TacGia</div>
-
-                                <div class="card-price-group">
-                                    @if (coGiamGia)
-                                    {
-                                        <div class="price-current">
-                                            @sanpham.GiaSauGiam.ToString("#,##0")đ
-                                        </div>
-                                        <div class="price-old">
-                                            @sanpham.Gia.ToString("#,##0")đ
-                                        </div>
-                                    }
-                                    else
-                                    {
-                                        <div class="price-current">
-                                            @sanpham.Gia.ToString("#,##0")đ
-                                        </div>
-                                    }
-                                </div>
-
-                                <div class="card-footer">
-                                </div>
-
-                            </div>
-
-                        </a>
-
-                        @* Nút giỏ hàng để dưới, không nằm trong <a> *@
-                        @if (sanpham.SoLuong > 0)
-                        {
-                            <button class="btn-cart"
-                                    type="button"
-                                    data-masp="@sanpham.MaSp">
-                                <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
-                            </button>
-
-                        }
-                        else
-                        {
-                            <span class="text-danger">Hết hàng</span>
-                        }
-
-                    </div>
-                }
-            }
-            else
-            {
-                <p>Không tìm thấy sản phẩm nào.</p>
-            }
-        </div>
-
-        <div class="random-btn-more-container">
-            <a href="@Url.Action("Index", "SanPham")" class="random-btn-more">
-                Xem thêm sản phẩm
-                <i class="fa-solid fa-arrow-right"></i>
-            </a>
-        </div>
-    </main>
-</div>
-<script>
-    function filterByCategory(checkbox) {
-        // URL base do server sinh ra, đảm bảo đúng route
-        var baseUrl = '@Url.Action("Index", "Home")';
-
-        if (checkbox.checked) {
-            window.location.href = baseUrl + '?madm=' + checkbox.value;
-        } else {
-            window.location.href = baseUrl; // quay lại trang chủ không lọc
-        }
-    }
-</script>
-<style>
-    /* 1. Tùy chỉnh thanh trượt (đường kẻ ngang) */
+    /* CSS cho thanh trượt giá (NoUiSlider) */
     .noUi-target {
-        height: 6px !important; /* Độ dày thanh ngang */
-        border: none !important; /* Bỏ viền mặc định */
-        background: #E5E7EB !important; /* Màu nền xám nhạt */
-        box-shadow: none !important; /* Bỏ bóng đổ */
-        margin-top: 10px; /* Khoảng cách so với ô nhập liệu */
+        height: 6px !important;
+        border: none !important;
+        background: #E5E7EB !important;
+        box-shadow: none !important;
+        margin-top: 10px;
     }
 
-    /* 2. Màu của đoạn đã chọn (Màu đỏ Fahasa) */
     .noUi-connect {
         background: #C92127 !important;
     }
 
-    /* 3. Tùy chỉnh nút kéo (Hình tròn) */
     .noUi-horizontal .noUi-handle {
-        width: 20px !important; /* Chiều rộng cố định */
-        height: 20px !important; /* Chiều cao cố định (bằng chiều rộng để tròn) */
-        right: -10px !important; /* Căn giữa tâm nút (bằng 1/2 chiều rộng) */
-        top: -7px !important; /* Căn chỉnh chiều dọc cho cân đối với thanh ngang */
-
-        background: #C92127 !important; /* Nền đỏ */
-        border: 2px solid white !important; /* Viền trắng bao quanh */
-        border-radius: 50% !important; /* Bo tròn 100% */
-        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important; /* Bóng đổ nhẹ cho đẹp */
+        width: 20px !important;
+        height: 20px !important;
+        right: -10px !important;
+        top: -7px !important;
+        background: #C92127 !important;
+        border: 2px solid white !important;
+        border-radius: 50% !important;
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2) !important;
         cursor: pointer;
     }
 
-    /* 4. Ẩn 2 vạch kẻ sọc mặc định xấu xí trên nút kéo */
     .noUi-handle:before, .noUi-handle:after {
         display: none !important;
     }
 
-    .hhh {
-        color: var(--primary-red);
-        font-size: 18px;
-        font-weight: 700;
-    }
-
+    /* CSS Nút xem thêm */
     .random-btn-more-container {
         display: flex;
         justify-content: center;
@@ -716,82 +415,269 @@
             transform: translateX(5px);
         }
 
-    /* Message rỗng */
-    .random-empty-message {
-        grid-column: 1 / -1;
-        text-align: center;
-        color: #999;
-        font-size: 16px;
-        padding: 40px;
+    /* Responsive */
+    @@media (max-width: 1200px) {
+        .container {
+            max-width: 100%;
+            padding: 20px;
+        }
+    }
+
+    @@media (max-width: 992px) {
+        .sidebar {
+            display: none;
+        }
+
+        .product-grid {
+            grid-template-columns: repeat(3, 1fr);
+        }
+    }
+
+    @@media (max-width: 576px) {
+        .product-grid {
+            grid-template-columns: repeat(2, 1fr);
+        }
+
+        .sort-bar {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 10px;
+        }
     }
 </style>
+
+<div class="container">
+    <aside class="sidebar">
+        <div class="filter-header">
+            <i class="fa-solid fa-filter"></i> Bộ lọc tìm kiếm
+        </div>
+
+        <div class="filter-group mb-4">
+            <div class="filter-title font-bold mb-2 flex justify-between items-center cursor-pointer">
+                Mức giá <i class="fa-solid fa-chevron-up transition-transform duration-300"></i>
+            </div>
+            <div class="filter-content">
+                <p style="margin-top: 10px; font-size: 12px; color: #666;">Nhập khoảng giá:</p>
+                <div class="price-inputs flex items-center gap-2 mb-4">
+                    <input type="number" id="input-min" class="border rounded px-2 py-1 w-full text-sm" placeholder="Thấp nhất">
+                    <span>-</span>
+                    <input type="number" id="input-max" class="border rounded px-2 py-1 w-full text-sm" placeholder="Cao nhất">
+                </div>
+                <div id="slider-price" class="mb-4 mx-2"></div>
+                <button onclick="applyFilter()"
+                        class="w-full bg-[#C92127] text-white py-1.5 rounded text-sm font-bold hover:bg-red-700 transition">
+                    Áp dụng
+                </button>
+            </div>
+        </div>
+
+        <div class="filter-group">
+            <div class="filter-title font-bold mb-2 flex justify-between items-center cursor-pointer">
+                Danh mục <i class="fa-solid fa-chevron-up transition-transform duration-300"></i>
+            </div>
+            <ul class="filter-list filter-content">
+                @if (ViewBag.DanhSachDanhMuc != null)
+                {
+                    foreach (var item in ViewBag.DanhSachDanhMuc)
+                    {
+                        bool isChecked = (ViewData["CurrentDm"] as int?) == item.MaDm;
+                        <li>
+                            <input type="checkbox"
+                                   id="dm-@item.MaDm"
+                                   value="@item.MaDm"
+                                   @(isChecked ? "checked" : "")
+                                   onchange="filterByCategory(this)">
+                            <label for="dm-@item.MaDm" style="cursor: pointer;">@item.TenDanhMuc</label>
+                            <span class="count">(@item.Sanphams.Count)</span>
+                        </li>
+                    }
+                }
+            </ul>
+        </div>
+    </aside>
+
+    <main class="main-content">
+        <div class="sort-bar">
+            <div class="sort-options">
+                @{
+                    string currentSort = ViewData["CurrentSort"]?.ToString();
+                }
+                <span class="sort-item @(currentSort == "GiaTang" ? "active" : "")" onclick="sortProducts('GiaTang')">Giá thấp đến cao</span>
+                <span class="sort-item @(currentSort == "GiaGiam" ? "active" : "")" onclick="sortProducts('GiaGiam')">Giá cao đến thấp</span>
+                <span class="sort-item @(string.IsNullOrEmpty(currentSort) ? "active" : "")" onclick="sortProducts('')">Mới nhất</span>
+            </div>
+        </div>
+
+        <div class="product-grid" id="productGrid">
+            @if (ViewBag.DanhSachSanPhamHienThi != null)
+            {
+                @foreach (var sanpham in ViewBag.DanhSachSanPhamHienThi)
+                {
+                    bool coGiamGia = sanpham.PhanTramGiam > 0;
+                    string hinhAnh = !string.IsNullOrEmpty(sanpham.HinhDaiDien)
+                    ? sanpham.HinhDaiDien
+                    : "https://placehold.co/300x450/f0f0f0/333?text=No+Image";
+
+                    <div class="product-card">
+                        <a asp-controller="ChiTSP" asp-action="Index" asp-route-id="@sanpham.MaSp" class="card-link">
+                            <div class="card-img-wrapper">
+                                <img src="~/image/@hinhAnh" alt="@ShortText(@sanpham.TenSanPham, 20)" class="card-img">
+                                @if (coGiamGia)
+                                {
+                                    <div class="badge-discount">-@sanpham.PhanTramGiam%</div>
+                                }
+                            </div>
+                            <div class="card-info">
+                                <h3 class="card-name" title="@sanpham.TenSanPham"><span>@ShortText(@sanpham.TenSanPham, 20)</span></h3>
+                                <div class="card-author">Tác giả: @sanpham.TacGia</div>
+                                <div class="card-price-group">
+                                    @if (coGiamGia)
+                                    {
+                                        <div class="price-current">@sanpham.GiaSauGiam.ToString("#,##0")đ</div>
+                                        <div class="price-old">@sanpham.Gia.ToString("#,##0")đ</div>
+                                    }
+                                    else
+                                    {
+                                        <div class="price-current">@sanpham.Gia.ToString("#,##0")đ</div>
+                                    }
+                                </div>
+                            </div>
+                        </a>
+
+                        @if (sanpham.SoLuong == 0 || sanpham.TrangThai == "Hết hàng")
+                        {
+                            <span class="text-danger">Hết hàng</span>
+                        }
+                        else
+                        {
+                            <button class="btn-cart"
+                                    type="button"
+                                    data-masp="@sanpham.MaSp">
+                                <i class="fa-solid fa-cart-plus"></i> Thêm giỏ hàng
+                            </button>
+                        }
+                        <div class="card-footer">
+                            <div class="rating">
+                                @{
+                                    double diem = (double)sanpham.SaoTrungBinh;
+                                    double diemLamTron = Math.Round(diem * 2, MidpointRounding.AwayFromZero) / 2;
+                                    int saoDay = (int)diemLamTron;
+                                    bool coSaoRuoi = (diemLamTron - saoDay) > 0;
+                                }
+                                @for (int i = 1; i <= 5; i++)
+                                {
+                                    if (i <= saoDay)
+                                    {
+                                        <i class="fa-solid fa-star text-yellow-400"></i>
+                                    }
+                                    else if (i == saoDay + 1 && coSaoRuoi)
+                                    {
+                                        <i class="fa-solid fa-star-half-stroke text-yellow-400"></i>
+                                    }
+                                    else
+                                    {
+                                        <i class="fa-solid fa-star text-gray-300"></i>
+                                    }
+                                }
+                                @if (diem > 0)
+                                {
+                                    <span style="font-weight: bold; color: #333; margin-left: 6px; font-size: 13px;">@diem.ToString("0.0")</span>
+                                }
+                            </div>
+                            <div class="sold-count">(@sanpham.SoLuotDanhGia đánh giá)</div>
+                        </div>
+
+                    </div>
+                }
+            }
+            else
+            {
+                <p>Không tìm thấy sản phẩm nào.</p>
+            }
+        </div>
+
+        <div class="random-btn-more-container">
+            <a href="@Url.Action("Index", "SanPham")" class="random-btn-more">
+                Xem thêm sản phẩm <i class="fa-solid fa-arrow-right"></i>
+            </a>
+        </div>
+    </main>
+</div>
+
 <script>
-        document.addEventListener("DOMContentLoaded", function () {
+    function filterByCategory(checkbox) {
+        var baseUrl = '@Url.Action("Index", "Home")';
+        if (checkbox.checked) {
+            window.location.href = baseUrl + '?madm=' + checkbox.value;
+        } else {
+            window.location.href = baseUrl;
+        }
+    }
+
+    document.addEventListener("DOMContentLoaded", function () {
         var slider = document.getElementById('slider-price');
         var inputMin = document.getElementById('input-min');
         var inputMax = document.getElementById('input-max');
 
-        // Lấy giá hiện tại từ ViewBag (controller gửi về)
         var currentMin = @((ViewBag.MinPrice ?? 0));
         var currentMax = @((ViewBag.MaxPrice ?? 1000000));
 
         noUiSlider.create(slider, {
             start: [currentMin, currentMax],
             connect: true,
-            range: {
-                'min': 0,
-                'max': 1000000
-            },
+            range: { 'min': 0, 'max': 1000000 },
             step: 10000,
-            format: {
-                to: v => Math.round(v),
-                from: v => Number(v)
-            }
+            format: { to: v => Math.round(v), from: v => Number(v) }
         });
 
         slider.noUiSlider.on('update', function (values, handle) {
             if (handle === 0) inputMin.value = values[0];
             else inputMax.value = values[1];
         });
-
         inputMin.addEventListener('change', function () {
             slider.noUiSlider.set([this.value, null]);
         });
-
         inputMax.addEventListener('change', function () {
             slider.noUiSlider.set([null, this.value]);
+        });
+
+        // Toggle Filter
+        const toggles = document.querySelectorAll(".filter-title");
+        toggles.forEach(toggle => {
+            toggle.addEventListener("click", function () {
+                const content = this.nextElementSibling;
+                const icon = this.querySelector("i");
+                if (content.style.display === "none") {
+                    content.style.display = "block";
+                    icon.style.transform = "rotate(0deg)";
+                } else {
+                    content.style.display = "none";
+                    icon.style.transform = "rotate(180deg)";
+                }
+            });
         });
     });
 
     function applyFilter() {
         var min = document.getElementById('input-min').value;
         var max = document.getElementById('input-max').value;
-
         var urlParams = new URLSearchParams(window.location.search);
         urlParams.set('min', min);
         urlParams.set('max', max);
-
         window.location.search = urlParams.toString();
     }
-
-
-
 
     function sortProducts(criteria) {
         var urlParams = new URLSearchParams(window.location.search);
-
-        if (criteria) {
-            urlParams.set('sortOrder', criteria);
-        } else {
-            urlParams.delete('sortOrder');
-        }
+        if (criteria) urlParams.set('sortOrder', criteria);
+        else urlParams.delete('sortOrder');
         window.location.search = urlParams.toString();
     }
     @functions {
-                            public string ShortText(string text, int length = 20)
-                            {
-                                                    if (string.IsNullOrEmpty(text)) return "";
-                                                    return text.Length > length ? text.Substring(0, length) + "..." : text;
-                            }
+                        public string ShortText(string text, int length = 20)
+                        {
+                                            if (string.IsNullOrEmpty(text)) return "";
+                                            return text.Length > length ? text.Substring(0, length) + "..." : text;
+                        }
     }
 </script>
